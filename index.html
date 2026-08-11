@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>POS รับซื้อของเก่า - Minimal Cute Edition</title>
+    <title>POS รับซื้อของเก่า - Admin Locked Edition</title>
     <style>
-        /* โทนสีมินิมอลนุ่มนวล (Soft Pastel Minimal Theme) */
         :root {
             --bg-color: #F8F9FA;
             --card-bg: #FFFFFF;
@@ -23,7 +22,7 @@
             --radius-md: 14px;
         }
 
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Thai", "Chakra Petch", sans-serif; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Thai", sans-serif; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         body { background-color: var(--bg-color); color: var(--text-dark); padding: 16px; display: flex; flex-direction: column; gap: 16px; height: 100vh; overflow: hidden; }
 
         @media (min-width: 768px) {
@@ -32,17 +31,13 @@
             .right-panel { flex: 1; display: flex; flex-direction: column; }
         }
 
-        /* ส่วนหัวและแท็บเมนู */
-        .nav-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
-        .tab-btn { background: #E2E8F0; border: none; padding: 10px 16px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; color: #4A5568; transition: 0.2s; }
-        .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.2); }
-
+        /* Header ฝั่งซ้าย */
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .panel-header h2 { font-size: 18px; font-weight: 700; color: var(--text-dark); }
-        .btn-sub { background: #EDF2F7; border: none; padding: 8px 12px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-dark); }
-        .btn-sub.active { background: #FDCB6E; color: #2D3436; }
+        .btn-admin { background: #EDF2F7; border: none; padding: 8px 12px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-dark); display: flex; align-items: center; gap: 4px; }
+        .btn-admin.unlocked { background: #FDCB6E; color: #2D3436; }
 
-        /* การ์ดสินค้ามินิมอล */
+        /* ตารางสินค้า */
         .grid-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 12px; overflow-y: auto; padding-bottom: 10px; }
         .product-card { 
             background: var(--card-bg); border-radius: var(--radius-md); padding: 10px; text-align: center; 
@@ -56,16 +51,15 @@
         .btn-remove-prod { display: none; position: absolute; top: -6px; right: -6px; background: var(--accent-red); color: white; border-radius: 50%; width: 22px; height: 22px; font-weight: bold; line-height: 22px; text-align: center; font-size: 12px; }
         .edit-mode .btn-remove-prod { display: block; }
 
-        /* ส่วนฝั่งขวา (ตารางคิดเงิน / หน้ารายงาน) */
+        /* ส่วนคิดเงิน */
         .right-panel { background: var(--card-bg); border-radius: var(--radius-lg); padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid var(--border-color); }
-        
         .cart-container { flex-grow: 1; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; font-size: 12px; color: var(--text-muted); font-weight: 600; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         td { padding: 10px 2px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
         
         .item-name { font-weight: 600; font-size: 14px; }
-        input[type="number"], input[type="text"] { 
+        input[type="number"], input[type="text"], input[type="password"] { 
             padding: 8px; font-size: 15px; text-align: center; 
             border: 1px solid var(--border-color); border-radius: 8px; background: #F7FAFC; color: var(--text-dark); font-weight: 600;
         }
@@ -75,7 +69,6 @@
         .item-total { font-weight: 700; font-size: 15px; text-align: right; }
         .btn-delete { color: var(--accent-red); font-size: 18px; cursor: pointer; text-align: center; width: 28px; }
 
-        /* ส่วนรวมเงินสุทธิ */
         .summary-card { background: var(--accent-green-bg); border-radius: var(--radius-md); padding: 14px; margin-top: 14px; display: flex; justify-content: space-between; align-items: center; }
         .summary-label { font-size: 14px; color: var(--accent-green); font-weight: 600; }
         .summary-amount { font-size: 28px; font-weight: 800; color: #006241; }
@@ -86,15 +79,9 @@
         }
         .btn-pay:active { opacity: 0.9; transform: scale(0.98); }
 
-        /* หน้าจอสรุปรายงาน (Report View) */
-        .report-view { display: none; flex-direction: column; height: 100%; gap: 10px; }
-        .report-actions { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-        .btn-export { background: #E2E8F0; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
-        .report-table-wrapper { flex-grow: 1; overflow-y: auto; }
-
-        /* Modal หน้าต่างป๊อปอัพ */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); justify-content: center; align-items: center; z-index: 100; }
-        .modal-content { background: white; border-radius: var(--radius-lg); padding: 20px; width: 90%; max-width: 360px; display: flex; flex-direction: column; gap: 12px; }
+        /* Modal / Popups */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 100; }
+        .modal-content { background: white; border-radius: var(--radius-lg); padding: 20px; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 12px; }
         .modal-content h3 { font-size: 16px; font-weight: 700; }
         .modal-content input { width: 100%; text-align: left; }
         .modal-btns { display: flex; gap: 8px; margin-top: 6px; }
@@ -102,9 +89,14 @@
         .btn-save { background: var(--primary); color: white; }
         .btn-cancel { background: #EDF2F7; color: var(--text-dark); }
 
+        /* เมนูการตั้งค่า Admin */
+        .admin-section { display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 12px; }
+        .report-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .btn-export { background: #E2E8F0; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+
         @media print {
             body { background: white; padding: 0; }
-            .left-panel, .btn-pay, .btn-delete, .nav-tabs, th:last-child, td:last-child { display: none !important; }
+            .left-panel, .btn-pay, .btn-delete, .btn-admin, th:last-child, td:last-child { display: none !important; }
             .right-panel { box-shadow: none; width: 100%; padding: 0; }
             input[type="number"] { border: none; background: transparent; padding: 0; width: 40px; text-align: left; }
         }
@@ -112,29 +104,18 @@
 </head>
 <body>
 
-    <!-- ฝั่งซ้าย: หน้าขาย/สินค้า -->
+    <!-- ฝั่งซ้าย: หน้าเลือกสินค้า -->
     <div class="left-panel">
-        <div class="nav-tabs">
-            <button class="tab-btn active" id="tabPOS" onclick="switchView('pos')">🛒 หน้าขายรับซื้อ</button>
-            <button class="tab-btn" id="tabReport" onclick="switchView('report')">📊 สรุปรายรับ-จ่าย (30 วัน)</button>
+        <div class="panel-header">
+            <h2>รายการรับซื้อ</h2>
+            <button class="btn-admin" id="btnAdminTrigger" onclick="openAdminAuth()">🔒 ตั้งค่า / รายงาน</button>
         </div>
-
-        <div id="posLeftView">
-            <div class="panel-header">
-                <h2>รายการสินค้า</h2>
-                <div>
-                    <button class="btn-sub" id="btnEditMode" onclick="toggleEditMode()">⚙️ จัดการสินค้า</button>
-                    <button class="btn-sub" id="btnAddProd" style="display:none; background:var(--primary); color:white;" onclick="openModal()">+ เพิ่ม</button>
-                </div>
-            </div>
-            <div class="grid-products" id="productGrid"></div>
-        </div>
+        <div class="grid-products" id="productGrid"></div>
     </div>
 
-    <!-- ฝั่งขวา: ตารางคิดเงิน หรือ หน้ารายงาน -->
+    <!-- ฝั่งขวา: คิดเงิน -->
     <div class="right-panel">
-        <!-- หน้าต่างคิดเงิน POS -->
-        <div id="posRightView" style="display: flex; flex-direction: column; height: 100%;">
+        <div style="display: flex; flex-direction: column; height: 100%;">
             <div class="panel-header">
                 <h2>รายการคิดเงิน</h2>
             </div>
@@ -160,35 +141,65 @@
             </div>
             <button class="btn-pay" onclick="completeTransaction()">บันทึกจ่ายเงิน & พิมพ์ใบเสร็จ</button>
         </div>
+    </div>
 
-        <!-- หน้าต่างสรุปรายงาน (30 วัน) -->
-        <div id="reportRightView" class="report-view">
-            <div class="panel-header">
-                <h2>สรุปยอดซื้อขายย้อนหลัง</h2>
-            </div>
-
-            <div class="report-actions">
-                <button class="btn-export" onclick="setReportMode('daily')">📅 แยกตามวัน</button>
-                <button class="btn-export" onclick="setReportMode('items')">📦 แยกตามสินค้า (กก./บาท)</button>
-                <button class="btn-export" style="background:#00B894; color:white;" onclick="exportCSV('daily')">📥 โหลดรายงานวัน (CSV)</button>
-                <button class="btn-export" style="background:#0984E3; color:white;" onclick="exportCSV('monthly')">📥 โหลดรายงานเดือน (CSV)</button>
-            </div>
-
-            <div class="report-table-wrapper">
-                <table>
-                    <thead>
-                        <tr id="reportTh">
-                            <!-- JS จะใส่หัวตารางตามโหมดที่เลือก -->
-                        </tr>
-                    </thead>
-                    <tbody id="reportTb"></tbody>
-                </table>
+    <!-- Modal ยืนยันรหัสผ่าน PIN -->
+    <div class="modal" id="pinModal">
+        <div class="modal-content" style="max-width: 300px; text-align: center;">
+            <h3>🔑 กรอกรหัสผ่านผู้จัดการ</h3>
+            <p style="font-size: 12px; color: var(--text-muted);">ป้อนรหัส 6 หลักเพื่อเข้าส่วนข้อมูลลับ</p>
+            <input type="password" id="pinInput" maxlength="6" inputmode="numeric" style="text-align: center; font-size: 24px; letter-spacing: 8px; margin: 10px 0;">
+            <div class="modal-btns">
+                <button class="btn-cancel" onclick="closePinModal()">ยกเลิก</button>
+                <button class="btn-save" onclick="verifyPin()">ยืนยัน</button>
             </div>
         </div>
     </div>
 
-    <!-- หน้าต่างป๊อปอัพเพิ่มสินค้า -->
-    <div class="modal" id="prodModal">
+    <!-- Modal หน้าต่างจัดการ Admin (เพิ่ม/ลบสินค้า & ดูรายงาน) -->
+    <div class="modal" id="adminModal">
+        <div class="modal-content" style="max-width: 500px; max-height: 85vh; overflow-y: auto;">
+            <div class="panel-header">
+                <h3>⚙️ เมนูผู้จัดการ (Admin)</h3>
+                <button class="btn-sub" onclick="lockAdmin()">🔒 ล็อกระบบ</button>
+            </div>
+
+            <!-- ส่วนจัดการสินค้า -->
+            <div class="admin-section">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <b style="font-size: 14px;">จัดการสินค้าและราคา</b>
+                    <button class="btn-sub" id="btnEditMode" onclick="toggleEditMode()">✏️ แก้ไขราคา/รูป</button>
+                    <button class="btn-sub" style="background:var(--primary); color:white;" onclick="openAddProdModal()">+ เพิ่มสินค้า</button>
+                </div>
+            </div>
+
+            <!-- ส่วนรายงานสรุป 30 วัน -->
+            <div class="admin-section" style="border:none; padding:0; margin:0;">
+                <b style="font-size: 14px; margin-bottom: 6px;">สรุปยอดขาย (30 วันย้อนหลัง)</b>
+                <div class="report-actions">
+                    <button class="btn-export" onclick="setReportMode('daily')">📅 แยกตามวัน</button>
+                    <button class="btn-export" onclick="setReportMode('items')">📦 แยกตามสินค้า</button>
+                    <button class="btn-export" style="background:#00B894; color:white;" onclick="exportCSV('daily')">📥 โหลด CSV วัน</button>
+                    <button class="btn-export" style="background:#0984E3; color:white;" onclick="exportCSV('monthly')">📥 โหลด CSV เดือน</button>
+                </div>
+                <div style="max-height: 200px; overflow-y: auto; margin-top: 10px;">
+                    <table>
+                        <thead>
+                            <tr id="reportTh"></tr>
+                        </thead>
+                        <tbody id="reportTb"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-btns" style="margin-top: 15px;">
+                <button class="btn-cancel" onclick="closeAdminModal()">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal เพิ่มสินค้าใหม่ -->
+    <div class="modal" id="addProdModal">
         <div class="modal-content">
             <h3>เพิ่มรายการสินค้าใหม่</h3>
             <label style="font-size: 12px; color: var(--text-muted);">ชื่อสินค้า</label>
@@ -198,17 +209,18 @@
             <input type="number" id="newProdPrice" step="0.5" inputmode="decimal" placeholder="0.00">
             
             <label style="font-size: 12px; color: var(--text-muted);">URL รูปภาพ</label>
-            <input type="text" id="newProdImg" placeholder="วางลิงก์รูปภาพที่นี่">
+            <input type="text" id="newProdImg" placeholder="วางลิงก์รูปภาพ">
             
             <div class="modal-btns">
-                <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
+                <button class="btn-cancel" onclick="closeAddProdModal()">ยกเลิก</button>
                 <button class="btn-save" onclick="saveNewProduct()">บันทึก</button>
             </div>
         </div>
     </div>
 
     <script>
-        // สินค้าตั้งต้น
+        const SECRET_PIN = "202923"; // รหัสผ่าน Admin
+
         const defaultProducts = [
             { id: 1, name: 'เหล็กรวม', price: 10.0, img: 'https://images.unsplash.com/photo-1535813547-99c456a41d4a?w=300' },
             { id: 2, name: 'ทองแดง A', price: 260.0, img: 'https://images.unsplash.com/photo-1589792923962-537704632910?w=300' },
@@ -221,6 +233,7 @@
         let historyData = JSON.parse(localStorage.getItem('my_pos_history')) || [];
         let cart = [];
         let isEditMode = false;
+        let isAdminLoggedIn = false;
         let currentReportMode = 'daily';
 
         function saveStorage() {
@@ -228,7 +241,7 @@
             localStorage.setItem('my_pos_history', JSON.stringify(historyData));
         }
 
-        // แสดงสินค้า
+        // แสดงรายการสินค้า
         function renderProducts() {
             const grid = document.getElementById('productGrid');
             grid.innerHTML = '';
@@ -245,19 +258,15 @@
             });
         }
 
-        // กดเลือกสินค้า / แก้ไขรูปและราคาในโหมดจัดการ
         function onProductClick(id) {
-            if (isEditMode) {
+            if (isEditMode && isAdminLoggedIn) {
                 const prod = products.find(p => p.id === id);
-                
-                // 1. แก้ไขราคา
-                const newPrice = prompt(`แก้ไขราคารับซื้อสำหรับ "${prod.name}" (บาท/กก.):`, prod.price);
+                const newPrice = prompt(`[Admin] แก้ไขราคาสำหรับ "${prod.name}" (บาท/กก.):`, prod.price);
                 if (newPrice !== null && !isNaN(parseFloat(newPrice))) {
                     prod.price = parseFloat(newPrice);
                 }
 
-                // 2. เปลี่ยนลิงก์รูปภาพ
-                const newImg = prompt(`วางลิงก์รูปภาพใหม่สำหรับ "${prod.name}":`, prod.img || '');
+                const newImg = prompt(`[Admin] วาง URL รูปภาพใหม่สำหรับ "${prod.name}":`, prod.img || '');
                 if (newImg !== null) {
                     prod.img = newImg.trim();
                 }
@@ -269,27 +278,66 @@
             }
         }
 
+        // ระบบตรวจสอบรหัสผ่าน
+        function openAdminAuth() {
+            if (isAdminLoggedIn) {
+                document.getElementById('adminModal').style.display = 'flex';
+                renderReport();
+            } else {
+                document.getElementById('pinInput').value = '';
+                document.getElementById('pinModal').style.display = 'flex';
+                setTimeout(() => document.getElementById('pinInput').focus(), 100);
+            }
+        }
+
+        function closePinModal() { document.getElementById('pinModal').style.display = 'none'; }
+
+        function verifyPin() {
+            const inputPin = document.getElementById('pinInput').value.trim();
+            if (inputPin === SECRET_PIN) {
+                isAdminLoggedIn = true;
+                closePinModal();
+                const btn = document.getElementById('btnAdminTrigger');
+                btn.innerText = '🔓 ปลดล็อกแล้ว';
+                btn.classList.add('unlocked');
+                document.getElementById('adminModal').style.display = 'flex';
+                renderReport();
+            } else {
+                alert('รหัสผ่านไม่ถูกต้อง!');
+                document.getElementById('pinInput').value = '';
+            }
+        }
+
+        function lockAdmin() {
+            isAdminLoggedIn = false;
+            if (isEditMode) toggleEditMode();
+            closeAdminModal();
+            const btn = document.getElementById('btnAdminTrigger');
+            btn.innerText = '🔒 ตั้งค่า / รายงาน';
+            btn.classList.remove('unlocked');
+            alert('ล็อกระบบเรียบร้อยแล้ว');
+        }
+
+        function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
+
         function toggleEditMode() {
+            if (!isAdminLoggedIn) return;
             isEditMode = !isEditMode;
             const btn = document.getElementById('btnEditMode');
-            const btnAdd = document.getElementById('btnAddProd');
             const grid = document.getElementById('productGrid');
 
             if (isEditMode) {
                 btn.innerText = 'เสร็จสิ้น';
-                btn.classList.add('active');
-                btnAdd.style.display = 'inline-block';
                 grid.classList.add('edit-mode');
             } else {
-                btn.innerText = '⚙️ จัดการสินค้า';
-                btn.classList.remove('active');
-                btnAdd.style.display = 'none';
+                btn.innerText = '✏️ แก้ไขราคา/รูป';
                 grid.classList.remove('edit-mode');
             }
         }
 
         function deleteProduct(e, id) {
             e.stopPropagation();
+            if (!isAdminLoggedIn) return;
             if (confirm('ลบรายการสินค้านี้ใช่หรือไม่?')) {
                 products = products.filter(p => p.id !== id);
                 saveStorage();
@@ -297,13 +345,11 @@
             }
         }
 
-        function openModal() { document.getElementById('prodModal').style.display = 'flex'; }
-        function closeModal() { 
-            document.getElementById('prodModal').style.display = 'none';
-            document.getElementById('newProdName').value = '';
-            document.getElementById('newProdPrice').value = '';
-            document.getElementById('newProdImg').value = '';
+        function openAddProdModal() {
+            if (!isAdminLoggedIn) return;
+            document.getElementById('addProdModal').style.display = 'flex';
         }
+        function closeAddProdModal() { document.getElementById('addProdModal').style.display = 'none'; }
 
         function saveNewProduct() {
             const name = document.getElementById('newProdName').value.trim();
@@ -311,17 +357,17 @@
             const img = document.getElementById('newProdImg').value.trim();
 
             if (!name || isNaN(price)) {
-                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                alert('กรุณากรอกข้อมูลให้ถูกต้อง');
                 return;
             }
 
             products.push({ id: Date.now(), name, price, img });
             saveStorage();
             renderProducts();
-            closeModal();
+            closeAddProdModal();
         }
 
-        // ระบบตารางคิดเงิน
+        // ฟังก์ชันระบบตารางคิดเงิน (สำหรับพนักงาน)
         function addToCart(id) {
             const product = products.find(p => p.id === id);
             cart.push({
@@ -373,7 +419,6 @@
             document.getElementById('totalAmount').innerText = grandTotal.toLocaleString('th-TH', {minimumFractionDigits: 2});
         }
 
-        // จ่ายเงิน + พิมพ์ใบเสร็จ + บันทึกประวัติ
         function completeTransaction() {
             if (cart.length === 0) {
                 alert('กรุณาเลือกรายการสินค้าก่อนครับ');
@@ -381,8 +426,8 @@
             }
 
             const now = new Date();
-            const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
-            const monthStr = dateStr.substring(0, 7); // YYYY-MM
+            const dateStr = now.toISOString().split('T')[0];
+            const monthStr = dateStr.substring(0, 7);
 
             let totalPayout = 0;
             const itemsBought = cart.map(i => {
@@ -391,10 +436,8 @@
                 return { name: i.name, weight: i.weight, price: i.price, total: sum };
             });
 
-            // พิมพ์สลิป
             window.print();
 
-            // บันทึกประวัติลง LocalStorage
             historyData.push({
                 id: Date.now(),
                 date: dateStr,
@@ -409,38 +452,24 @@
             alert('บันทึกการรับซื้อเรียบร้อยแล้ว');
         }
 
-        // สลับมุมมอง (หน้าขาย vs หน้ารายงาน)
-        function switchView(view) {
-            document.getElementById('tabPOS').classList.toggle('active', view === 'pos');
-            document.getElementById('tabReport').classList.toggle('active', view === 'report');
-
-            document.getElementById('posRightView').style.display = view === 'pos' ? 'flex' : 'none';
-            document.getElementById('reportRightView').style.display = view === 'report' ? 'flex' : 'none';
-
-            if (view === 'report') renderReport();
-        }
-
+        // ระบบรายงาน Admin
         function setReportMode(mode) {
             currentReportMode = mode;
             renderReport();
         }
 
-        // คำนวณสรุปรายงานย้อนหลัง 30 วัน
         function renderReport() {
+            if (!isAdminLoggedIn) return;
             const th = document.getElementById('reportTh');
             const tb = document.getElementById('reportTb');
             tb.innerHTML = '';
 
-            // กรองประวัติเฉพาะ 30 วันล่าสุด
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
             const recentHistory = historyData.filter(h => new Date(h.date) >= thirtyDaysAgo);
 
             if (currentReportMode === 'daily') {
                 th.innerHTML = `<th>วันที่</th><th style="text-align:right;">ยอดรวมจ่ายออก (บาท)</th>`;
-                
-                // สรุปรายวัน
                 const dailySummary = {};
                 recentHistory.forEach(h => {
                     dailySummary[h.date] = (dailySummary[h.date] || 0) + h.totalPayout;
@@ -456,14 +485,10 @@
                 });
             } else if (currentReportMode === 'items') {
                 th.innerHTML = `<th>รายการสินค้า</th><th style="text-align:center;">น้ำหนักรวม (กก.)</th><th style="text-align:right;">เงินรวม (บาท)</th>`;
-                
-                // สรุปแยกรายสินค้า
                 const itemSummary = {};
                 recentHistory.forEach(h => {
                     h.items.forEach(item => {
-                        if (!itemSummary[item.name]) {
-                            itemSummary[item.name] = { weight: 0, total: 0 };
-                        }
+                        if (!itemSummary[item.name]) itemSummary[item.name] = { weight: 0, total: 0 };
                         itemSummary[item.name].weight += item.weight;
                         itemSummary[item.name].total += item.total;
                     });
@@ -481,28 +506,19 @@
             }
         }
 
-        // ดาวน์โหลดรายงานเป็นไฟล์ CSV (นำไปเปิดใน Excel ได้)
         function exportCSV(type) {
-            let csvContent = "\uFEFF"; // BOM รองรับภาษาไทยใน Excel
-            
+            if (!isAdminLoggedIn) return;
+            let csvContent = "\uFEFF";
             if (type === 'daily') {
                 csvContent += "วันที่,ยอดจ่ายสุทธิ(บาท)\n";
                 const dailySummary = {};
-                historyData.forEach(h => {
-                    dailySummary[h.date] = (dailySummary[h.date] || 0) + h.totalPayout;
-                });
-                Object.keys(dailySummary).sort().forEach(date => {
-                    csvContent += `"${date}",${dailySummary[date]}\n`;
-                });
+                historyData.forEach(h => dailySummary[h.date] = (dailySummary[h.date] || 0) + h.totalPayout);
+                Object.keys(dailySummary).sort().forEach(date => csvContent += `"${date}",${dailySummary[date]}\n`);
             } else if (type === 'monthly') {
                 csvContent += "เดือน,ยอดจ่ายสุทธิ(บาท)\n";
                 const monthlySummary = {};
-                historyData.forEach(h => {
-                    monthlySummary[h.month] = (monthlySummary[h.month] || 0) + h.totalPayout;
-                });
-                Object.keys(monthlySummary).sort().forEach(m => {
-                    csvContent += `"${m}",${monthlySummary[m]}\n`;
-                });
+                historyData.forEach(h => monthlySummary[h.month] = (monthlySummary[h.month] || 0) + h.totalPayout);
+                Object.keys(monthlySummary).sort().forEach(m => csvContent += `"${m}",${monthlySummary[m]}\n`);
             }
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -514,7 +530,7 @@
             document.body.removeChild(link);
         }
 
-        // เริ่มต้นทำงาน
+        // เริ่มต้นระบบ
         renderProducts();
         renderCart();
     </script>
