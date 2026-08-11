@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>POS รับซื้อของเก่า - Admin Locked Edition</title>
+    <title>POS รับซื้อของเก่า - Complete Edition</title>
     <style>
         :root {
             --bg-color: #F8F9FA;
@@ -88,17 +88,24 @@
         .modal-btns button { flex: 1; padding: 10px; border-radius: 10px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; }
         .btn-save { background: var(--primary); color: white; }
         .btn-cancel { background: #EDF2F7; color: var(--text-dark); }
+        .btn-sub { background: #EDF2F7; border: none; padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text-dark); }
 
         /* เมนูการตั้งค่า Admin */
         .admin-section { display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 12px; }
         .report-actions { display: flex; gap: 6px; flex-wrap: wrap; }
         .btn-export { background: #E2E8F0; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
 
+        /* ตั้งค่ากระดาษสลิปใบเสร็จ Bluetooth (58mm/80mm) */
         @media print {
-            body { background: white; padding: 0; }
-            .left-panel, .btn-pay, .btn-delete, .btn-admin, th:last-child, td:last-child { display: none !important; }
-            .right-panel { box-shadow: none; width: 100%; padding: 0; }
-            input[type="number"] { border: none; background: transparent; padding: 0; width: 40px; text-align: left; }
+            @page { size: 58mm auto; margin: 0; }
+            body { background: white !important; padding: 2mm !important; margin: 0 !important; font-size: 12px !important; color: black !important; }
+            .left-panel, .btn-pay, .btn-delete, .btn-admin, .panel-header, th:last-child, td:last-child { display: none !important; }
+            .right-panel { box-shadow: none !important; border: none !important; width: 100% !important; padding: 0 !important; }
+            input[type="number"] { border: none !important; background: transparent !important; padding: 0 !important; width: auto !important; font-size: 12px !important; text-align: right !important; }
+            table { width: 100% !important; font-size: 11px !important; }
+            th, td { padding: 4px 0 !important; border-bottom: 1px dashed #000 !important; }
+            .summary-card { background: transparent !important; border-top: 2px solid #000 !important; border-bottom: 2px solid #000 !important; border-radius: 0 !important; padding: 8px 0 !important; margin-top: 8px !important; }
+            .summary-amount { font-size: 18px !important; color: black !important; }
         }
     </style>
 </head>
@@ -156,7 +163,7 @@
         </div>
     </div>
 
-    <!-- Modal หน้าต่างจัดการ Admin (เพิ่ม/ลบสินค้า & ดูรายงาน) -->
+    <!-- Modal หน้าต่างจัดการ Admin (หลังบ้าน) -->
     <div class="modal" id="adminModal">
         <div class="modal-content" style="max-width: 500px; max-height: 85vh; overflow-y: auto;">
             <div class="panel-header">
@@ -241,7 +248,6 @@
             localStorage.setItem('my_pos_history', JSON.stringify(historyData));
         }
 
-        // แสดงรายการสินค้า
         function renderProducts() {
             const grid = document.getElementById('productGrid');
             grid.innerHTML = '';
@@ -278,7 +284,7 @@
             }
         }
 
-        // ระบบตรวจสอบรหัสผ่าน
+        // ตรวจสอบรหัสผ่าน Admin
         function openAdminAuth() {
             if (isAdminLoggedIn) {
                 document.getElementById('adminModal').style.display = 'flex';
@@ -367,7 +373,7 @@
             closeAddProdModal();
         }
 
-        // ฟังก์ชันระบบตารางคิดเงิน (สำหรับพนักงาน)
+        // ระบบคิดเงิน (สำหรับพนักงาน)
         function addToCart(id) {
             const product = products.find(p => p.id === id);
             cart.push({
@@ -436,6 +442,7 @@
                 return { name: i.name, weight: i.weight, price: i.price, total: sum };
             });
 
+            // พิมพ์สลิปออกบลูทูธ
             window.print();
 
             historyData.push({
@@ -452,7 +459,7 @@
             alert('บันทึกการรับซื้อเรียบร้อยแล้ว');
         }
 
-        // ระบบรายงาน Admin
+        // ระบบรายงาน
         function setReportMode(mode) {
             currentReportMode = mode;
             renderReport();
@@ -530,7 +537,6 @@
             document.body.removeChild(link);
         }
 
-        // เริ่มต้นระบบ
         renderProducts();
         renderCart();
     </script>
