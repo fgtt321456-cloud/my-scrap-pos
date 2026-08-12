@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>POS รับซื้อของเก่า - Final Fixed Edition</title>
+    <title>POS รับซื้อของเก่า - International ESG Edition</title>
 
     <!-- Firebase Realtime Cloud SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -55,6 +55,7 @@
         .product-card img { width: 100%; height: 80px; object-fit: cover; border-radius: 10px; margin-bottom: 6px; }
         .product-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
         .product-card p { font-size: 13px; color: var(--accent-green); font-weight: 700; }
+        .code-tag { font-size: 10px; background: #EDF2F7; color: #4A5568; padding: 2px 6px; border-radius: 4px; font-weight: 500; display: inline-block; margin-top: 2px; }
         
         .btn-remove-prod { display: none; position: absolute; top: -6px; right: -6px; background: var(--accent-red); color: white; border-radius: 50%; width: 22px; height: 22px; font-weight: bold; line-height: 22px; text-align: center; font-size: 12px; }
         .edit-mode .btn-remove-prod { display: block; }
@@ -71,7 +72,7 @@
             padding: 8px; font-size: 15px; text-align: center; 
             border: 1px solid var(--border-color); border-radius: 8px; background: #F7FAFC; color: var(--text-dark); font-weight: 600;
         }
-        input[type="number"] { width: 65px; }
+        input[type="number"] { width: 70px; }
         input:focus { outline: none; border-color: var(--primary-soft); background: #FFF; }
 
         .item-total { font-weight: 700; font-size: 15px; text-align: right; }
@@ -90,7 +91,7 @@
 
         /* Popups & Modals */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 100; }
-        .modal-content { background: white; border-radius: var(--radius-lg); padding: 20px; width: 90%; max-width: 580px; display: flex; flex-direction: column; gap: 12px; }
+        .modal-content { background: white; border-radius: var(--radius-lg); padding: 20px; width: 90%; max-width: 620px; display: flex; flex-direction: column; gap: 12px; }
         .modal-content h3 { font-size: 16px; font-weight: 700; }
         .modal-content input { width: 100%; text-align: left; }
         .modal-btns { display: flex; gap: 8px; margin-top: 6px; }
@@ -112,6 +113,18 @@
             border: 1px solid var(--border-color);
         }
 
+        /* การ์ดแสดงผล ESG สรุป */
+        .esg-banner {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         /* 1. พิมพ์ใบเสร็จสลิปความร้อน (58mm) */
         @media print {
             @page { size: 58mm auto; margin: 0; }
@@ -128,33 +141,14 @@
 
         /* 2. พิมพ์รายงาน PDF (ปรับเป็น A4) */
         @media print {
-            body.print-report-mode {
-                padding: 10mm !important;
-            }
+            body.print-report-mode { padding: 10mm !important; }
             body.print-report-mode .left-panel, 
             body.print-report-mode .right-panel, 
-            body.print-report-mode .admin-section:first-child { 
-                display: none !important; 
-            }
-            body.print-report-mode .modal { 
-                display: block !important; 
-                position: static !important; 
-                background: transparent !important; 
-            }
-            body.print-report-mode .modal-content { 
-                max-width: 100% !important; 
-                box-shadow: none !important; 
-                border: none !important; 
-                padding: 0 !important; 
-            }
-            body.print-report-mode #reportCaptureCard { 
-                border: none !important; 
-                padding: 0 !important; 
-            }
-            body.print-report-mode th, body.print-report-mode td {
-                border-bottom: 1px solid #ccc !important;
-                padding: 8px 4px !important;
-            }
+            body.print-report-mode .admin-section:first-child { display: none !important; }
+            body.print-report-mode .modal { display: block !important; position: static !important; background: transparent !important; }
+            body.print-report-mode .modal-content { max-width: 100% !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
+            body.print-report-mode #reportCaptureCard { border: none !important; padding: 0 !important; }
+            body.print-report-mode th, body.print-report-mode td { border-bottom: 1px solid #ccc !important; padding: 8px 4px !important; }
         }
     </style>
 </head>
@@ -216,7 +210,7 @@
     <div class="modal" id="adminModal">
         <div class="modal-content">
             <div class="panel-header">
-                <h3>☁️ แดชบอร์ดผู้จัดการออนไลน์</h3>
+                <h3>☁️ แดชบอร์ดผู้จัดการออนไลน์ (ESG Edition)</h3>
                 <button class="btn-sub" onclick="lockAdmin()">🔒 ล็อกระบบ</button>
             </div>
 
@@ -225,7 +219,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <b style="font-size: 14px;">ตั้งค่าสินค้า & ราคากลาง</b>
                     <div>
-                        <button class="btn-sub" id="btnEditMode" onclick="toggleEditMode()">✏️ แก้ไขราคากลาง</button>
+                        <button class="btn-sub" id="btnEditMode" onclick="toggleEditMode()">✏️ แก้ไขราคา / รหัสสากล</button>
                         <button class="btn-sub" style="background:var(--primary); color:white;" onclick="openAddProdModal()">+ เพิ่มสินค้า</button>
                     </div>
                 </div>
@@ -233,12 +227,13 @@
 
             <!-- สรุปรายงานออนไลน์ -->
             <div class="admin-section" style="border:none; padding:0; margin:0;">
-                <b style="font-size: 14px; margin-bottom: 6px;">สรุปยอดขายแบบเรียลไทม์</b>
+                <b style="font-size: 14px; margin-bottom: 6px;">สรุปยอดขายและรายงานความยั่งยืน</b>
                 
                 <div class="report-actions">
                     <button class="btn-export" id="btnModeDaily" onclick="setReportMode('daily')">📅 สรุปรายวัน</button>
                     <button class="btn-export" id="btnModeMonthly" onclick="setReportMode('monthly')">📆 สรุปรายเดือน</button>
                     <button class="btn-export" id="btnModeItems" onclick="setReportMode('items')">📦 สรุปแยกสินค้า (กก./บาท)</button>
+                    <button class="btn-export" style="background:#10B981; color:white;" onclick="setReportMode('esg')">🌱 รายงานสากล ISRI/EWC & ESG</button>
                 </div>
 
                 <div class="export-actions">
@@ -254,6 +249,19 @@
                         <h4 id="reportTitleHeader" style="font-size:15px; color:var(--primary);">รายงานสรุปยอดรับซื้อ</h4>
                         <span id="reportTimestamp" style="font-size:11px; color:var(--text-muted);"></span>
                     </div>
+
+                    <!-- แบนเนอร์แสดงสรุป ESG (แสดงเฉพาะโหมด esg) -->
+                    <div id="esgBanner" class="esg-banner" style="display:none;">
+                        <div>
+                            <div style="font-size:11px; opacity:0.9;">ปริมาณขยะรีไซเคิลรวม</div>
+                            <div id="esgTotalKg" style="font-size:20px; font-weight:bold;">0 กก.</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:11px; opacity:0.9;">ประเมินการลดคาร์บอน (CO₂ Avoided)</div>
+                            <div id="esgCo2Saved" style="font-size:20px; font-weight:bold;">0 kgCO₂e</div>
+                        </div>
+                    </div>
+
                     <div style="max-height: 250px; overflow-y: auto;">
                         <table>
                             <thead>
@@ -274,14 +282,24 @@
     <!-- Modal ปรับแก้ไขรายละเอียดสินค้า & อัปโหลดรูปภาพ -->
     <div class="modal" id="editProdModal">
         <div class="modal-content">
-            <h3>📷 จัดการรูปภาพและสินค้า</h3>
+            <h3>📷 จัดการรูปภาพและรหัสสากล (ISO/ISRI)</h3>
             <p id="editProdNameDisplay" style="font-size: 13px; font-weight: bold; color: var(--primary);"></p>
-            
+
             <label style="font-size: 12px; color: var(--text-muted);">ราคารับซื้อประจำวัน (บาท/กก.)</label>
             <input type="number" id="editProdPriceInput" step="0.5" inputmode="decimal">
 
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1;">
+                    <label style="font-size: 12px; color: var(--text-muted);">ISRI Code (สเปกสากล)</label>
+                    <input type="text" id="editProdIsriInput" placeholder="เช่น HMS 1/2">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size: 12px; color: var(--text-muted);">EWC Code (รหัสขยะยุโรป)</label>
+                    <input type="text" id="editProdEwcInput" placeholder="เช่น 17 04 05">
+                </div>
+            </div>
+
             <label style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">เลือกวิธีอัปเดตรูปภาพสินค้า:</label>
-            
             <div style="display: flex; gap: 8px; align-items: center;">
                 <input type="file" id="editProdFileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
                 <button class="btn-sub" style="flex:1; padding:10px; background:#E2E8F0;" onclick="document.getElementById('editProdFileInput').click()">📁 เลือกรูปจากเครื่อง / ถ่ายภาพ</button>
@@ -305,7 +323,17 @@
             <input type="text" id="newProdName" placeholder="เช่น สังกะสี">
             <label style="font-size: 12px; color: var(--text-muted);">ราคารับซื้อ (บาท/กก.)</label>
             <input type="number" id="newProdPrice" step="0.5" inputmode="decimal" placeholder="0.00">
-            <label style="font-size: 12px; color: var(--text-muted);">อัปโหลดรูปภาพ หรือ ถ่ายรูป</label>
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1;">
+                    <label style="font-size: 12px; color: var(--text-muted);">ISRI Code</label>
+                    <input type="text" id="newProdIsri" placeholder="เช่น Tense">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size: 12px; color: var(--text-muted);">EWC Code</label>
+                    <input type="text" id="newProdEwc" placeholder="เช่น 17 04 02">
+                </div>
+            </div>
+            <label style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">อัปโหลดรูปภาพ หรือ ถ่ายรูป</label>
             <input type="file" id="newProdFileInput" accept="image/*" style="margin-bottom: 6px;">
             <label style="font-size: 12px; color: var(--text-muted);">หรือวาง URL รูปภาพ</label>
             <input type="text" id="newProdImgUrl" placeholder="https://...">
@@ -332,12 +360,13 @@
 
         const SECRET_PIN = "202923"; // รหัสผ่านผู้จัดการ
 
+        // สินค้าตั้งต้นพร้อมรหัสมาตรฐานสากล ISRI / EWC
         const defaultProducts = [
-            { id: 1, name: 'เหล็กรวม', price: 10.0, img: 'https://images.unsplash.com/photo-1535813547-99c456a41d4a?w=300' },
-            { id: 2, name: 'ทองแดง A', price: 260.0, img: 'https://images.unsplash.com/photo-1589792923962-537704632910?w=300' },
-            { id: 3, name: 'กระดาษลัง', price: 4.5, img: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=300' },
-            { id: 4, name: 'ขวด PET', price: 8.0, img: 'https://images.unsplash.com/photo-1562077772-3bd90403f7f0?w=300' },
-            { id: 5, name: 'อลูมิเนียม', price: 45.0, img: 'https://images.unsplash.com/photo-1605557202138-097824c3f2c4?w=300' }
+            { id: 1, name: 'เหล็กรวม', price: 10.0, isri: 'HMS 1/2', ewc: '17 04 05', co2Factor: 1.5, img: 'https://images.unsplash.com/photo-1535813547-99c456a41d4a?w=300' },
+            { id: 2, name: 'ทองแดง A', price: 260.0, isri: 'Berry', ewc: '17 04 01', co2Factor: 2.8, img: 'https://images.unsplash.com/photo-1589792923962-537704632910?w=300' },
+            { id: 3, name: 'กระดาษลัง', price: 4.5, isri: 'OCC #11', ewc: '15 01 01', co2Factor: 0.9, img: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=300' },
+            { id: 4, name: 'ขวด PET', price: 8.0, isri: 'PET Flake', ewc: '15 01 02', co2Factor: 1.2, img: 'https://images.unsplash.com/photo-1562077772-3bd90403f7f0?w=300' },
+            { id: 5, name: 'อลูมิเนียม', price: 45.0, isri: 'Tense', ewc: '17 04 02', co2Factor: 9.0, img: 'https://images.unsplash.com/photo-1605557202138-097824c3f2c4?w=300' }
         ];
 
         let products = JSON.parse(localStorage.getItem('my_pos_products')) || defaultProducts;
@@ -356,7 +385,6 @@
             return isIOS || isMac;
         }
 
-        // ย่อรูปภาพป้องกัน LocalStorage เต็ม
         function compressImage(file, callback) {
             const maxWidth = 300;
             const maxHeight = 300;
@@ -367,15 +395,9 @@
                     let width = img.width;
                     let height = img.height;
                     if (width > height) {
-                        if (width > maxWidth) {
-                            height *= maxWidth / width;
-                            width = maxWidth;
-                        }
+                        if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
                     } else {
-                        if (height > maxHeight) {
-                            width *= maxHeight / height;
-                            height = maxHeight;
-                        }
+                        if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
                     }
                     const canvas = document.createElement('canvas');
                     canvas.width = width;
@@ -421,6 +443,7 @@
                         <img src="${p.img || defaultImg}" alt="${p.name}" onerror="this.src='${defaultImg}'">
                         <h4>${p.name}</h4>
                         <p>฿${p.price}</p>
+                        ${p.isri ? `<span class="code-tag">${p.isri}</span>` : ''}
                     </div>
                 `;
             });
@@ -490,7 +513,7 @@
                 btn.innerText = 'เสร็จสิ้น';
                 grid.classList.add('edit-mode');
             } else {
-                btn.innerText = '✏️ แก้ไขราคากลาง';
+                btn.innerText = '✏️ แก้ไขราคา / รหัสสากล';
                 grid.classList.remove('edit-mode');
             }
         }
@@ -501,6 +524,8 @@
             const prod = products.find(p => p.id === id);
             document.getElementById('editProdNameDisplay').innerText = `สินค้า: ${prod.name}`;
             document.getElementById('editProdPriceInput').value = prod.price;
+            document.getElementById('editProdIsriInput').value = prod.isri || '';
+            document.getElementById('editProdEwcInput').value = prod.ewc || '';
             document.getElementById('editProdUrlInput').value = prod.img && !prod.img.startsWith('data:') ? prod.img : '';
             document.getElementById('editProdModal').style.display = 'flex';
         }
@@ -520,9 +545,13 @@
         function saveProductEdits() {
             const prod = products.find(p => p.id === currentEditingProductId);
             const newPrice = parseFloat(document.getElementById('editProdPriceInput').value);
+            const isriInput = document.getElementById('editProdIsriInput').value.trim();
+            const ewcInput = document.getElementById('editProdEwcInput').value.trim();
             const urlInput = document.getElementById('editProdUrlInput').value.trim();
 
             if (!isNaN(newPrice)) prod.price = newPrice;
+            prod.isri = isriInput;
+            prod.ewc = ewcInput;
 
             if (tempBase64Image) {
                 prod.img = tempBase64Image;
@@ -554,6 +583,8 @@
         function saveNewProduct() {
             const name = document.getElementById('newProdName').value.trim();
             const price = parseFloat(document.getElementById('newProdPrice').value);
+            const isri = document.getElementById('newProdIsri').value.trim();
+            const ewc = document.getElementById('newProdEwc').value.trim();
             const urlInput = document.getElementById('newProdImgUrl').value.trim();
             const fileInput = document.getElementById('newProdFileInput').files[0];
 
@@ -562,34 +593,52 @@
                 return;
             }
 
-            if (fileInput) {
-                compressImage(fileInput, function(compressedBase64) {
-                    products.push({ id: Date.now(), name, price, img: compressedBase64 });
-                    saveStorage();
-                    renderProducts();
-                    closeAddProdModal();
-                });
-            } else {
-                let newImg = urlInput || 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=300';
-                products.push({ id: Date.now(), name, price, img: newImg });
+            const completeSave = (imgData) => {
+                products.push({ id: Date.now(), name, price, isri, ewc, img: imgData });
                 saveStorage();
                 renderProducts();
                 closeAddProdModal();
+            };
+
+            if (fileInput) {
+                compressImage(fileInput, completeSave);
+            } else {
+                let newImg = urlInput || 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=300';
+                completeSave(newImg);
             }
         }
 
+        // ==========================================
+        // 🛒 ระบบตารางคิดเงิน (แก้ไขบัค Input Focus)
+        // ==========================================
         function addToCart(id) {
             const product = products.find(p => p.id === id);
-            cart.push({ cartId: Date.now(), name: product.name, weight: 1, price: product.price });
+            cart.push({ cartId: Date.now(), id: product.id, name: product.name, weight: 1, price: product.price, isri: product.isri, ewc: product.ewc });
             renderCart();
         }
 
-        function updateCart(cartId, field, value) {
+        // อัปเดตเฉพาะค่าตัวเลขใน Array และคำนวณยอดรวมโดยไม่าวาด DOM ใหม่ ป้องกันการเสีย Focus
+        function updateCartValue(cartId, field, inputElem) {
             const item = cart.find(i => i.cartId === cartId);
             if (item) {
-                item[field] = parseFloat(value) || 0;
-                renderCart();
+                const val = parseFloat(inputElem.value);
+                item[field] = isNaN(val) ? 0 : val;
+                
+                // คำนวณราคารวมของแถวนั้น
+                const total = Math.round((item.weight * item.price) * 100) / 100;
+                document.getElementById(`total-cell-${cartId}`).innerText = total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+                
+                // คำนวณเงินรวมสุทธิทั้งหมด
+                recalculateGrandTotal();
             }
+        }
+
+        function recalculateGrandTotal() {
+            let grandTotal = 0;
+            cart.forEach(i => {
+                grandTotal += Math.round((i.weight * i.price) * 100) / 100;
+            });
+            document.getElementById('totalAmount').innerText = (Math.round(grandTotal * 100) / 100).toLocaleString('th-TH', {minimumFractionDigits: 2});
         }
 
         function removeItem(cartId) {
@@ -600,29 +649,29 @@
         function renderCart() {
             const tbody = document.getElementById('cartBody');
             tbody.innerHTML = '';
-            let grandTotal = 0;
 
             cart.forEach(item => {
-                // แก้ไข Floating Point Precision
                 const total = Math.round((item.weight * item.price) * 100) / 100;
-                grandTotal += total;
 
                 tbody.innerHTML += `
                     <tr>
-                        <td class="item-name">${item.name}</td>
-                        <td style="text-align: center;">
-                            <input type="number" step="0.1" inputmode="decimal" value="${item.weight}" oninput="updateCart(${item.cartId}, 'weight', this.value)">
+                        <td class="item-name">
+                            ${item.name}
+                            ${item.isri ? `<br><span class="code-tag">${item.isri}</span>` : ''}
                         </td>
                         <td style="text-align: center;">
-                            <input type="number" step="0.5" inputmode="decimal" value="${item.price}" oninput="updateCart(${item.cartId}, 'price', this.value)">
+                            <input type="number" step="0.1" inputmode="decimal" value="${item.weight}" oninput="updateCartValue(${item.cartId}, 'weight', this)">
                         </td>
-                        <td class="item-total">${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                        <td style="text-align: center;">
+                            <input type="number" step="0.5" inputmode="decimal" value="${item.price}" oninput="updateCartValue(${item.cartId}, 'price', this)">
+                        </td>
+                        <td class="item-total" id="total-cell-${item.cartId}">${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
                         <td class="btn-delete" onclick="removeItem(${item.cartId})">✕</td>
                     </tr>
                 `;
             });
 
-            document.getElementById('totalAmount').innerText = (Math.round(grandTotal * 100) / 100).toLocaleString('th-TH', {minimumFractionDigits: 2});
+            recalculateGrandTotal();
         }
 
         function completeTransaction() {
@@ -631,7 +680,6 @@
                 return;
             }
 
-            // ป้องกันการกดซ้ำซ้อน
             const payBtn = document.getElementById('btnPay');
             payBtn.disabled = true;
 
@@ -644,7 +692,7 @@
             const itemsBought = cart.map(i => {
                 const sum = Math.round((i.weight * i.price) * 100) / 100;
                 totalPayout += sum;
-                return { name: i.name, weight: i.weight, price: i.price, total: sum };
+                return { id: i.id, name: i.name, weight: i.weight, price: i.price, total: sum, isri: i.isri, ewc: i.ewc };
             });
 
             totalPayout = Math.round(totalPayout * 100) / 100;
@@ -661,9 +709,7 @@
 
             window.print();
 
-            try {
-                db.collection("sales_history").add(transactionObj);
-            } catch(e) {}
+            try { db.collection("sales_history").add(transactionObj); } catch(e) {}
             
             historyData.push(transactionObj);
             saveStorage();
@@ -674,6 +720,9 @@
             alert('บันทึกการรับซื้อเรียบร้อยแล้ว');
         }
 
+        // ==========================================
+        // 📊 ระบบรายงาน & ESG Standard Classification
+        // ==========================================
         function setReportMode(mode) {
             currentReportMode = mode;
             renderReport();
@@ -685,8 +734,10 @@
             const tb = document.getElementById('reportTb');
             const headerTitle = document.getElementById('reportTitleHeader');
             const timestamp = document.getElementById('reportTimestamp');
+            const esgBanner = document.getElementById('esgBanner');
             
             tb.innerHTML = '';
+            esgBanner.style.display = 'none';
             timestamp.innerText = `ข้อมูล ณ วันที่: ${new Date().toLocaleDateString('th-TH')} ${new Date().toLocaleTimeString('th-TH')}`;
 
             if (currentReportMode === 'daily') {
@@ -740,6 +791,48 @@
                         </tr>
                     `;
                 });
+            } else if (currentReportMode === 'esg') {
+                // 🌿 รายงานมาตรฐานสากล ISRI / EWC & ESG Circularity
+                headerTitle.innerText = "🌱 รายงานมาตรฐานสากล ISO/ISRI/EWC & ESG";
+                esgBanner.style.display = 'flex';
+                th.innerHTML = `<th>รายการ / รหัสสากล</th><th style="text-align:center;">ISRI / EWC Code</th><th style="text-align:center;">น้ำหนักรวม (กก.)</th><th style="text-align:right;">การลด CO₂ (kgCO₂e)</th>`;
+
+                let totalRecycledKg = 0;
+                let totalCo2Saved = 0;
+                const esgSummary = {};
+
+                historyData.forEach(h => {
+                    if (h.items) {
+                        h.items.forEach(item => {
+                            const prodRef = products.find(p => p.name === item.name) || {};
+                            const co2Factor = prodRef.co2Factor || 1.5; // ค่าเฉลี่ยการลดคาร์บอน
+                            const isriCode = item.isri || prodRef.isri || 'N/A';
+                            const ewcCode = item.ewc || prodRef.ewc || 'N/A';
+
+                            if (!esgSummary[item.name]) {
+                                esgSummary[item.name] = { isri: isriCode, ewc: ewcCode, weight: 0, co2: 0 };
+                            }
+                            esgSummary[item.name].weight += item.weight;
+                            esgSummary[item.name].co2 += (item.weight * co2Factor);
+                            totalRecycledKg += item.weight;
+                            totalCo2Saved += (item.weight * co2Factor);
+                        });
+                    }
+                });
+
+                document.getElementById('esgTotalKg').innerText = `${totalRecycledKg.toLocaleString('th-TH', {minimumFractionDigits:1})} กก.`;
+                document.getElementById('esgCo2Saved').innerText = `${Math.round(totalCo2Saved).toLocaleString('th-TH')} kgCO₂e`;
+
+                Object.keys(esgSummary).forEach(name => {
+                    tb.innerHTML += `
+                        <tr>
+                            <td><b>${name}</b></td>
+                            <td style="text-align:center;"><span class="code-tag">${esgSummary[name].isri}</span> / <span class="code-tag">${esgSummary[name].ewc}</span></td>
+                            <td style="text-align:center; font-weight:700;">${esgSummary[name].weight.toLocaleString('th-TH', {minimumFractionDigits:1})} กก.</td>
+                            <td style="text-align:right; font-weight:700; color:#10B981;">-${Math.round(esgSummary[name].co2).toLocaleString('th-TH')} kgCO₂</td>
+                        </tr>
+                    `;
+                });
             }
         }
 
@@ -747,9 +840,9 @@
             if (!isAdminLoggedIn) return;
             let excelData = `<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>
             <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
-            <Worksheet ss:Name="รายงานรับซื้อ">
+            <Worksheet ss:Name="รายงานรับซื้อมาตรฐานสากล">
             <Table>
-            <Row><Cell><Data ss:Type="String">วันที่</Data></Cell><Cell><Data ss:Type="String">เวลา</Data></Cell><Cell><Data ss:Type="String">รายการสินค้า</Data></Cell><Cell><Data ss:Type="String">น้ำหนัก (กก.)</Data></Cell><Cell><Data ss:Type="String">ราคา/กก.</Data></Cell><Cell><Data ss:Type="String">ยอดรวม (บาท)</Data></Cell></Row>`;
+            <Row><Cell><Data ss:Type="String">วันที่</Data></Cell><Cell><Data ss:Type="String">เวลา</Data></Cell><Cell><Data ss:Type="String">รายการสินค้า</Data></Cell><Cell><Data ss:Type="String">ISRI Code</Data></Cell><Cell><Data ss:Type="String">EWC Code</Data></Cell><Cell><Data ss:Type="String">น้ำหนัก (กก.)</Data></Cell><Cell><Data ss:Type="String">ราคา/กก.</Data></Cell><Cell><Data ss:Type="String">ยอดรวม (บาท)</Data></Cell></Row>`;
 
             historyData.forEach(h => {
                 if (h.items) {
@@ -758,6 +851,8 @@
                             <Cell><Data ss:Type="String">${h.date}</Data></Cell>
                             <Cell><Data ss:Type="String">${h.time || ''}</Data></Cell>
                             <Cell><Data ss:Type="String">${i.name}</Data></Cell>
+                            <Cell><Data ss:Type="String">${i.isri || ''}</Data></Cell>
+                            <Cell><Data ss:Type="String">${i.ewc || ''}</Data></Cell>
                             <Cell><Data ss:Type="Number">${i.weight}</Data></Cell>
                             <Cell><Data ss:Type="Number">${i.price}</Data></Cell>
                             <Cell><Data ss:Type="Number">${i.total}</Data></Cell>
@@ -781,9 +876,7 @@
             if (!isAdminLoggedIn) return;
             document.body.classList.add('print-report-mode');
             window.print();
-            setTimeout(() => {
-                document.body.classList.remove('print-report-mode');
-            }, 1000);
+            setTimeout(() => { document.body.classList.remove('print-report-mode'); }, 1000);
         }
 
         function exportImage() {
@@ -802,11 +895,11 @@
 
         function exportCSV() {
             if (!isAdminLoggedIn) return;
-            let csvContent = "\uFEFFวันที่,เวลา,รายการ,น้ำหนัก(กก.),ราคา/กก.,ยอดรวม(บาท)\n";
+            let csvContent = "\uFEFFวันที่,เวลา,รายการ,ISRI_Code,EWC_Code,น้ำหนัก(กก.),ราคา/กก.,ยอดรวม(บาท)\n";
             historyData.forEach(h => {
                 if (h.items) {
                     h.items.forEach(i => {
-                        csvContent += `"${h.date}","${h.time || ''}","${i.name}",${i.weight},${i.price},${i.total}\n`;
+                        csvContent += `"${h.date}","${h.time || ''}","${i.name}","${i.isri || ''}","${i.ewc || ''}",${i.weight},${i.price},${i.total}\n`;
                     });
                 }
             });
