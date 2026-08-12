@@ -2,16 +2,10 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <!-- iOS Viewport & Safe Area Support -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
-    <!-- iOS Web App Native Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="รุ่งนภา POS">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3299/3299935.png">
-    
-    <title>POS หจก.รุ่งนภา รีไซเคิล (iOS Optimized)</title>
+    <title>POS หจก.รุ่งนภา รีไซเคิล (Bug-Free Version)</title>
     
     <!-- Firebase Real-time SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -29,7 +23,6 @@
             --apple-text: #000000;
             --apple-subtext: #8e8e93;
             --apple-border: #c6c6c8;
-            /* iOS Safe Area Insets Support */
             --sat: env(safe-area-inset-top);
             --sab: env(safe-area-inset-bottom);
             --sal: env(safe-area-inset-left);
@@ -39,8 +32,8 @@
         * {
             box-sizing: border-box;
             font-family: -apple-system, 'SF Pro Display', 'Prompt', sans-serif;
-            -webkit-tap-highlight-color: transparent; /* ลบกรอบไฮไลท์สี่เหลี่ยมเวลาแตะบน iOS */
-            -webkit-touch-callout: none; /* ป้องกัน Menu Popup ค้างเมื่อแตะค้างบน iOS */
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
         }
 
         body {
@@ -53,7 +46,6 @@
 
         .app-container { max-width: 1280px; margin: 0 auto; }
 
-        /* Top Header Navigation Bar (iOS Style) */
         .top-bar {
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px);
@@ -68,33 +60,30 @@
         .btn-tab { border: none; padding: 8px 14px; border-radius: 12px; font-weight: 600; cursor: pointer; background: #e5e5ea; color: #3a3a3c; font-size: 13px; transition: all 0.2s; }
         .btn-tab.active { background: var(--apple-blue); color: white; }
 
-        /* iOS Segmented Split Layout */
         .pos-layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 12px; }
         @media (max-width: 850px) { .pos-layout { grid-template-columns: 1fr; } }
 
         .panel {
             background: var(--apple-card); border-radius: 20px;
             border: 0.5px solid rgba(0,0,0,0.08); padding: 16px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03); margin-bottom: 12px;
         }
         .panel-title { font-size: 14px; font-weight: 600; color: var(--apple-subtext); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* ฝั่งซ้าย: การ์ดสินค้ามินิมอลแบบ iOS Grid */
         .product-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px;
-            max-height: 600px; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 2px;
+            max-height: 520px; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 2px;
         }
         .prod-card {
             background: #fff; border: 1.5px solid #e5e5ea; border-radius: 16px; padding: 10px;
             text-align: center; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease;
         }
-        .prod-card:active { transform: scale(0.96); } /* Effect เด้งตอบสนองสไตล์ iOS */
+        .prod-card:active { transform: scale(0.96); }
         .prod-card.selected { border-color: var(--apple-blue); background: #f2f8ff; box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15); }
         .prod-img { width: 100%; height: 70px; object-fit: cover; border-radius: 10px; margin-bottom: 4px; pointer-events: none; }
         .prod-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
         .prod-price { font-size: 13px; font-weight: 700; color: var(--apple-blue); pointer-events: none; }
 
-        /* ฝั่งขวา: เครื่องคิดเลข/ใส่น้ำหนักรองรับ iOS Keyboard */
         .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
         .field { display: flex; flex-direction: column; gap: 3px; }
         .field label { font-size: 11px; font-weight: 600; color: var(--apple-subtext); }
@@ -111,7 +100,6 @@
         }
         .subtotal-val { font-size: 20px; font-weight: 700; color: var(--apple-green); }
 
-        /* iOS Standard Buttons */
         .btn { border: none; padding: 12px; border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: opacity 0.2s; }
         .btn:active { opacity: 0.7; }
         .btn-add { background: var(--apple-blue); color: white; }
@@ -122,11 +110,9 @@
         .cart-table td { padding: 8px; border-bottom: 0.5px solid var(--apple-border); font-weight: 500; }
         .text-right { text-align: right; }
 
-        /* Modal iOS Sheet Style */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
         .modal-box { background: white; padding: 22px; border-radius: 24px; width: 90%; max-width: 420px; }
 
-        /* AirPrint Receipt Support */
         @media print {
             body * { visibility: hidden; }
             #receiptArea, #receiptArea * { visibility: visible; }
@@ -137,25 +123,43 @@
 <body>
 
 <div class="app-container">
-    <!-- Top Header Bar -->
     <div class="top-bar">
         <div class="brand">♻️ หจก.รุ่งนภา รีไซเคิล</div>
         <div class="cash-badge">💵 เก๊ะ: <span id="cashInDrawer">0.00</span> ฿</div>
         <div class="nav-actions">
-            <button class="btn-tab active" id="btnTabPos" onclick="switchTab('pos')">🛒 หน้าขาย</button>
-            <button class="btn-tab" id="btnTabManager" onclick="authManager()">🔐 หลังบ้าน</button>
+            <button class="btn-tab active" id="btnTabPos" onclick="switchTab('pos')">🛒 หน้าขาย/รับซื้อ</button>
+            <button class="btn-tab" id="btnTabManager" onclick="authManager()">🔐 หลังบ้านผู้จัดการ</button>
         </div>
     </div>
 
-    <!-- Layout หน้าพนักงาน (POS) -->
+    <!-- Layout หน้าหลัก (POS) -->
     <div id="posSection" class="pos-layout">
-        <!-- ฝั่งซ้าย: รูปรายการสินค้า -->
-        <div class="panel">
-            <div class="panel-title">
-                <span>📦 เลือกสินค้า (ด้านซ้าย)</span>
-                <span style="font-size: 12px; color: var(--apple-blue); font-weight: 700;" id="selectedProdNameText">กรุณาเลือกสินค้า</span>
+        <div>
+            <div class="panel">
+                <div class="panel-title">
+                    <span>📦 เลือกสินค้า (ด้านซ้าย)</span>
+                    <span style="font-size: 12px; color: var(--apple-blue); font-weight: 700;" id="selectedProdNameText">กรุณาเลือกสินค้า</span>
+                </div>
+                <div class="product-grid" id="productGrid"></div>
             </div>
-            <div class="product-grid" id="productGrid"></div>
+
+            <!-- ส่วนเพิ่ม/ตั้งราคาสินค้า (แก้ไขเรื่องการอัปเดต ID ซ้ำ) -->
+            <div class="panel">
+                <div class="panel-title">🏷️ เพิ่มรายการ / ปรับราคาสินค้า</div>
+                <input type="hidden" id="editingProdId" value="">
+                <div style="display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 6px; margin-bottom: 10px;">
+                    <input type="text" id="newProdName" placeholder="ชื่อสินค้า" style="padding:8px; border-radius:10px; border:1px solid #d1d1d6;">
+                    <input type="number" id="newProdPrice" placeholder="ราคา/กก." step="any" inputmode="decimal" style="padding:8px; border-radius:10px; border:1px solid #d1d1d6;">
+                    <input type="text" id="newProdImg" placeholder="URL รูปภาพ" style="padding:8px; border-radius:10px; border:1px solid #d1d1d6;">
+                    <button class="btn btn-add" style="padding:8px 14px;" onclick="saveProduct()">บันทึก</button>
+                </div>
+                <div style="max-height: 150px; overflow-y: auto;">
+                    <table class="cart-table">
+                        <thead><tr><th>รูป</th><th>ชื่อสินค้า</th><th>ราคา/กก.</th><th>จัดการ</th></tr></thead>
+                        <tbody id="managerProductTable"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- ฝั่งขวา: เครื่องคิดเลข/ใส่น้ำหนัก -->
@@ -165,12 +169,11 @@
             <div class="input-group">
                 <div class="field">
                     <label>ชั่งรวม (กก.)</label>
-                    <!-- inputmode="decimal" ช่วยบังคับเรียกแป้นพิมพ์ตัวเลขจุดทศนิยมบน iOS -->
-                    <input type="number" id="grossWeight" placeholder="0.00" step="any" inputmode="decimal" oninput="calcNet()">
+                    <input type="number" id="grossWeight" placeholder="0.00" step="any" inputmode="decimal" oninput="calcNet()" onblur="resetIOSScroll()">
                 </div>
                 <div class="field">
                     <label>หักสิ่งปนเปื้อน (กก.)</label>
-                    <input type="number" id="deductWeight" placeholder="0" step="any" inputmode="decimal" oninput="calcNet()">
+                    <input type="number" id="deductWeight" placeholder="0" step="any" inputmode="decimal" oninput="calcNet()" onblur="resetIOSScroll()">
                 </div>
             </div>
 
@@ -192,7 +195,6 @@
 
             <button class="btn btn-add" onclick="triggerHaptic(); addToCart();">➕ เพิ่มรายการลงบิล</button>
 
-            <!-- ตารางสรุปบิล -->
             <div style="margin-top: 12px; max-height: 160px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
                 <table class="cart-table">
                     <thead>
@@ -213,10 +215,10 @@
         </div>
     </div>
 
-    <!-- Layout หน้าผู้จัดการ (MANAGER BACKOFFICE) -->
+    <!-- Layout หลังบ้านผู้จัดการ -->
     <div id="managerSection" style="display: none;" class="panel">
         <div class="panel-title">
-            <span>⚙️ บริหารจัดการหลังบ้าน (ผู้จัดการ)</span>
+            <span>⚙️ สรุปรายงาน & ตั้งค่างบเก๊ะ (เฉพาะผู้จัดการ)</span>
             <button class="btn-tab" onclick="openConfigModal()">ตั้งงบเก๊ะ & LINE Webhook</button>
         </div>
 
@@ -225,25 +227,13 @@
             <button class="btn-tab" id="btnRepMonthly" onclick="loadReport('monthly')">📅 สรุปรายเดือน</button>
             <button class="btn-tab" id="btnRepProduct" onclick="loadReport('product')">📦 สรุปแยกสินค้า</button>
         </div>
-        <div id="reportResult" style="background:#f2f2f7; padding:14px; border-radius:14px; margin-bottom:12px; min-height:80px;">
+        <div id="reportResult" style="background:#f2f2f7; padding:14px; border-radius:14px; min-height:100px;">
             <p style="text-align: center; color: var(--apple-subtext);">กดเลือกเมนูด้านบนเพื่อเรียกดูรายงานสรุปยอด</p>
         </div>
-
-        <div class="panel-title">🏷️ ตั้งค่าราคาเเละเพิ่มสินค้า</div>
-        <div style="display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 6px; margin-bottom: 10px;">
-            <input type="text" id="newProdName" placeholder="ชื่อสินค้า" style="padding:8px; border-radius:10px; border:1px solid #d1d1d6;">
-            <input type="number" id="newProdPrice" placeholder="ราคา" step="any" inputmode="decimal" style="padding:8px; border-radius:10px; border:1px solid #d1d1d6;">
-            <input type="text" id="newProdImg" placeholder="URL รูปภาพ" style="padding:8px; border-radius:10px; border:1px solid #d1d1d6;">
-            <button class="btn btn-add" style="padding:8px 14px;" onclick="saveProduct()">บันทึก</button>
-        </div>
-        <table class="cart-table">
-            <thead><tr><th>รูป</th><th>ชื่อสินค้า</th><th>ราคา/กก.</th><th>จัดการ</th></tr></thead>
-            <tbody id="managerProductTable"></tbody>
-        </table>
     </div>
 </div>
 
-<!-- โครงสร้างใบเสร็จพิมพ์ AirPrint -->
+<!-- ใบเสร็จ AirPrint -->
 <div id="receiptArea" style="display:none; padding:20px; font-family:sans-serif;">
     <h3 style="text-align:center; margin:0;">หจก.รุ่งนภา รีไซเคิล</h3>
     <p style="text-align:center; font-size:12px; margin:4px 0;">ใบเสร็จรับซื้อขยะรีไซเคิล</p>
@@ -258,7 +248,7 @@
     <p style="text-align:center; font-size:10px; margin-top:20px;">ขอบคุณที่ใช้บริการ</p>
 </div>
 
-<!-- Modal ตั้งค่างบเก๊ะ iOS Style -->
+<!-- Modal ตั้งค่า -->
 <div class="modal" id="configModal">
     <div class="modal-box">
         <h3 style="margin-top:0;">⚙️ ตั้งค่างบเก๊ะเงินสด & เตือน LINE</h3>
@@ -272,9 +262,6 @@
 </div>
 
 <script>
-    // -----------------------------------------------------------------
-    // 1. Firebase Initial Config
-    // -----------------------------------------------------------------
     const firebaseConfig = { databaseURL: "https://YOUR_FIREBASE_DATABASE_URL.firebaseio.com" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -283,14 +270,16 @@
     let cart = [];
     window.productList = [];
 
-    // iOS Haptic Feedback Simulation (ระบบสั่นสไตล์ iPhone)
     function triggerHaptic() {
         if (window.navigator && window.navigator.vibrate) {
             window.navigator.vibrate(15);
         }
     }
 
-    // Real-time Sync เก๊ะเงินสด
+    function resetIOSScroll() {
+        window.scrollTo(0, 0); // แก้บั๊กหน้าจอ iOS เลื่อนค้างเมื่อปิดคีย์บอร์ด
+    }
+
     db.ref('pos_settings/drawer_config').on('value', snap => {
         const data = snap.val() || {};
         const cash = parseFloat(data.currentCash) || 0;
@@ -298,7 +287,6 @@
         window.posConfig = data;
     });
 
-    // Real-time Sync รายการสินค้า
     db.ref('products').on('value', snap => {
         const data = snap.val();
         if (data) {
@@ -308,20 +296,15 @@
                 { id: "p1", name: "กระดาษลัง (A)", price: 8.50, img: "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=200" },
                 { id: "p2", name: "กระดาษเล่ม", price: 4.00, img: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=200" },
                 { id: "p3", name: "ขวด PET", price: 12.00, img: "https://images.unsplash.com/photo-1528323273322-d81458248d40?w=200" },
-                { id: "p4", name: "กระป๋องอลูมิเนียม", price: 45.00, img: "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=200" },
-                { id: "p5", name: "ทองแดงสายไฟ", price: 210.00, img: "https://images.unsplash.com/photo-1558346490-a72e53ae2d4f?w=200" },
-                { id: "p6", name: "เหล็กหนา", price: 11.00, img: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=200" }
+                { id: "p4", name: "กระป๋องอลูมิเนียม", price: 45.00, img: "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=200" }
             ];
             defaults.forEach(d => db.ref('products/' + d.id).set(d));
             window.productList = defaults;
         }
         renderProducts();
-        if (document.getElementById('managerSection').style.display !== 'none') renderManagerProducts();
+        renderManagerProducts();
     });
 
-    // -----------------------------------------------------------------
-    // 2. ล็อกอินหลังบ้านผู้จัดการ (PIN: 202923)
-    // -----------------------------------------------------------------
     function authManager() {
         const pin = prompt("🔐 กรุณาใส่รหัสผ่านผู้จัดการ (6 หลัก):");
         if (pin === "202923") switchTab('manager');
@@ -340,13 +323,9 @@
             document.getElementById('btnTabManager').classList.add('active');
             document.getElementById('posSection').style.display = 'none';
             document.getElementById('managerSection').style.display = 'block';
-            renderManagerProducts();
         }
     }
 
-    // -----------------------------------------------------------------
-    // 3. เลือกสินค้า & คำนวณน้ำหนัก
-    // -----------------------------------------------------------------
     function renderProducts() {
         const grid = document.getElementById('productGrid');
         grid.innerHTML = "";
@@ -380,8 +359,8 @@
         let net = gross - deduct; if (net < 0) net = 0;
         const subtotal = net * price;
 
-        document.getElementById('netWeight').value = net.toFixed(2);
-        document.getElementById('subtotalText').innerText = subtotal.toLocaleString('th-TH', {minimumFractionDigits: 2}) + " ฿";
+        document.getElementById('netWeight').value = isNaN(net) ? "0.00" : net.toFixed(2);
+        document.getElementById('subtotalText').innerText = (isNaN(subtotal) ? "0.00" : subtotal.toLocaleString('th-TH', {minimumFractionDigits: 2})) + " ฿";
     }
 
     function addToCart() {
@@ -422,9 +401,6 @@
         document.getElementById('grandTotal').innerText = total.toLocaleString('th-TH', {minimumFractionDigits: 2}) + " ฿";
     }
 
-    // -----------------------------------------------------------------
-    // 4. บันทึกการจ่ายเงิน / พิมพ์ใบเสร็จ AirPrint / LINE Webhook
-    // -----------------------------------------------------------------
     async function processPayment() {
         if (cart.length === 0) return alert('ยังไม่มีรายการในบิล');
         const total = cart.reduce((s, i) => s + i.subtotal, 0);
@@ -442,14 +418,18 @@
                 timestamp: Date.now(), date: today, month: today.substring(0,7), total, items: printItems
             });
 
-            // เตือน LINE Webhook
             let alerts = [];
             if (total >= (parseFloat(config.largeBillThreshold) || 10000)) alerts.push(`🚨 **แจ้งเตือนบิลจ่ายใหญ่!**\nยอดจ่ายรับซื้อ: ${total.toLocaleString('th-TH', {minimumFractionDigits:2})} บาท`);
             if (currentCash <= (parseFloat(config.lowCashThreshold) || 5000)) alerts.push(`⚠️ **เตือนเงินสดในลิ้นชักใกล้หมด!**\nเงินคงเหลือในเก๊ะ: ${currentCash.toLocaleString('th-TH', {minimumFractionDigits:2})} บาท`);
             
             if (alerts.length > 0 && config.webhookUrl) {
                 const msg = alerts.join("\n\n") + `\n⏰ เวลา: ${now.toLocaleTimeString('th-TH')}`;
-                fetch(config.webhookUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({value:msg, message:msg}) }).catch(e => console.error(e));
+                fetch(config.webhookUrl, { 
+                    method:'POST', 
+                    headers:{'Content-Type':'application/json'}, 
+                    keepalive: true,
+                    body:JSON.stringify({value:msg, message:msg}) 
+                }).catch(e => console.error(e));
             }
 
             printReceipt(printItems, total);
@@ -465,9 +445,6 @@
         window.print();
     }
 
-    // -----------------------------------------------------------------
-    // 5. ระบบรายงานหลังบ้าน (Daily / Monthly / Product)
-    // -----------------------------------------------------------------
     function loadReport(type) {
         document.getElementById('btnRepDaily').classList.remove('active');
         document.getElementById('btnRepMonthly').classList.remove('active');
@@ -518,26 +495,40 @@
         });
     }
 
-    // -----------------------------------------------------------------
-    // 6. ตั้งค่าผู้จัดการ (จัดการสินค้า & งบเก๊ะ)
-    // -----------------------------------------------------------------
     function renderManagerProducts() {
         const tbody = document.getElementById('managerProductTable'); tbody.innerHTML = "";
         window.productList.forEach(p => {
-            tbody.innerHTML += `<tr><td><img src="${p.img}" width="30" height="30" style="object-fit:cover;border-radius:6px;" onerror="this.src='https://via.placeholder.com/30'"></td><td>${p.name}</td><td>${parseFloat(p.price).toFixed(2)}</td><td><button onclick="deleteProd('${p.id}')" style="color:var(--apple-red);border:none;background:none;cursor:pointer;font-weight:bold;">ลบ</button></td></tr>`;
+            const pName = p.name.replace(/'/g, "\\'");
+            tbody.innerHTML += `<tr><td><img src="${p.img}" width="30" height="30" style="object-fit:cover;border-radius:6px;" onerror="this.src='https://via.placeholder.com/30'"></td><td>${p.name}</td><td>${parseFloat(p.price).toFixed(2)}</td><td><button onclick="editProd('${p.id}', '${pName}', ${p.price}, '${p.img}')" style="color:var(--apple-blue);border:none;background:none;cursor:pointer;font-weight:bold;margin-right:6px;">แก้ไข</button><button onclick="deleteProd('${p.id}')" style="color:var(--apple-red);border:none;background:none;cursor:pointer;font-weight:bold;">ลบ</button></td></tr>`;
         });
     }
 
+    function editProd(id, name, price, img) {
+        document.getElementById('editingProdId').value = id;
+        document.getElementById('newProdName').value = name;
+        document.getElementById('newProdPrice').value = price;
+        document.getElementById('newProdImg').value = img;
+    }
+
     function saveProduct() {
+        const editId = document.getElementById('editingProdId').value;
         const name = document.getElementById('newProdName').value.trim();
         const price = parseFloat(document.getElementById('newProdPrice').value);
         const img = document.getElementById('newProdImg').value.trim() || "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=200";
+
         if (name && !isNaN(price)) {
-            db.ref('products/p_' + Date.now()).set({ name, price, img });
-            document.getElementById('newProdName').value = "";
-            document.getElementById('newProdPrice').value = "";
-            document.getElementById('newProdImg').value = "";
-            alert('บันทึกสินค้าเรียบร้อย');
+            const targetRef = editId ? db.ref('products/' + editId) : db.ref('products').push();
+            targetRef.set({ name, price, img }, (error) => {
+                if (!error) {
+                    document.getElementById('editingProdId').value = "";
+                    document.getElementById('newProdName').value = "";
+                    document.getElementById('newProdPrice').value = "";
+                    document.getElementById('newProdImg').value = "";
+                    alert('บันทึก/อัปเดตสินค้าเรียบร้อยแล้ว!');
+                } else {
+                    alert('เกิดข้อผิดพลาดในการบันทึก: ' + error.message);
+                }
+            });
         } else {
             alert('กรุณากรอกชื่อสินค้าและราคาให้ถูกต้อง');
         }
