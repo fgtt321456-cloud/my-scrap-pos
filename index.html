@@ -27,7 +27,7 @@
 
         .app-container { max-width: 1280px; margin: 0 auto; }
 
-        /* Top Header */
+        /* Top Header Bar */
         .top-bar {
             display: flex; justify-content: space-between; align-items: center;
             background: var(--card-bg); padding: 12px 20px; border-radius: 16px;
@@ -47,7 +47,7 @@
         .panel { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
         .panel-title { font-size: 15px; font-weight: 600; color: var(--text-sub); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* ฝั่งซ้าย: รูปสินค้า */
+        /* ฝั่งซ้าย: รูปรายการสินค้า */
         .product-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 12px;
             max-height: 620px; overflow-y: auto; padding-right: 4px;
@@ -58,11 +58,11 @@
         }
         .prod-card:hover { border-color: #a5b4fc; transform: translateY(-2px); }
         .prod-card.selected { border-color: var(--primary); background: #f5f3ff; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); }
-        .prod-img { width: 100%; height: 75px; object-fit: cover; border-radius: 8px; margin-bottom: 6px; }
-        .prod-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .prod-price { font-size: 13px; font-weight: 700; color: var(--primary); }
+        .prod-img { width: 100%; height: 75px; object-fit: cover; border-radius: 8px; margin-bottom: 6px; pointer-events: none; }
+        .prod-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+        .prod-price { font-size: 13px; font-weight: 700; color: var(--primary); pointer-events: none; }
 
-        /* ฝั่งขวา: คำนวณน้ำหนัก */
+        /* ฝั่งขวา: เครื่องคิดเลข/น้ำหนัก */
         .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .field { display: flex; flex-direction: column; gap: 4px; }
         .field label { font-size: 12px; font-weight: 600; color: var(--text-sub); }
@@ -110,8 +110,8 @@
         <div class="brand">♻️ หจก.รุ่งนภา รีไซเคิล</div>
         <div class="cash-badge">💵 เงินในเก๊ะ: <span id="cashInDrawer">0.00</span> ฿</div>
         <div class="nav-actions">
-            <button class="btn-tab active" onclick="switchTab('pos')">🛒 หน้าขาย/รับซื้อ</button>
-            <button class="btn-tab" onclick="authManager()">🔐 หลังบ้านผู้จัดการ</button>
+            <button class="btn-tab active" id="btnTabPos" onclick="switchTab('pos')">🛒 หน้าขาย/รับซื้อ</button>
+            <button class="btn-tab" id="btnTabManager" onclick="authManager()">🔐 หลังบ้านผู้จัดการ</button>
         </div>
     </div>
 
@@ -120,15 +120,15 @@
         <!-- ฝั่งซ้าย: รูปรายการสินค้า -->
         <div class="panel">
             <div class="panel-title">
-                <span>📦 เลือกรายการสินค้า (คลิกรูปภาพ)</span>
-                <span style="font-size: 12px; color: var(--primary);" id="selectedProdNameText">ยังไม่ได้เลือกสินค้า</span>
+                <span>📦 เลือกรายการสินค้า (ด้านซ้าย)</span>
+                <span style="font-size: 13px; color: var(--primary); font-weight:700;" id="selectedProdNameText">กรุณาคลิกเลือกสินค้า</span>
             </div>
             <div class="product-grid" id="productGrid"></div>
         </div>
 
         <!-- ฝั่งขวา: เครื่องคิดเลข/น้ำหนักเเละตารางบิล -->
         <div class="panel">
-            <div class="panel-title">⚖️ ใส่น้ำหนักเเละคำนวณราคา</div>
+            <div class="panel-title">⚖️ ใส่น้ำหนักเเละคำนวณราคา (ด้านขวา)</div>
             
             <div class="input-group">
                 <div class="field">
@@ -188,15 +188,15 @@
         </div>
 
         <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
-            <button class="btn-tab active" onclick="loadReport('daily')">📅 สรุปรายวัน</button>
-            <button class="btn-tab" onclick="loadReport('monthly')">📅 สรุปรายเดือน</button>
-            <button class="btn-tab" onclick="loadReport('product')">📦 สรุปยอดแยกตามสินค้า</button>
+            <button class="btn-tab active" id="btnRepDaily" onclick="loadReport('daily')">📅 สรุปรายวัน</button>
+            <button class="btn-tab" id="btnRepMonthly" onclick="loadReport('monthly')">📅 สรุปรายเดือน</button>
+            <button class="btn-tab" id="btnRepProduct" onclick="loadReport('product')">📦 สรุปยอดแยกตามสินค้า</button>
         </div>
         <div id="reportResult" style="background:#f8fafc; padding:15px; border-radius:10px; margin-bottom:15px; border:1px solid var(--border); min-height:80px;">
             <p style="text-align: center; color: var(--text-sub);">กดเลือกเมนูด้านบนเพื่อเรียกดูรายงานสรุปยอด</p>
         </div>
 
-        <div class="panel-title">🏷️ เพิ่ม/กำหนดราคาสินค้า</div>
+        <div class="panel-title">🏷️ ตั้งค่าราคาเเละเพิ่มสินค้า</div>
         <div style="display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 8px; margin-bottom: 10px;">
             <input type="text" id="newProdName" placeholder="ชื่อสินค้า เช่น กระดาษลัง" style="padding:8px; border-radius:8px; border:1px solid #cbd5e1;">
             <input type="number" id="newProdPrice" placeholder="ราคา/กก." step="any" style="padding:8px; border-radius:8px; border:1px solid #cbd5e1;">
@@ -289,10 +289,15 @@
     }
 
     function switchTab(tab) {
+        document.getElementById('btnTabPos').classList.remove('active');
+        document.getElementById('btnTabManager').classList.remove('active');
+
         if (tab === 'pos') {
+            document.getElementById('btnTabPos').classList.add('active');
             document.getElementById('posSection').style.display = 'grid';
             document.getElementById('managerSection').style.display = 'none';
         } else {
+            document.getElementById('btnTabManager').classList.add('active');
             document.getElementById('posSection').style.display = 'none';
             document.getElementById('managerSection').style.display = 'block';
             renderManagerProducts();
@@ -300,14 +305,15 @@
     }
 
     // -----------------------------------------------------------------
-    // 3. ระบบเลือกสินค้า & คำนวณน้ำหนัก
+    // 3. ระบบเลือกสินค้าด้วยรูปภาพทางซ้าย & คำนวณน้ำหนักทางขวา
     // -----------------------------------------------------------------
     function renderProducts() {
         const grid = document.getElementById('productGrid');
         grid.innerHTML = "";
         window.productList.forEach(p => {
+            const pName = p.name.replace(/'/g, "\\'");
             grid.innerHTML += `
-                <div class="prod-card" onclick="selectProduct('${p.name}', ${p.price}, this)">
+                <div class="prod-card" data-id="${p.id}" onclick="selectProduct('${p.id}', '${pName}', ${p.price}, this)">
                     <img src="${p.img}" class="prod-img" onerror="this.src='https://via.placeholder.com/100?text=Recycle'">
                     <div class="prod-name">${p.name}</div>
                     <div class="prod-price">${parseFloat(p.price).toFixed(2)} ฿</div>
@@ -316,12 +322,13 @@
         });
     }
 
-    function selectProduct(name, price, el) {
+    function selectProduct(id, name, price, el) {
         document.querySelectorAll('.prod-card').forEach(c => c.classList.remove('selected'));
-        el.classList.add('selected');
-        currentProduct = { name, price: parseFloat(price) };
-        document.getElementById('selectedProdNameText').innerText = name + " (" + price.toFixed(2) + " ฿/กก.)";
-        document.getElementById('unitPrice').value = price.toFixed(2);
+        if(el) el.classList.add('selected');
+        
+        currentProduct = { id, name, price: parseFloat(price) };
+        document.getElementById('selectedProdNameText').innerText = "เลือก: " + name + " (" + parseFloat(price).toFixed(2) + " ฿/กก.)";
+        document.getElementById('unitPrice').value = parseFloat(price).toFixed(2);
         calcNet();
     }
 
@@ -338,7 +345,7 @@
     }
 
     function addToCart() {
-        if (!currentProduct) return alert('กรุณาเลือกรายการสินค้าทางด้านซ้าย');
+        if (!currentProduct) return alert('กรุณาคลิกเลือกรายการสินค้าทางด้านซ้าย');
         const net = parseFloat(document.getElementById('netWeight').value) || 0;
         const price = parseFloat(document.getElementById('unitPrice').value) || 0;
         if (net <= 0) return alert('กรุณาระบุน้ำหนักชั่งให้ถูกต้อง');
@@ -422,6 +429,14 @@
     // 5. ระบบรายงานหลังบ้าน (Daily / Monthly / Product)
     // -----------------------------------------------------------------
     function loadReport(type) {
+        document.getElementById('btnRepDaily').classList.remove('active');
+        document.getElementById('btnRepMonthly').classList.remove('active');
+        document.getElementById('btnRepProduct').classList.remove('active');
+
+        if(type==='daily') document.getElementById('btnRepDaily').classList.add('active');
+        if(type==='monthly') document.getElementById('btnRepMonthly').classList.add('active');
+        if(type==='product') document.getElementById('btnRepProduct').classList.add('active');
+
         const resultDiv = document.getElementById('reportResult');
         resultDiv.innerHTML = "กำลังดึงข้อมูลรายงาน...";
 
@@ -464,7 +479,7 @@
     }
 
     // -----------------------------------------------------------------
-    // 6. ตั้งค่าผู้จัดการ (จัดการสินค้า & งบเก๊ะ)
+    // 6. ตั้งค่าผู้จัดการ (จัดการราคา สินค้า & งบเก๊ะ)
     // -----------------------------------------------------------------
     function renderManagerProducts() {
         const tbody = document.getElementById('managerProductTable'); tbody.innerHTML = "";
@@ -482,6 +497,7 @@
             document.getElementById('newProdName').value = "";
             document.getElementById('newProdPrice').value = "";
             document.getElementById('newProdImg').value = "";
+            alert('บันทึก/อัปเดตสินค้าเรียบร้อย');
         } else {
             alert('กรุณากรอกชื่อสินค้าและราคาให้ถูกต้อง');
         }
