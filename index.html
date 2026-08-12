@@ -8,128 +8,260 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Sukhumvit Set', 'Takhoma', sans-serif; background-color: #f4f6f8; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; background: #e6f4ea; color: #137333; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #34a853; animation: pulse 2s infinite; }
+        :root { --primary: #5c52e5; --success: #2b8a3e; --bg: #f4f6f8; }
+        body { font-family: 'Sukhumvit Set', 'Takhoma', sans-serif; background-color: var(--bg); margin: 0; padding: 15px; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; background: #e6f4ea; color: #137333; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #34a853; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-        .btn-primary { background: #5c52e5; color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; transition: background 0.2s; }
-        .btn-primary:hover { background: #4b42cc; }
-        input[type="text"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; margin-top: 5px; }
+        
+        .cash-box { background: #eef2ff; border: 1px solid #c7d2fe; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .cash-title { font-size: 16px; font-weight: bold; color: #3730a3; }
+        .cash-amount { font-size: 24px; font-weight: bold; color: var(--success); }
+        
+        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 600px) { .grid-layout { grid-template-columns: 1fr; } }
+        
+        .card { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .card h3 { margin-top: 0; font-size: 16px; border-bottom: 1px solid #dee2e6; padding-bottom: 8px; }
+        
+        label { font-size: 14px; font-weight: bold; display: block; margin-top: 10px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 15px; margin-top: 4px; }
+        
+        .btn { border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #dee2e6; font-size: 14px; }
+        th { background: #e9ecef; }
+        .text-right { text-align: right; }
+        
+        .summary-box { background: #f1f3f5; padding: 15px; border-radius: 12px; margin-top: 15px; }
+        .summary-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; color: var(--primary); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>♻️ หจก.รุ่งนภา รีไซเคิล <span class="status-badge"><span class="status-dot"></span> Live Sync Real-time</span></h2>
-    
-    <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-        <h3>💵 เงินสดคงเหลือในเก๊ะ: <span id="cashInDrawer" style="color: #2b8a3e; font-size: 24px;">0.00</span> ฿</h3>
-        <button class="btn-primary" onclick="openConfigModal()">⚙️ ตั้งงบเก๊ะ & ตั้งค่า LINE Webhook</button>
+    <div class="header">
+        <h2 style="margin: 0; font-size: 20px;">♻️ หจก.รุ่งนภา รีไซเคิล</h2>
+        <span class="status-badge"><span class="status-dot"></span> Live Sync</span>
     </div>
 
-    <!-- ฟอร์มรับซื้อขยะ -->
-    <div>
-        <h3>📝 บันทึกการรับซื้อ</h3>
-        <label>ยอดเงินจ่ายซื้อ (บาท):</label>
-        <input type="number" id="payoutAmount" placeholder="0.00">
-        <br><br>
-        <button class="btn-primary" style="background: #2b8a3e;" onclick="processTransaction()">จ่ายเงิน & บันทึกรายการ</button>
+    <!-- แสดงงบเก๊ะเงินสด -->
+    <div class="cash-box">
+        <div>
+            <div class="cash-title">💵 เงินสดคงเหลือในเก๊ะ</div>
+            <div class="cash-amount" id="cashInDrawer">0.00 ฿</div>
+        </div>
+        <button class="btn btn-secondary" style="width: auto; padding: 8px 15px;" onclick="openConfigModal()">⚙️ ตั้งงบเก๊ะ / LINE</button>
+    </div>
+
+    <!-- ส่วนคำนวณการรับซื้อ (น้ำหนัก & ราคา) -->
+    <div class="grid-layout">
+        <div class="card">
+            <h3>📝 คำนวณรายการซื้อ</h3>
+            <label>ประเภทประเภทขยะ / สินค้า:</label>
+            <select id="itemSelect" onchange="updateUnitPrice()">
+                <option value="0" data-name="-- เลือกสินค้า --">-- เลือกประเภทขยะ --</option>
+                <option value="8.50" data-name="กระดาษลัง (A)">กระดาษลัง (A) - 8.50 ฿/กก.</option>
+                <option value="4.00" data-name="กระดาษเล่ม/หนังสือ">กระดาษเล่ม/หนังสือ - 4.00 ฿/กก.</option>
+                <option value="12.00" data-name="ขวดพลาสติกใส (PET)">ขวดพลาสติกใส (PET) - 12.00 ฿/กก.</option>
+                <option value="7.50" data-name="พลาสติกรวม/กรอบ">พลาสติกรวม/กรอบ - 7.50 ฿/กก.</option>
+                <option value="45.00" data-name="อลูมิเนียมกระป๋อง">อลูมิเนียมกระป๋อง - 45.00 ฿/กก.</option>
+                <option value="210.00" data-name="ทองแดงสายไฟ">ทองแดงสายไฟ - 210.00 ฿/กก.</option>
+                <option value="11.00" data-name="เหล็กหนา">เหล็กหนา - 11.00 ฿/กก.</option>
+                <option value="8.00" data-name="เหล็กบาง/สังกะสี">เหล็กบาง/สังกะสี - 8.00 ฿/กก.</option>
+            </select>
+
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label>น้ำหนัก (กก.):</label>
+                    <input type="number" id="weightInput" placeholder="0.00" oninput="calculateSubtotal()">
+                </div>
+                <div style="flex: 1;">
+                    <label>ราคา/กก. (บาท):</label>
+                    <input type="number" id="priceInput" placeholder="0.00" oninput="calculateSubtotal()">
+                </div>
+            </div>
+
+            <label>รวมเป็นเงิน (บาท):</label>
+            <input type="number" id="subtotalInput" placeholder="0.00" readonly style="background: #e9ecef; font-weight: bold; color: var(--primary);">
+
+            <button class="btn btn-primary" style="margin-top: 15px;" onclick="addItemToList()">➕ เพิ่มรายการ</button>
+        </div>
+
+        <!-- รายการสินค้าที่ชั่งแล้ว -->
+        <div class="card">
+            <h3>🛒 รายการรับซื้อประจำบิลนี้</h3>
+            <div style="max-height: 200px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>รายการ</th>
+                            <th class="text-right">กก.</th>
+                            <th class="text-right">รวม (฿)</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cartTableBody">
+                        <tr><td colspan="4" style="text-align: center; color: #888;">ยังไม่มีรายการ</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span>ยอดรวมทั้งสิ้น:</span>
+                    <span id="grandTotal">0.00 ฿</span>
+                </div>
+            </div>
+
+            <button class="btn btn-success" style="margin-top: 15px; font-size: 18px;" onclick="processPayment()">💵 จ่ายเงิน & พิมพ์ใบเสร็จ</button>
+        </div>
     </div>
 </div>
 
 <script>
     // -----------------------------------------------------------------
-    // 1. ตั้งค่า Firebase Real-time Database (เชื่อมต่อทุกเครื่องตรงกัน)
+    // 1. ตั้งค่า Firebase Real-time Database
     // -----------------------------------------------------------------
     const firebaseConfig = {
-        databaseURL: "https://YOUR_FIREBASE_DATABASE_URL.firebaseio.com" // ใส่ Database URL ของ Firebase คุณที่นี่
+        databaseURL: "https://YOUR_FIREBASE_DATABASE_URL.firebaseio.com" 
     };
-    
-    // Check if Firebase is initialized
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
-    // -----------------------------------------------------------------
-    // 2. ระบบ Real-time Sync (อัปเดตข้ามเครื่องทันทีเมื่อมีการเปลี่ยนแปลง)
-    // -----------------------------------------------------------------
     const drawerRef = db.ref('pos_settings/drawer_config');
 
+    // Sync งบเก๊ะแบบ Real-time ข้ามอุปกรณ์
     drawerRef.on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
-            document.getElementById('cashInDrawer').innerText = Number(data.currentCash || 0).toLocaleString('th-TH', {minimumFractionDigits: 2});
-            
-            // เก็บค่าไว้ใช้คำนวณในเครื่อง
+            document.getElementById('cashInDrawer').innerText = Number(data.currentCash || 0).toLocaleString('th-TH', {minimumFractionDigits: 2}) + ' ฿';
             window.posConfig = data;
         }
     });
 
     // -----------------------------------------------------------------
-    // 3. ฟังก์ชันบันทึกการรับซื้อ และส่งการแจ้งเตือน (ส่งค่า Payload แบบ Safe)
+    // 2. ระบบคำนวณรายการซื้อ
     // -----------------------------------------------------------------
-    async function processTransaction() {
-        const amountInput = document.getElementById('payoutAmount');
-        const payout = parseFloat(amountInput.value);
+    let cart = [];
 
-        if (!payout || payout <= 0) {
-            alert('กรุณาระบุยอดเงินจ่ายซื้อให้ถูกต้อง');
+    function updateUnitPrice() {
+        const select = document.getElementById('itemSelect');
+        document.getElementById('priceInput').value = select.value !== "0" ? select.value : "";
+        calculateSubtotal();
+    }
+
+    function calculateSubtotal() {
+        const weight = parseFloat(document.getElementById('weightInput').value) || 0;
+        const price = parseFloat(document.getElementById('priceInput').value) || 0;
+        document.getElementById('subtotalInput').value = (weight * price).toFixed(2);
+    }
+
+    function addItemToList() {
+        const select = document.getElementById('itemSelect');
+        const itemName = select.options[select.selectedIndex].getAttribute('data-name');
+        const weight = parseFloat(document.getElementById('weightInput').value) || 0;
+        const price = parseFloat(document.getElementById('priceInput').value) || 0;
+        const subtotal = weight * price;
+
+        if (select.value === "0" || weight <= 0) {
+            alert('กรุณาเลือกรายการสินค้าและกรอกน้ำหนักให้ถูกต้อง');
             return;
         }
 
+        cart.push({ name: itemName, weight: weight, price: price, subtotal: subtotal });
+        renderCart();
+
+        // รีเซ็ตฟอร์ม
+        select.value = "0";
+        document.getElementById('weightInput').value = "";
+        document.getElementById('priceInput').value = "";
+        document.getElementById('subtotalInput').value = "";
+    }
+
+    function renderCart() {
+        const tbody = document.getElementById('cartTableBody');
+        tbody.innerHTML = "";
+        let total = 0;
+
+        if (cart.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #888;">ยังไม่มีรายการ</td></tr>';
+            document.getElementById('grandTotal').innerText = "0.00 ฿";
+            return;
+        }
+
+        cart.forEach((item, index) => {
+            total += item.subtotal;
+            tbody.innerHTML += `
+                <tr>
+                    <td>${item.name}</td>
+                    <td class="text-right">${item.weight.toLocaleString()}</td>
+                    <td class="text-right">${item.subtotal.toLocaleString('th-TH', {minimumFractionDigits: 2})}</td>
+                    <td class="text-right"><button onclick="removeItem(${index})" style="background:red; color:white; border:none; border-radius:4px; cursor:pointer;">X</button></td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('grandTotal').innerText = total.toLocaleString('th-TH', {minimumFractionDigits: 2}) + ' ฿';
+    }
+
+    function removeItem(index) {
+        cart.splice(index, 1);
+        renderCart();
+    }
+
+    // -----------------------------------------------------------------
+    // 3. ระบบจ่ายเงิน ตัดงบเก๊ะ และแจ้งเตือน LINE Webhook
+    // -----------------------------------------------------------------
+    async function processPayment() {
+        if (cart.length === 0) {
+            alert('ยังไม่มีรายการสินค้าในบิล');
+            return;
+        }
+
+        const grandTotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
         const config = window.posConfig || {};
         let currentCash = config.currentCash || 0;
         const lowCashThreshold = config.lowCashThreshold || 5000;
         const largeBillThreshold = config.largeBillThreshold || 10000;
         const webhookUrl = config.webhookUrl;
 
-        // หักเงินออกจากเก๊ะ
-        currentCash -= payout;
+        if (confirm(`ยืนยันการจ่ายเงินรับซื้อ เป็นจำนวนเงิน ${grandTotal.toLocaleString()} บาท?`)) {
+            // หักเงินในเก๊ะ
+            currentCash -= grandTotal;
+            await drawerRef.update({ currentCash: currentCash });
 
-        // อัปเดตไปยัง Firebase Real-time (ส่งผลทันทีทุกเครื่องที่เปิด POS อยู่)
-        await drawerRef.update({ currentCash: currentCash });
-        amountInput.value = '';
+            // เช็กส่ง LINE Webhook
+            let alerts = [];
+            if (grandTotal >= largeBillThreshold) {
+                alerts.push(`🚨 **แจ้งเตือนบิลจ่ายใหญ่!**\nยอดจ่ายรับซื้อ: ${grandTotal.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท`);
+            }
+            if (currentCash <= lowCashThreshold) {
+                alerts.push(`⚠️ **เตือนเงินสดในลิ้นชักใกล้หมด!**\nเงินคงเหลือในเก๊ะ: ${currentCash.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท (ต่ำกว่าเกณฑ์ ${lowCashThreshold.toLocaleString()} บาท)`);
+            }
 
-        // --- ระบบแจ้งเตือน LINE Webhook ---
-        let alertMessages = [];
+            if (alerts.length > 0 && webhookUrl) {
+                const fullMsg = alerts.join("\n\n") + `\n⏰ เวลา: ${new Date().toLocaleTimeString('th-TH')}`;
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ value: fullMsg, message: fullMsg })
+                }).catch(e => console.error(e));
+            }
 
-        // เช็กเตือนบิลใหญ่
-        if (payout >= largeBillThreshold) {
-            alertMessages.push(`🚨 **แจ้งเตือนบิลจ่ายใหญ่!**\nยอดจ่ายรับซื้อ: ${payout.toLocaleString()} บาท`);
+            alert('จ่ายเงินและบันทึกรายการเรียบร้อย!');
+            cart = [];
+            renderCart();
         }
-
-        // เช็กเตือนเงินในเก๊ะต่ำกว่าเกณฑ์
-        if (currentCash <= lowCashThreshold) {
-            alertMessages.push(`⚠️ **เตือนเงินสดในลิ้นชักใกล้หมด!**\nเงินคงเหลือในเก๊ะ: ${currentCash.toLocaleString()} บาท (ต่ำกว่าเกณฑ์ ${lowCashThreshold.toLocaleString()} บาท)`);
-        }
-
-        // ยิง Webhook ไปยัง Make.com หากเข้าเงื่อนไข
-        if (alertMessages.length > 0 && webhookUrl) {
-            const fullMessage = alertMessages.join("\n\n") + `\n⏰ เวลา: ${new Date().toLocaleTimeString('th-TH')}`;
-            
-            // ส่งทั้ง Key 'value' และ 'message' เพื่อป้องกัน Bug เรื่องชื่อตัวแปร
-            sendWebhookAlert(webhookUrl, fullMessage);
-        }
-
-        alert('บันทึกการจ่ายเงินเรียบร้อยแล้ว!');
-    }
-
-    // ฟังก์ชันส่งข้อมูลไปยัง Make.com (ป้องกัน CORS และล็อกโครงสร้างข้อมูล)
-    function sendWebhookAlert(url, textMessage) {
-        fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                value: textMessage,     // รองรับ {{2.value}} ใน Make.com
-                message: textMessage   // รองรับ {{2.message}} ใน Make.com
-            })
-        }).catch(err => console.error("Webhook Send Error:", err));
     }
 
     // -----------------------------------------------------------------
-    // 4. บันทึกการตั้งค่างบเงินสด / เกณฑ์การแจ้งเตือน
+    // 4. ตั้งค่างบเงินสด / LINE Webhook
     // -----------------------------------------------------------------
     function openConfigModal() {
         const config = window.posConfig || {};
@@ -145,7 +277,7 @@
                 largeBillThreshold: parseFloat(largeThreshold) || 10000,
                 webhookUrl: webhook ? webhook.trim() : ""
             });
-            alert('บันทึกการตั้งค่าลงระบบเรียบร้อยแล้ว ทุกเครื่องจะอัปเดตข้อมูลทันที!');
+            alert('บันทึกการตั้งค่าเรียบร้อยแล้ว!');
         }
     }
 </script>
