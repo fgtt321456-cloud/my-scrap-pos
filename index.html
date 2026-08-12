@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>POS รับซื้อของเก่า - Fixed Edition</title>
+    <title>POS รับซื้อของเก่า - Final Fixed Edition</title>
 
     <!-- Firebase Realtime Cloud SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -85,7 +85,8 @@
             background: var(--primary); color: #FFFFFF; border: none; width: 100%; padding: 16px; 
             border-radius: var(--radius-md); font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; margin-top: 10px;
         }
-        .btn-pay:active { opacity: 0.9; transform: scale(0.98); }
+        .btn-pay:disabled { background: var(--text-muted); cursor: not-allowed; }
+        .btn-pay:active:not(:disabled) { opacity: 0.9; transform: scale(0.98); }
 
         /* Popups & Modals */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 100; }
@@ -125,7 +126,7 @@
             .summary-amount { font-size: 18px !important; color: black !important; }
         }
 
-        /* 2. สไตล์เมื่อสั่งพิมพ์รายงาน PDF (ปรับเป็น A4) */
+        /* 2. พิมพ์รายงาน PDF (ปรับเป็น A4) */
         @media print {
             body.print-report-mode {
                 padding: 10mm !important;
@@ -194,7 +195,7 @@
                 <div class="summary-label">ยอดจ่ายสุทธิ</div>
                 <div class="summary-amount"><span id="totalAmount">0.00</span> ฿</div>
             </div>
-            <button class="btn-pay" onclick="completeTransaction()">บันทึกจ่ายเงิน & พิมพ์ใบเสร็จ</button>
+            <button class="btn-pay" id="btnPay" onclick="completeTransaction()">บันทึกจ่ายเงิน & พิมพ์ใบเสร็จ</button>
         </div>
     </div>
 
@@ -355,7 +356,7 @@
             return isIOS || isMac;
         }
 
-        // ฟังก์ชันบีบอัดไฟล์รูปภาพ (เพื่อป้องกัน LocalStorage เต็ม)
+        // ย่อรูปภาพป้องกัน LocalStorage เต็ม
         function compressImage(file, callback) {
             const maxWidth = 300;
             const maxHeight = 300;
@@ -381,7 +382,7 @@
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    callback(canvas.toDataURL('image/jpeg', 0.7)); // ย่อเหลือไฟล์ JPEG คุณภาพ 70%
+                    callback(canvas.toDataURL('image/jpeg', 0.7));
                 };
                 img.src = e.target.result;
             };
@@ -405,7 +406,7 @@
                 localStorage.setItem('my_pos_products', JSON.stringify(products));
                 localStorage.setItem('my_pos_history', JSON.stringify(historyData));
             } catch (e) {
-                alert("คำเตือน: ความจำในเครื่องเต็ม ไม่สามารถบันทึกข้อมูลเพิ่มได้");
+                alert("คำเตือน: หน่วยความจำเบราว์เซอร์เต็ม ไม่สามารถบันทึกข้อมูลเพิ่มได้");
             }
         }
 
@@ -602,7 +603,8 @@
             let grandTotal = 0;
 
             cart.forEach(item => {
-                const total = item.weight * item.price;
+                // แก้ไข Floating Point Precision
+                const total = Math.round((item.weight * item.price) * 100) / 100;
                 grandTotal += total;
 
                 tbody.innerHTML += `
@@ -620,7 +622,7 @@
                 `;
             });
 
-            document.getElementById('totalAmount').innerText = grandTotal.toLocaleString('th-TH', {minimumFractionDigits: 2});
+            document.getElementById('totalAmount').innerText = (Math.round(grandTotal * 100) / 100).toLocaleString('th-TH', {minimumFractionDigits: 2});
         }
 
         function completeTransaction() {
@@ -629,6 +631,10 @@
                 return;
             }
 
+            // ป้องกันการกดซ้ำซ้อน
+            const payBtn = document.getElementById('btnPay');
+            payBtn.disabled = true;
+
             const now = new Date();
             const dateStr = now.toISOString().split('T')[0];
             const monthStr = dateStr.substring(0, 7);
@@ -636,10 +642,12 @@
 
             let totalPayout = 0;
             const itemsBought = cart.map(i => {
-                const sum = i.weight * i.price;
+                const sum = Math.round((i.weight * i.price) * 100) / 100;
                 totalPayout += sum;
                 return { name: i.name, weight: i.weight, price: i.price, total: sum };
             });
+
+            totalPayout = Math.round(totalPayout * 100) / 100;
 
             const transactionObj = {
                 id: Date.now(),
@@ -662,6 +670,7 @@
 
             cart = [];
             renderCart();
+            payBtn.disabled = false;
             alert('บันทึกการรับซื้อเรียบร้อยแล้ว');
         }
 
@@ -762,7 +771,7 @@
             const blob = new Blob([excelData], { type: 'application/vnd.ms-excel' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `รายงานรับซื้อของเก่า_${new Date().toISOString().split('T')[0]}.xls`);
+            link.setAttribute("download", encodeURIComponent(`รายงานรับซื้อของเก่า_${new Date().toISOString().split('T')[0]}.xls`));
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -784,7 +793,7 @@
                 const imageURI = canvas.toDataURL("image/png");
                 const link = document.createElement("a");
                 link.href = imageURI;
-                link.setAttribute("download", `ภาพรายงานรับซื้อ_${new Date().toISOString().split('T')[0]}.png`);
+                link.setAttribute("download", encodeURIComponent(`ภาพรายงานรับซื้อ_${new Date().toISOString().split('T')[0]}.png`));
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -805,7 +814,7 @@
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `รายงานรับซื้อของเก่า_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute("download", encodeURIComponent(`รายงานรับซื้อของเก่า_${new Date().toISOString().split('T')[0]}.csv`));
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
