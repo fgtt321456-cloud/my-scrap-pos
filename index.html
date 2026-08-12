@@ -2,99 +2,131 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS รับซื้อขยะรีไซเคิล - หจก.รุ่งนภา รีไซเคิล</title>
+    <!-- iOS Viewport & Safe Area Support -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- iOS Web App Native Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="รุ่งนภา POS">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3299/3299935.png">
+    
+    <title>POS หจก.รุ่งนภา รีไซเคิล (iOS Optimized)</title>
+    
     <!-- Firebase Real-time SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
 
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --success: #10b981;
-            --danger: #ef4444;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-sub: #64748b;
-            --border: #e2e8f0;
+            --apple-blue: #007aff;
+            --apple-green: #34c759;
+            --apple-red: #ff3b30;
+            --apple-bg: #f2f2f7;
+            --apple-card: #ffffff;
+            --apple-text: #000000;
+            --apple-subtext: #8e8e93;
+            --apple-border: #c6c6c8;
+            /* iOS Safe Area Insets Support */
+            --sat: env(safe-area-inset-top);
+            --sab: env(safe-area-inset-bottom);
+            --sal: env(safe-area-inset-left);
+            --sar: env(safe-area-inset-right);
         }
 
-        * { box-sizing: border-box; font-family: 'Prompt', sans-serif; }
-        body { background-color: var(--bg); color: var(--text-main); margin: 0; padding: 15px; }
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, 'SF Pro Display', 'Prompt', sans-serif;
+            -webkit-tap-highlight-color: transparent; /* ลบกรอบไฮไลท์สี่เหลี่ยมเวลาแตะบน iOS */
+            -webkit-touch-callout: none; /* ป้องกัน Menu Popup ค้างเมื่อแตะค้างบน iOS */
+        }
+
+        body {
+            background-color: var(--apple-bg);
+            color: var(--apple-text);
+            margin: 0;
+            padding: calc(var(--sat) + 10px) calc(var(--sar) + 12px) calc(var(--sab) + 12px) calc(var(--sal) + 12px);
+            font-size: 15px;
+        }
 
         .app-container { max-width: 1280px; margin: 0 auto; }
 
-        /* Top Header Bar */
+        /* Top Header Navigation Bar (iOS Style) */
         .top-bar {
             display: flex; justify-content: space-between; align-items: center;
-            background: var(--card-bg); padding: 12px 20px; border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border); margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 12px 18px; border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 0.5px solid rgba(0,0,0,0.1); margin-bottom: 12px;
         }
-        .brand { font-size: 18px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
-        .cash-badge { background: #e0e7ff; color: #3730a3; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 14px; }
+        .brand { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        .cash-badge { background: #e5f1ff; color: var(--apple-blue); padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; }
         
-        .nav-actions { display: flex; gap: 8px; }
-        .btn-tab { border: none; padding: 8px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; background: #f1f5f9; color: var(--text-sub); transition: 0.2s; }
-        .btn-tab.active { background: var(--primary); color: white; }
+        .nav-actions { display: flex; gap: 6px; }
+        .btn-tab { border: none; padding: 8px 14px; border-radius: 12px; font-weight: 600; cursor: pointer; background: #e5e5ea; color: #3a3a3c; font-size: 13px; transition: all 0.2s; }
+        .btn-tab.active { background: var(--apple-blue); color: white; }
 
-        /* Minimal Split Layout */
-        .pos-layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 15px; }
-        @media (max-width: 900px) { .pos-layout { grid-template-columns: 1fr; } }
+        /* iOS Segmented Split Layout */
+        .pos-layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 12px; }
+        @media (max-width: 850px) { .pos-layout { grid-template-columns: 1fr; } }
 
-        .panel { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-        .panel-title { font-size: 15px; font-weight: 600; color: var(--text-sub); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .panel {
+            background: var(--apple-card); border-radius: 20px;
+            border: 0.5px solid rgba(0,0,0,0.08); padding: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+        .panel-title { font-size: 14px; font-weight: 600; color: var(--apple-subtext); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* ฝั่งซ้าย: รูปรายการสินค้า */
+        /* ฝั่งซ้าย: การ์ดสินค้ามินิมอลแบบ iOS Grid */
         .product-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 12px;
-            max-height: 620px; overflow-y: auto; padding-right: 4px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px;
+            max-height: 600px; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 2px;
         }
         .prod-card {
-            background: #fff; border: 2px solid var(--border); border-radius: 14px; padding: 10px;
-            text-align: center; cursor: pointer; transition: all 0.2s ease; user-select: none;
+            background: #fff; border: 1.5px solid #e5e5ea; border-radius: 16px; padding: 10px;
+            text-align: center; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease;
         }
-        .prod-card:hover { border-color: #a5b4fc; transform: translateY(-2px); }
-        .prod-card.selected { border-color: var(--primary); background: #f5f3ff; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); }
-        .prod-img { width: 100%; height: 75px; object-fit: cover; border-radius: 8px; margin-bottom: 6px; pointer-events: none; }
-        .prod-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
-        .prod-price { font-size: 13px; font-weight: 700; color: var(--primary); pointer-events: none; }
+        .prod-card:active { transform: scale(0.96); } /* Effect เด้งตอบสนองสไตล์ iOS */
+        .prod-card.selected { border-color: var(--apple-blue); background: #f2f8ff; box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15); }
+        .prod-img { width: 100%; height: 70px; object-fit: cover; border-radius: 10px; margin-bottom: 4px; pointer-events: none; }
+        .prod-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+        .prod-price { font-size: 13px; font-weight: 700; color: var(--apple-blue); pointer-events: none; }
 
-        /* ฝั่งขวา: เครื่องคิดเลข/น้ำหนัก */
-        .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .field { display: flex; flex-direction: column; gap: 4px; }
-        .field label { font-size: 12px; font-weight: 600; color: var(--text-sub); }
+        /* ฝั่งขวา: เครื่องคิดเลข/ใส่น้ำหนักรองรับ iOS Keyboard */
+        .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        .field { display: flex; flex-direction: column; gap: 3px; }
+        .field label { font-size: 11px; font-weight: 600; color: var(--apple-subtext); }
         .field input {
-            padding: 10px; border: 1px solid var(--border); border-radius: 10px; font-size: 16px;
-            font-weight: 600; outline: none; transition: 0.2s;
+            padding: 10px 12px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px;
+            font-weight: 600; outline: none; background: #fafafa; -webkit-appearance: none;
         }
-        .field input:focus { border-color: var(--primary); }
-        .field input[readonly] { background: #f8fafc; color: var(--text-sub); }
+        .field input:focus { border-color: var(--apple-blue); background: #fff; }
+        .field input[readonly] { background: #f2f2f7; color: #8e8e93; }
 
         .subtotal-box {
-            background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px 16px; border-radius: 12px;
-            display: flex; justify-content: space-between; align-items: center; margin: 12px 0;
+            background: #eefbf1; border: 1px solid #c7f3d6; padding: 10px 14px; border-radius: 14px;
+            display: flex; justify-content: space-between; align-items: center; margin: 10px 0;
         }
-        .subtotal-val { font-size: 22px; font-weight: 700; color: var(--success); }
+        .subtotal-val { font-size: 20px; font-weight: 700; color: var(--apple-green); }
 
-        /* Buttons & Tables */
-        .btn { border: none; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.2s; }
-        .btn-add { background: var(--primary); color: white; }
-        .btn-add:hover { background: var(--primary-hover); }
-        .btn-pay { background: var(--success); color: white; font-size: 16px; padding: 14px; margin-top: 10px; }
+        /* iOS Standard Buttons */
+        .btn { border: none; padding: 12px; border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: opacity 0.2s; }
+        .btn:active { opacity: 0.7; }
+        .btn-add { background: var(--apple-blue); color: white; }
+        .btn-pay { background: var(--apple-green); color: white; font-size: 16px; padding: 14px; margin-top: 10px; }
 
-        .cart-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        .cart-table th { text-align: left; padding: 8px; color: var(--text-sub); border-bottom: 1px solid var(--border); }
-        .cart-table td { padding: 10px 8px; border-bottom: 1px solid var(--border); font-weight: 500; }
+        .cart-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+        .cart-table th { text-align: left; padding: 6px 8px; color: var(--apple-subtext); border-bottom: 0.5px solid var(--apple-border); }
+        .cart-table td { padding: 8px; border-bottom: 0.5px solid var(--apple-border); font-weight: 500; }
         .text-right { text-align: right; }
 
-        /* Modal */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 100; }
-        .modal-box { background: white; padding: 24px; border-radius: 20px; width: 90%; max-width: 450px; }
+        /* Modal iOS Sheet Style */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-box { background: white; padding: 22px; border-radius: 24px; width: 90%; max-width: 420px; }
 
-        /* Print Area */
+        /* AirPrint Receipt Support */
         @media print {
             body * { visibility: hidden; }
             #receiptArea, #receiptArea * { visibility: visible; }
@@ -108,10 +140,10 @@
     <!-- Top Header Bar -->
     <div class="top-bar">
         <div class="brand">♻️ หจก.รุ่งนภา รีไซเคิล</div>
-        <div class="cash-badge">💵 เงินในเก๊ะ: <span id="cashInDrawer">0.00</span> ฿</div>
+        <div class="cash-badge">💵 เก๊ะ: <span id="cashInDrawer">0.00</span> ฿</div>
         <div class="nav-actions">
-            <button class="btn-tab active" id="btnTabPos" onclick="switchTab('pos')">🛒 หน้าขาย/รับซื้อ</button>
-            <button class="btn-tab" id="btnTabManager" onclick="authManager()">🔐 หลังบ้านผู้จัดการ</button>
+            <button class="btn-tab active" id="btnTabPos" onclick="switchTab('pos')">🛒 หน้าขาย</button>
+            <button class="btn-tab" id="btnTabManager" onclick="authManager()">🔐 หลังบ้าน</button>
         </div>
     </div>
 
@@ -120,24 +152,25 @@
         <!-- ฝั่งซ้าย: รูปรายการสินค้า -->
         <div class="panel">
             <div class="panel-title">
-                <span>📦 เลือกรายการสินค้า (ด้านซ้าย)</span>
-                <span style="font-size: 13px; color: var(--primary); font-weight:700;" id="selectedProdNameText">กรุณาคลิกเลือกสินค้า</span>
+                <span>📦 เลือกสินค้า (ด้านซ้าย)</span>
+                <span style="font-size: 12px; color: var(--apple-blue); font-weight: 700;" id="selectedProdNameText">กรุณาเลือกสินค้า</span>
             </div>
             <div class="product-grid" id="productGrid"></div>
         </div>
 
-        <!-- ฝั่งขวา: เครื่องคิดเลข/น้ำหนักเเละตารางบิล -->
+        <!-- ฝั่งขวา: เครื่องคิดเลข/ใส่น้ำหนัก -->
         <div class="panel">
-            <div class="panel-title">⚖️ ใส่น้ำหนักเเละคำนวณราคา (ด้านขวา)</div>
+            <div class="panel-title">⚖️ คำนวณน้ำหนัก (ด้านขวา)</div>
             
             <div class="input-group">
                 <div class="field">
                     <label>ชั่งรวม (กก.)</label>
-                    <input type="number" id="grossWeight" placeholder="0.00" step="any" oninput="calcNet()">
+                    <!-- inputmode="decimal" ช่วยบังคับเรียกแป้นพิมพ์ตัวเลขจุดทศนิยมบน iOS -->
+                    <input type="number" id="grossWeight" placeholder="0.00" step="any" inputmode="decimal" oninput="calcNet()">
                 </div>
                 <div class="field">
                     <label>หักสิ่งปนเปื้อน (กก.)</label>
-                    <input type="number" id="deductWeight" placeholder="0" step="any" oninput="calcNet()">
+                    <input type="number" id="deductWeight" placeholder="0" step="any" inputmode="decimal" oninput="calcNet()">
                 </div>
             </div>
 
@@ -153,55 +186,55 @@
             </div>
 
             <div class="subtotal-box">
-                <span style="font-weight:600; color:var(--text-sub);">รวมเป็นเงิน</span>
+                <span style="font-weight: 600; color: var(--apple-subtext);">รวมเป็นเงิน</span>
                 <span class="subtotal-val" id="subtotalText">0.00 ฿</span>
             </div>
 
-            <button class="btn btn-add" onclick="addToCart()">➕ เพิ่มรายการลงบิล</button>
+            <button class="btn btn-add" onclick="triggerHaptic(); addToCart();">➕ เพิ่มรายการลงบิล</button>
 
             <!-- ตารางสรุปบิล -->
-            <div style="margin-top: 15px; max-height: 180px; overflow-y: auto;">
+            <div style="margin-top: 12px; max-height: 160px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
                 <table class="cart-table">
                     <thead>
-                        <tr><th>รายการ</th><th class="text-right">สุทธิ (กก.)</th><th class="text-right">รวม (฿)</th><th></th></tr>
+                        <tr><th>รายการ</th><th class="text-right">สุทธิ</th><th class="text-right">รวม (฿)</th><th></th></tr>
                     </thead>
                     <tbody id="cartTable">
-                        <tr><td colspan="4" style="text-align:center; color:#94a3b8;">ยังไม่มีรายการ</td></tr>
+                        <tr><td colspan="4" style="text-align:center; color:#8e8e93;">ยังไม่มีรายการ</td></tr>
                     </tbody>
                 </table>
             </div>
 
-            <div style="display:flex; justify-content:space-between; margin-top:12px; font-weight:700; font-size:16px;">
+            <div style="display:flex; justify-content:space-between; margin-top:10px; font-weight:700; font-size:16px;">
                 <span>ยอดรวมทั้งสิ้น:</span>
-                <span id="grandTotal" style="color:var(--primary);">0.00 ฿</span>
+                <span id="grandTotal" style="color:var(--apple-blue);">0.00 ฿</span>
             </div>
 
-            <button class="btn btn-pay" onclick="processPayment()">💵 จ่ายเงิน & พิมพ์ใบเสร็จ</button>
+            <button class="btn btn-pay" onclick="triggerHaptic(); processPayment();">💵 จ่ายเงิน & พิมพ์ใบเสร็จ</button>
         </div>
     </div>
 
     <!-- Layout หน้าผู้จัดการ (MANAGER BACKOFFICE) -->
     <div id="managerSection" style="display: none;" class="panel">
         <div class="panel-title">
-            <span>⚙️ ระบบบริหารจัดการหลังบ้าน (ผู้จัดการ)</span>
-            <button class="btn-tab" onclick="openConfigModal()">ตั้งงบเก๊ะเงินสด & LINE Webhook</button>
+            <span>⚙️ บริหารจัดการหลังบ้าน (ผู้จัดการ)</span>
+            <button class="btn-tab" onclick="openConfigModal()">ตั้งงบเก๊ะ & LINE Webhook</button>
         </div>
 
-        <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
             <button class="btn-tab active" id="btnRepDaily" onclick="loadReport('daily')">📅 สรุปรายวัน</button>
             <button class="btn-tab" id="btnRepMonthly" onclick="loadReport('monthly')">📅 สรุปรายเดือน</button>
-            <button class="btn-tab" id="btnRepProduct" onclick="loadReport('product')">📦 สรุปยอดแยกตามสินค้า</button>
+            <button class="btn-tab" id="btnRepProduct" onclick="loadReport('product')">📦 สรุปแยกสินค้า</button>
         </div>
-        <div id="reportResult" style="background:#f8fafc; padding:15px; border-radius:10px; margin-bottom:15px; border:1px solid var(--border); min-height:80px;">
-            <p style="text-align: center; color: var(--text-sub);">กดเลือกเมนูด้านบนเพื่อเรียกดูรายงานสรุปยอด</p>
+        <div id="reportResult" style="background:#f2f2f7; padding:14px; border-radius:14px; margin-bottom:12px; min-height:80px;">
+            <p style="text-align: center; color: var(--apple-subtext);">กดเลือกเมนูด้านบนเพื่อเรียกดูรายงานสรุปยอด</p>
         </div>
 
         <div class="panel-title">🏷️ ตั้งค่าราคาเเละเพิ่มสินค้า</div>
-        <div style="display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 8px; margin-bottom: 10px;">
-            <input type="text" id="newProdName" placeholder="ชื่อสินค้า เช่น กระดาษลัง" style="padding:8px; border-radius:8px; border:1px solid #cbd5e1;">
-            <input type="number" id="newProdPrice" placeholder="ราคา/กก." step="any" style="padding:8px; border-radius:8px; border:1px solid #cbd5e1;">
-            <input type="text" id="newProdImg" placeholder="URL รูปภาพประกอบ" style="padding:8px; border-radius:8px; border:1px solid #cbd5e1;">
-            <button class="btn btn-add" style="padding:8px 16px;" onclick="saveProduct()">บันทึก/อัปเดต</button>
+        <div style="display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 6px; margin-bottom: 10px;">
+            <input type="text" id="newProdName" placeholder="ชื่อสินค้า" style="padding:8px; border-radius:10px; border:1px solid #d1d1d6;">
+            <input type="number" id="newProdPrice" placeholder="ราคา" step="any" inputmode="decimal" style="padding:8px; border-radius:10px; border:1px solid #d1d1d6;">
+            <input type="text" id="newProdImg" placeholder="URL รูปภาพ" style="padding:8px; border-radius:10px; border:1px solid #d1d1d6;">
+            <button class="btn btn-add" style="padding:8px 14px;" onclick="saveProduct()">บันทึก</button>
         </div>
         <table class="cart-table">
             <thead><tr><th>รูป</th><th>ชื่อสินค้า</th><th>ราคา/กก.</th><th>จัดการ</th></tr></thead>
@@ -210,7 +243,7 @@
     </div>
 </div>
 
-<!-- โครงสร้างใบเสร็จสำหรับพิมพ์ -->
+<!-- โครงสร้างใบเสร็จพิมพ์ AirPrint -->
 <div id="receiptArea" style="display:none; padding:20px; font-family:sans-serif;">
     <h3 style="text-align:center; margin:0;">หจก.รุ่งนภา รีไซเคิล</h3>
     <p style="text-align:center; font-size:12px; margin:4px 0;">ใบเสร็จรับซื้อขยะรีไซเคิล</p>
@@ -225,16 +258,16 @@
     <p style="text-align:center; font-size:10px; margin-top:20px;">ขอบคุณที่ใช้บริการ</p>
 </div>
 
-<!-- Modal ตั้งค่างบเก๊ะ -->
+<!-- Modal ตั้งค่างบเก๊ะ iOS Style -->
 <div class="modal" id="configModal">
     <div class="modal-box">
         <h3 style="margin-top:0;">⚙️ ตั้งค่างบเก๊ะเงินสด & เตือน LINE</h3>
-        <div class="field" style="margin-bottom:8px;"><label>งบเงินสดเริ่มต้นในเก๊ะ (บาท)</label><input type="number" id="cfgCash" step="any"></div>
-        <div class="field" style="margin-bottom:8px;"><label>เตือนเงินในเก๊ะต่ำกว่า (บาท)</label><input type="number" id="cfgLow" step="any"></div>
-        <div class="field" style="margin-bottom:8px;"><label>เตือนบิลใหญ่เกินกว่า (บาท)</label><input type="number" id="cfgLarge" step="any"></div>
+        <div class="field" style="margin-bottom:8px;"><label>งบเงินสดเริ่มต้นในเก๊ะ (บาท)</label><input type="number" id="cfgCash" step="any" inputmode="decimal"></div>
+        <div class="field" style="margin-bottom:8px;"><label>เตือนเงินในเก๊ะต่ำกว่า (บาท)</label><input type="number" id="cfgLow" step="any" inputmode="decimal"></div>
+        <div class="field" style="margin-bottom:8px;"><label>เตือนบิลใหญ่เกินกว่า (บาท)</label><input type="number" id="cfgLarge" step="any" inputmode="decimal"></div>
         <div class="field" style="margin-bottom:15px;"><label>LINE Webhook URL (Make.com)</label><input type="text" id="cfgWebhook"></div>
         <button class="btn btn-add" onclick="saveConfig()">บันทึกการตั้งค่า</button>
-        <button class="btn" style="background:#cbd5e1; margin-top:5px;" onclick="closeModal()">ยกเลิก</button>
+        <button class="btn" style="background:#e5e5ea; color:#3a3a3c; margin-top:6px;" onclick="closeModal()">ยกเลิก</button>
     </div>
 </div>
 
@@ -250,6 +283,13 @@
     let cart = [];
     window.productList = [];
 
+    // iOS Haptic Feedback Simulation (ระบบสั่นสไตล์ iPhone)
+    function triggerHaptic() {
+        if (window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(15);
+        }
+    }
+
     // Real-time Sync เก๊ะเงินสด
     db.ref('pos_settings/drawer_config').on('value', snap => {
         const data = snap.val() || {};
@@ -258,7 +298,7 @@
         window.posConfig = data;
     });
 
-    // Real-time Sync สินค้า
+    // Real-time Sync รายการสินค้า
     db.ref('products').on('value', snap => {
         const data = snap.val();
         if (data) {
@@ -305,7 +345,7 @@
     }
 
     // -----------------------------------------------------------------
-    // 3. ระบบเลือกสินค้าด้วยรูปภาพทางซ้าย & คำนวณน้ำหนักทางขวา
+    // 3. เลือกสินค้า & คำนวณน้ำหนัก
     // -----------------------------------------------------------------
     function renderProducts() {
         const grid = document.getElementById('productGrid');
@@ -313,7 +353,7 @@
         window.productList.forEach(p => {
             const pName = p.name.replace(/'/g, "\\'");
             grid.innerHTML += `
-                <div class="prod-card" data-id="${p.id}" onclick="selectProduct('${p.id}', '${pName}', ${p.price}, this)">
+                <div class="prod-card" data-id="${p.id}" onclick="triggerHaptic(); selectProduct('${p.id}', '${pName}', ${p.price}, this)">
                     <img src="${p.img}" class="prod-img" onerror="this.src='https://via.placeholder.com/100?text=Recycle'">
                     <div class="prod-name">${p.name}</div>
                     <div class="prod-price">${parseFloat(p.price).toFixed(2)} ฿</div>
@@ -327,7 +367,7 @@
         if(el) el.classList.add('selected');
         
         currentProduct = { id, name, price: parseFloat(price) };
-        document.getElementById('selectedProdNameText').innerText = "เลือก: " + name + " (" + parseFloat(price).toFixed(2) + " ฿/กก.)";
+        document.getElementById('selectedProdNameText').innerText = "เลือก: " + name + " (" + parseFloat(price).toFixed(2) + " ฿)";
         document.getElementById('unitPrice').value = parseFloat(price).toFixed(2);
         calcNet();
     }
@@ -364,7 +404,7 @@
         tbody.innerHTML = "";
         let total = 0;
         if (cart.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8;">ยังไม่มีรายการ</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#8e8e93;">ยังไม่มีรายการ</td></tr>';
             document.getElementById('grandTotal').innerText = "0.00 ฿";
             return;
         }
@@ -375,7 +415,7 @@
                     <td>${item.name}</td>
                     <td class="text-right">${item.net.toLocaleString()}</td>
                     <td class="text-right">${item.subtotal.toLocaleString('th-TH', {minimumFractionDigits:2})}</td>
-                    <td class="text-right"><button onclick="cart.splice(${idx},1);renderCart();" style="background:none;border:none;color:var(--danger);cursor:pointer;font-weight:bold;">✕</button></td>
+                    <td class="text-right"><button onclick="triggerHaptic(); cart.splice(${idx},1);renderCart();" style="background:none;border:none;color:var(--apple-red);cursor:pointer;font-weight:bold;">✕</button></td>
                 </tr>
             `;
         });
@@ -383,7 +423,7 @@
     }
 
     // -----------------------------------------------------------------
-    // 4. บันทึกการจ่ายเงิน / พิมพ์ใบเสร็จ / LINE Webhook
+    // 4. บันทึกการจ่ายเงิน / พิมพ์ใบเสร็จ AirPrint / LINE Webhook
     // -----------------------------------------------------------------
     async function processPayment() {
         if (cart.length === 0) return alert('ยังไม่มีรายการในบิล');
@@ -450,15 +490,15 @@
                 const todayRecords = records.filter(r => r.date === today);
                 const sum = todayRecords.reduce((s, r) => s + r.total, 0);
                 html = `<b>📅 สรุปยอดจ่ายซื้อประจำวันนี้ (${today}):</b>
-                        <h2 style="color:var(--success); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2})} ฿</h2>
-                        <p style="margin:0; font-size:13px; color:var(--text-sub);">จำนวนบิลทั้งหมด: ${todayRecords.length} บิล</p>`;
+                        <h2 style="color:var(--apple-green); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2})} ฿</h2>
+                        <p style="margin:0; font-size:13px; color:var(--apple-subtext);">จำนวนบิลทั้งหมด: ${todayRecords.length} บิล</p>`;
             } else if (type === 'monthly') {
                 const month = today.substring(0,7);
                 const monthRecords = records.filter(r => r.month === month);
                 const sum = monthRecords.reduce((s, r) => s + r.total, 0);
                 html = `<b>📅 สรุปยอดจ่ายซื้อประจำเดือนนี้ (${month}):</b>
-                        <h2 style="color:var(--primary); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2})} ฿</h2>
-                        <p style="margin:0; font-size:13px; color:var(--text-sub);">จำนวนบิลทั้งหมด: ${monthRecords.length} บิล</p>`;
+                        <h2 style="color:var(--apple-blue); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2})} ฿</h2>
+                        <p style="margin:0; font-size:13px; color:var(--apple-subtext);">จำนวนบิลทั้งหมด: ${monthRecords.length} บิล</p>`;
             } else if (type === 'product') {
                 let prodSummary = {};
                 records.forEach(r => {
@@ -479,12 +519,12 @@
     }
 
     // -----------------------------------------------------------------
-    // 6. ตั้งค่าผู้จัดการ (จัดการราคา สินค้า & งบเก๊ะ)
+    // 6. ตั้งค่าผู้จัดการ (จัดการสินค้า & งบเก๊ะ)
     // -----------------------------------------------------------------
     function renderManagerProducts() {
         const tbody = document.getElementById('managerProductTable'); tbody.innerHTML = "";
         window.productList.forEach(p => {
-            tbody.innerHTML += `<tr><td><img src="${p.img}" width="30" height="30" style="object-fit:cover;border-radius:4px;" onerror="this.src='https://via.placeholder.com/30'"></td><td>${p.name}</td><td>${parseFloat(p.price).toFixed(2)}</td><td><button onclick="deleteProd('${p.id}')" style="color:red;border:none;background:none;cursor:pointer;font-weight:bold;">ลบ</button></td></tr>`;
+            tbody.innerHTML += `<tr><td><img src="${p.img}" width="30" height="30" style="object-fit:cover;border-radius:6px;" onerror="this.src='https://via.placeholder.com/30'"></td><td>${p.name}</td><td>${parseFloat(p.price).toFixed(2)}</td><td><button onclick="deleteProd('${p.id}')" style="color:var(--apple-red);border:none;background:none;cursor:pointer;font-weight:bold;">ลบ</button></td></tr>`;
         });
     }
 
@@ -497,7 +537,7 @@
             document.getElementById('newProdName').value = "";
             document.getElementById('newProdPrice').value = "";
             document.getElementById('newProdImg').value = "";
-            alert('บันทึก/อัปเดตสินค้าเรียบร้อย');
+            alert('บันทึกสินค้าเรียบร้อย');
         } else {
             alert('กรุณากรอกชื่อสินค้าและราคาให้ถูกต้อง');
         }
