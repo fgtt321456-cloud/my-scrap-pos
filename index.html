@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>POS รับซื้อของเก่า - Complete Online Edition</title>
+    <title>POS รับซื้อของเก่า - Fixed Edition</title>
 
     <!-- Firebase Realtime Cloud SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -104,7 +104,6 @@
         .btn-export { background: #E2E8F0; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.15s; }
         .btn-export:active { transform: scale(0.96); }
 
-        /* การ์ดรายงานสำหรับพิมพ์ / จับภาพเป็นรูปภาพ */
         #reportCaptureCard {
             background: #FFFFFF;
             padding: 16px;
@@ -112,24 +111,49 @@
             border: 1px solid var(--border-color);
         }
 
-        /* Media Print ใบเสร็จ และพิมพ์รายงานเป็น PDF */
+        /* 1. พิมพ์ใบเสร็จสลิปความร้อน (58mm) */
         @media print {
             @page { size: 58mm auto; margin: 0; }
             body { background: white !important; padding: 2mm !important; margin: 0 !important; font-size: 12px !important; color: black !important; }
             .left-panel, .btn-pay, .btn-delete, .btn-admin, .panel-header, th:last-child, td:last-child, .modal, .modal-btns, .report-actions, .export-actions { display: none !important; }
             .right-panel { box-shadow: none !important; border: none !important; width: 100% !important; padding: 0 !important; }
             
-            /* กรณีสั่งพิมพ์รายงาน PDF */
-            body.print-report-mode .modal { display: block !important; position: static !important; background: transparent !important; }
-            body.print-report-mode .modal-content { max-width: 100% !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
-            body.print-report-mode .admin-section:first-child { display: none !important; }
-            body.print-report-mode #reportCaptureCard { border: none !important; padding: 0 !important; }
-
             input[type="number"] { border: none !important; background: transparent !important; padding: 0 !important; width: auto !important; font-size: 12px !important; text-align: right !important; }
             table { width: 100% !important; font-size: 11px !important; }
             th, td { padding: 4px 0 !important; border-bottom: 1px dashed #000 !important; }
             .summary-card { background: transparent !important; border-top: 2px solid #000 !important; border-bottom: 2px solid #000 !important; border-radius: 0 !important; padding: 8px 0 !important; margin-top: 8px !important; }
             .summary-amount { font-size: 18px !important; color: black !important; }
+        }
+
+        /* 2. สไตล์เมื่อสั่งพิมพ์รายงาน PDF (ปรับเป็น A4) */
+        @media print {
+            body.print-report-mode {
+                padding: 10mm !important;
+            }
+            body.print-report-mode .left-panel, 
+            body.print-report-mode .right-panel, 
+            body.print-report-mode .admin-section:first-child { 
+                display: none !important; 
+            }
+            body.print-report-mode .modal { 
+                display: block !important; 
+                position: static !important; 
+                background: transparent !important; 
+            }
+            body.print-report-mode .modal-content { 
+                max-width: 100% !important; 
+                box-shadow: none !important; 
+                border: none !important; 
+                padding: 0 !important; 
+            }
+            body.print-report-mode #reportCaptureCard { 
+                border: none !important; 
+                padding: 0 !important; 
+            }
+            body.print-report-mode th, body.print-report-mode td {
+                border-bottom: 1px solid #ccc !important;
+                padding: 8px 4px !important;
+            }
         }
     </style>
 </head>
@@ -210,14 +234,12 @@
             <div class="admin-section" style="border:none; padding:0; margin:0;">
                 <b style="font-size: 14px; margin-bottom: 6px;">สรุปยอดขายแบบเรียลไทม์</b>
                 
-                <!-- ปุ่มสลับประเภทรายงาน -->
                 <div class="report-actions">
                     <button class="btn-export" id="btnModeDaily" onclick="setReportMode('daily')">📅 สรุปรายวัน</button>
                     <button class="btn-export" id="btnModeMonthly" onclick="setReportMode('monthly')">📆 สรุปรายเดือน</button>
                     <button class="btn-export" id="btnModeItems" onclick="setReportMode('items')">📦 สรุปแยกสินค้า (กก./บาท)</button>
                 </div>
 
-                <!-- ปุ่มส่งออกรายงานหลายรูปแบบ -->
                 <div class="export-actions">
                     <span style="font-size:12px; font-weight:bold; width:100%; margin-bottom:2px; color:var(--text-muted);">ส่งออกรายงาน:</span>
                     <button class="btn-export" style="background:#0984E3; color:white;" onclick="exportExcel()">📊 ไฟล์ Excel (.xlsx)</button>
@@ -226,7 +248,6 @@
                     <button class="btn-export" style="background:#00B894; color:white;" onclick="exportCSV()">📥 ไฟล์ CSV (Numbers)</button>
                 </div>
 
-                <!-- การ์ดพื้นที่แสดงรายงาน -->
                 <div id="reportCaptureCard" style="margin-top: 12px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                         <h4 id="reportTitleHeader" style="font-size:15px; color:var(--primary);">รายงานสรุปยอดรับซื้อ</h4>
@@ -334,6 +355,39 @@
             return isIOS || isMac;
         }
 
+        // ฟังก์ชันบีบอัดไฟล์รูปภาพ (เพื่อป้องกัน LocalStorage เต็ม)
+        function compressImage(file, callback) {
+            const maxWidth = 300;
+            const maxHeight = 300;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height *= maxWidth / width;
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width *= maxHeight / height;
+                            height = maxHeight;
+                        }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    callback(canvas.toDataURL('image/jpeg', 0.7)); // ย่อเหลือไฟล์ JPEG คุณภาพ 70%
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
         function syncCloudData() {
             db.collection("sales_history").onSnapshot((snapshot) => {
                 let cloudData = [];
@@ -347,8 +401,12 @@
         }
 
         function saveStorage() {
-            localStorage.setItem('my_pos_products', JSON.stringify(products));
-            localStorage.setItem('my_pos_history', JSON.stringify(historyData));
+            try {
+                localStorage.setItem('my_pos_products', JSON.stringify(products));
+                localStorage.setItem('my_pos_history', JSON.stringify(historyData));
+            } catch (e) {
+                alert("คำเตือน: ความจำในเครื่องเต็ม ไม่สามารถบันทึกข้อมูลเพิ่มได้");
+            }
         }
 
         function renderProducts() {
@@ -451,12 +509,10 @@
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    tempBase64Image = e.target.result;
-                    alert('เลือกรูปภาพเรียบร้อยแล้ว');
-                };
-                reader.readAsDataURL(file);
+                compressImage(file, function(compressedBase64) {
+                    tempBase64Image = compressedBase64;
+                    alert('เลือกและบีบอัดรูปภาพเรียบร้อยแล้ว');
+                });
             }
         }
 
@@ -505,18 +561,15 @@
                 return;
             }
 
-            let newImg = urlInput || 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=300';
-
             if (fileInput) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    products.push({ id: Date.now(), name, price, img: e.target.result });
+                compressImage(fileInput, function(compressedBase64) {
+                    products.push({ id: Date.now(), name, price, img: compressedBase64 });
                     saveStorage();
                     renderProducts();
                     closeAddProdModal();
-                };
-                reader.readAsDataURL(fileInput);
+                });
             } else {
+                let newImg = urlInput || 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=300';
                 products.push({ id: Date.now(), name, price, img: newImg });
                 saveStorage();
                 renderProducts();
@@ -600,7 +653,10 @@
 
             window.print();
 
-            db.collection("sales_history").add(transactionObj);
+            try {
+                db.collection("sales_history").add(transactionObj);
+            } catch(e) {}
+            
             historyData.push(transactionObj);
             saveStorage();
 
@@ -609,7 +665,6 @@
             alert('บันทึกการรับซื้อเรียบร้อยแล้ว');
         }
 
-        // ระบบรายงาน
         function setReportMode(mode) {
             currentReportMode = mode;
             renderReport();
@@ -679,7 +734,6 @@
             }
         }
 
-        // 1. ส่งออกไฟล์ Excel (.xlsx / .xml)
         function exportExcel() {
             if (!isAdminLoggedIn) return;
             let excelData = `<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>
@@ -714,7 +768,6 @@
             document.body.removeChild(link);
         }
 
-        // 2. สั่งพิมพ์ออกไฟล์ PDF (ใช้อินเทอร์เฟซพิมพ์ระบบ iOS/macOS)
         function exportPDF() {
             if (!isAdminLoggedIn) return;
             document.body.classList.add('print-report-mode');
@@ -724,11 +777,10 @@
             }, 1000);
         }
 
-        // 3. จับภาพตารางรายงาน บันทึกเป็นรูปภาพ (PNG)
         function exportImage() {
             if (!isAdminLoggedIn) return;
             const captureArea = document.getElementById('reportCaptureCard');
-            html2canvas(captureArea, { scale: 2 }).then(canvas => {
+            html2canvas(captureArea, { scale: 2, useCORS: true }).then(canvas => {
                 const imageURI = canvas.toDataURL("image/png");
                 const link = document.createElement("a");
                 link.href = imageURI;
@@ -739,7 +791,6 @@
             });
         }
 
-        // 4. ส่งออกไฟล์ CSV (สำหรับ Numbers บน iPad/Mac)
         function exportCSV() {
             if (!isAdminLoggedIn) return;
             let csvContent = "\uFEFFวันที่,เวลา,รายการ,น้ำหนัก(กก.),ราคา/กก.,ยอดรวม(บาท)\n";
@@ -760,7 +811,6 @@
             document.body.removeChild(link);
         }
 
-        // เริ่มต้นทำงาน
         renderProducts();
         renderCart();
         syncCloudData();
