@@ -650,6 +650,24 @@
         return out;
     }
 
+    // เบราว์เซอร์บางตัว (เช่น Bluefy บน iOS) reject Promise ด้วยค่าที่ไม่ใช่ Error object ปกติ
+    // (ไม่มีทั้ง .name และ .message) ฟังก์ชันนี้พยายามดึงข้อมูลที่มีประโยชน์ที่สุดออกมาให้ได้เสมอ
+    function describeError(err) {
+        if (!err) return 'ไม่ทราบสาเหตุ (ค่า error ว่างเปล่า)';
+        if (err.message) return err.message;
+        if (err.name) return err.name;
+        if (err.code !== undefined) return 'error code: ' + err.code;
+        try {
+            const s = JSON.stringify(err);
+            if (s && s !== '{}') return s;
+        } catch (e) {}
+        try {
+            const s = String(err);
+            if (s && s !== '[object Object]') return s;
+        } catch (e) {}
+        return 'ไม่ทราบสาเหตุ (เบราว์เซอร์ไม่ได้ส่งรายละเอียด error กลับมา)';
+    }
+
     async function printReceipt(items, total, includeHeader) {
         if (navigator.bluetooth) {
             let device = null;
@@ -684,10 +702,25 @@
                     ]
                 });
 
-                const server = await device.gatt.connect();
-                const services = await server.getPrimaryServices();
-                let targetCharacteristic = null;
+                let server;
+                try {
+                    server = await device.gatt.connect();
+                } catch (e) {
+                    throw new Error('เชื่อมต่อเครื่องพิมพ์ไม่สำเร็จ: ' + describeError(e));
+                }
 
+                // รอให้การเชื่อมต่อ BLE นิ่งก่อนเริ่มเขียนข้อมูล — เครื่องพิมพ์บางรุ่น/เบราว์เซอร์บางตัว
+                // (เช่น Bluefy) เขียนข้อมูลทันทีหลัง connect แล้วพลาดเพราะฝั่งเครื่องพิมพ์ยังไม่พร้อมรับ
+                await new Promise(r => setTimeout(r, 300));
+
+                let services;
+                try {
+                    services = await server.getPrimaryServices();
+                } catch (e) {
+                    throw new Error('หา service ของเครื่องพิมพ์ไม่พบ: ' + describeError(e));
+                }
+
+                let targetCharacteristic = null;
                 for (const service of services) {
                     try {
                         const characteristics = await service.getCharacteristics();
@@ -704,20 +737,19 @@
                 if (targetCharacteristic) {
                     window.btLastCharacteristic = targetCharacteristic; // เก็บไว้ใช้รีเซ็ตเครื่องพิมพ์ถ้าพิมพ์พลาดกลางคัน
 
-                    // ขนาดก้อนข้อมูลต่อการเขียนหนึ่งครั้ง — ใช้ 20 ไบต์เป็นค่าปลอดภัยสุดสำหรับ BLE
-                    // ที่ไม่ได้เจรจาขยาย MTU ก่อน (เดิมใช้ 100 ไบต์ ซึ่งเกินขนาดที่เบราว์เซอร์อย่าง Bluefy
-                    // บน iOS เขียนได้ในครั้งเดียว ทำให้ข้อมูลภาพขาดหายกลางทาง แล้วเครื่องพิมพ์ตีความไบต์
-                    // ที่เหลือผิดเพี้ยนกลายเป็นตัวอักษรมั่วๆ)
-                    const chunkSize = 20;
+                    // ขนาดก้อนข้อมูลต่อการเขียนหนึ่งครั้ง — ใช้ 16 ไบต์เป็นค่าปลอดภัยสุดสำหรับ BLE
+                    // ที่ไม่ได้เจรจาขยาย MTU ก่อน (ATT MTU เริ่มต้นคือ 23 ไบต์ = ใช้ได้จริง 20 ไบต์
+                    // แต่บางเบราว์เซอร์/เครื่องพิมพ์ต้องการเผื่อขอบเพิ่มอีกนิด จึงลดเหลือ 16)
+                    const chunkSize = 16;
                     const useWithoutResponse = !!targetCharacteristic.properties.writeWithoutResponse
                         && !targetCharacteristic.properties.write; // ใช้ writeValue (มี response ยืนยัน) ก่อนถ้าเครื่องรองรับ เพราะให้ error ที่เชื่อถือได้กว่า
 
                     for (let i = 0; i < fullBuffer.length; i += chunkSize) {
                         const chunk = fullBuffer.slice(i, i + chunkSize);
-                        // ลองเขียนซ้ำได้สูงสุด 3 ครั้งต่อก้อน ถ้าพลาดเพราะสัญญาณสะดุดชั่วคราว
+                        // ลองเขียนซ้ำได้สูงสุด 4 ครั้งต่อก้อน ถ้าพลาดเพราะสัญญาณสะดุดชั่วคราว
                         let lastErr = null;
                         let sent = false;
-                        for (let attempt = 0; attempt < 3 && !sent; attempt++) {
+                        for (let attempt = 0; attempt < 4 && !sent; attempt++) {
                             try {
                                 if (useWithoutResponse) {
                                     await targetCharacteristic.writeValueWithoutResponse(chunk);
@@ -727,13 +759,13 @@
                                 sent = true;
                             } catch (chunkErr) {
                                 lastErr = chunkErr;
-                                await new Promise(r => setTimeout(r, 80)); // เว้นจังหวะก่อนลองใหม่
+                                await new Promise(r => setTimeout(r, 120)); // เว้นจังหวะก่อนลองใหม่
                             }
                         }
                         if (!sent) {
-                            throw lastErr || new Error('เขียนข้อมูลไปเครื่องพิมพ์ไม่สำเร็จ (ก้อนที่ ' + (i / chunkSize + 1) + ')');
+                            throw new Error('เขียนข้อมูลไปเครื่องพิมพ์ไม่สำเร็จที่ก้อนที่ ' + (i / chunkSize + 1) + ' จาก ' + Math.ceil(fullBuffer.length / chunkSize) + ': ' + describeError(lastErr));
                         }
-                        await new Promise(r => setTimeout(r, 25));
+                        await new Promise(r => setTimeout(r, 30));
                     }
 
                     // หน่วงเวลาให้เครื่องพิมพ์พิมพ์ภาพให้เสร็จก่อนตัดสาย (ภาพข้อมูลเยอะกว่าข้อความ ใช้เวลานานกว่าเดิมเล็กน้อย)
@@ -757,8 +789,7 @@
                     } catch (resetErr) { /* เครื่องอาจหลุดการเชื่อมต่อไปแล้ว ไม่ต้องทำอะไรเพิ่ม */ }
                 }
                 if (!err || err.name !== 'NotFoundError') {
-                    const detail = (err && (err.message || err.name)) || 'ไม่ทราบสาเหตุ — สัญญาณ Bluetooth อาจสะดุดระหว่างพิมพ์ ลองกดพิมพ์ใหม่อีกครั้ง';
-                    alert("❌ พิมพ์ผ่าน Bluetooth ไม่สำเร็จ: " + detail + "\n\nถ้าเกิดซ้ำบ่อย ลองปิด-เปิดเครื่องพิมพ์ 1 ครั้ง แล้วลองใหม่");
+                    alert("❌ พิมพ์ผ่าน Bluetooth ไม่สำเร็จ:\n" + describeError(err) + "\n\nถ้าเกิดซ้ำบ่อย ลองปิด-เปิดเครื่องพิมพ์ 1 ครั้ง แล้วลองใหม่");
                 }
             } finally {
                 // สั่ง Disconnect ทันทีหลังพิมพ์เสร็จ เพื่อให้บิลถัดไปเชื่อมต่อใหม่ได้โดยไม่ต้องปิด-เปิดเครื่องพิมพ์
