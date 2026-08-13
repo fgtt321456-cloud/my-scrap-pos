@@ -6,11 +6,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>POS หจก.รุ่งนภา รีไซเคิล (Instant Save Guaranteed)</title>
-    
+
     <!-- Firebase Real-time SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
 
@@ -54,7 +54,7 @@
         }
         .brand { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
         .cash-badge { background: #e5f1ff; color: var(--apple-blue); padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; }
-        
+
         .nav-actions { display: flex; gap: 6px; }
         .btn-tab { border: none; padding: 8px 14px; border-radius: 12px; font-weight: 600; cursor: pointer; background: #e5e5ea; color: #3a3a3c; font-size: 13px; transition: all 0.2s; }
         .btn-tab.active { background: var(--apple-blue); color: white; }
@@ -182,7 +182,7 @@
         <!-- ฝั่งขวา: เครื่องคิดเลข/ใส่น้ำหนัก -->
         <div class="panel">
             <div class="panel-title">⚖️ คำนวณน้ำหนัก (ด้านขวา)</div>
-            
+
             <div class="input-group">
                 <div class="field">
                     <label>ชั่งรวม (กก.)</label>
@@ -262,10 +262,10 @@
         <p style="margin: 2px 0 0 0; font-size: 10px; font-weight: bold;">RUNGNAPA RECYCLE Part.,Ltd.</p>
         <p style="margin: 2px 0 10px 0; font-size: 11px;">ใบเสร็จรับซื้อขยะรีไซเคิล</p>
     </div>
-    
+
     <div style="font-size: 11px; margin-bottom: 5px;" id="receiptDate"></div>
     <div style="border-top: 1px dashed #000; margin: 4px 0;"></div>
-    
+
     <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
         <thead>
             <tr>
@@ -276,7 +276,7 @@
         </thead>
         <tbody id="receiptTableBody"></tbody>
     </table>
-    
+
     <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
     <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 13px;">
         <span>รวมทั้งสิ้น:</span>
@@ -302,11 +302,47 @@
 <script>
     // ⚠️ ใส่ DATABASE URL จากหน้า Firebase ของคุณตรงนี้
     const firebaseConfig = { databaseURL: "https://YOUR_FIREBASE_DATABASE_URL.firebaseio.com" };
-    
+
     let db = null;
     let currentProduct = null;
     let cart = [];
     window.productList = [];
+
+    // ---------- ยูทิลป้องกัน XSS ----------
+    // ทุกครั้งที่นำข้อความ (ชื่อสินค้า/URL รูป) ไปแทรกด้วย innerHTML
+    // ต้อง escape ก่อนเสมอ ไม่เช่นนั้นชื่อสินค้าที่มี <script> หรือ onerror=
+    // จะถูกรันเป็นโค้ดจริงในหน้าเว็บ (Stored XSS)
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // ใช้ escape เฉพาะสำหรับใส่ในสตริง JS ภายใน onclick="..." (ต้อง escape ก่อน escapeHtml)
+    function escapeJsString(str) {
+        return String(str)
+            .replace(/\\/g, "\\\\")
+            .replace(/'/g, "\\'")
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, "\\n");
+    }
+
+    // ---------- ยูทิลวันที่ (Local time, ไม่ใช่ UTC) ----------
+    // เดิมโค้ดใช้ new Date().toISOString() ซึ่งเป็นเวลา UTC
+    // ทำให้บิลที่ขายช่วงเที่ยงคืน-ตี 7 เวลาไทย ถูกบันทึกเป็น "เมื่อวาน"
+    // ฟังก์ชันนี้คืนค่าวันที่ตามเวลาเครื่อง (เวลาท้องถิ่น) แบบ YYYY-MM-DD
+    function getLocalDateString(d = new Date()) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+    function getLocalMonthString(d = new Date()) {
+        return getLocalDateString(d).substring(0, 7);
+    }
 
     // เริ่มต้นดึงข้อมูลจาก LocalStorage ไว้ก่อนทันที
     const localSavedProds = localStorage.getItem('rungnapa_products');
@@ -349,7 +385,7 @@
         db.ref('pos_settings/drawer_config').on('value', snap => {
             const data = snap.val() || {};
             const cash = parseFloat(data.currentCash) || 0;
-            document.getElementById('cashInDrawer').innerText = cash.toLocaleString('th-TH', {minimumFractionDigits: 2});
+            document.getElementById('cashInDrawer').innerText = cash.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             window.posConfig = data;
         });
 
@@ -358,6 +394,15 @@
             if (data) {
                 window.productList = Object.keys(data).map(k => ({ id: k, ...data[k] }));
                 localStorage.setItem('rungnapa_products', JSON.stringify(window.productList));
+
+                // ถ้าสินค้าที่กำลังเลือกอยู่ถูกลบ/ไม่มีอยู่ใน Firebase แล้ว ให้เคลียร์ทิ้ง
+                // ป้องกันการเพิ่มรายการลงบิลด้วยสินค้าที่ไม่มีอยู่จริงแล้ว
+                if (currentProduct && !window.productList.some(p => p.id === currentProduct.id)) {
+                    currentProduct = null;
+                    document.getElementById('selectedProdNameText').innerText = "กรุณาเลือกสินค้า";
+                    document.getElementById('unitPrice').value = "";
+                }
+
                 renderProducts();
                 renderManagerProducts();
             }
@@ -378,6 +423,10 @@
         });
     }
 
+    // ⚠️ หมายเหตุความปลอดภัย: PIN นี้ฝังอยู่ในโค้ดฝั่ง client ใครก็ตามที่เปิด
+    // "ดูซอร์สโค้ดหน้าเว็บ" จะเห็นรหัสนี้ตรงๆ ได้ทันที การกันหน้าแบบนี้เหมาะสำหรับ
+    // กันคนเผลอกดเข้าหน้าผิดเท่านั้น ไม่ใช่การป้องกันความปลอดภัยจริง
+    // หากต้องการความปลอดภัยจริง ควรทำระบบ authentication ฝั่ง server/Firebase Auth
     function authManager() {
         const pin = prompt("🔐 กรุณาใส่รหัสผ่านผู้จัดการ (6 หลัก):");
         if (pin === "202923") switchTab('manager');
@@ -404,24 +453,35 @@
         if (!grid) return;
         grid.innerHTML = "";
         window.productList.forEach(p => {
-            const pName = p.name.replace(/'/g, "\\'");
-            grid.innerHTML += `
-                <div class="prod-card" data-id="${p.id}" onclick="triggerHaptic(); selectProduct('${p.id}', '${pName}', ${p.price}, this)">
-                    <img src="${p.img}" class="prod-img" onerror="this.src='https://via.placeholder.com/100?text=Recycle'">
-                    <div class="prod-name">${p.name}</div>
-                    <div class="prod-price">${parseFloat(p.price).toFixed(2)} ฿</div>
-                </div>
+            const safeIdJs = escapeJsString(p.id);
+            const safeNameJs = escapeJsString(p.name);
+            const safeNameHtml = escapeHtml(p.name);
+            const safeImgHtml = escapeHtml(p.img);
+            const price = parseFloat(p.price) || 0;
+
+            const card = document.createElement('div');
+            card.className = 'prod-card';
+            card.dataset.id = p.id;
+            card.innerHTML = `
+                <img src="${safeImgHtml}" class="prod-img" onerror="this.onerror=null;this.src='data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%2270%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23e5e5ea%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2210%22 fill=%22%238e8e93%22%3ERecycle%3C/text%3E%3C/svg%3E';">
+                <div class="prod-name">${safeNameHtml}</div>
+                <div class="prod-price">${price.toFixed(2)} ฿</div>
             `;
+            card.addEventListener('click', () => {
+                triggerHaptic();
+                selectProduct(p.id, p.name, price, card);
+            });
+            grid.appendChild(card);
         });
     }
 
     function selectProduct(id, name, price, el) {
         document.querySelectorAll('.prod-card').forEach(c => c.classList.remove('selected'));
         if(el) el.classList.add('selected');
-        
-        currentProduct = { id, name, price: parseFloat(price) };
-        document.getElementById('selectedProdNameText').innerText = "เลือก: " + name + " (" + parseFloat(price).toFixed(2) + " ฿)";
-        document.getElementById('unitPrice').value = parseFloat(price).toFixed(2);
+
+        currentProduct = { id, name, price: parseFloat(price) || 0 };
+        document.getElementById('selectedProdNameText').innerText = "เลือก: " + name + " (" + currentProduct.price.toFixed(2) + " ฿)";
+        document.getElementById('unitPrice').value = currentProduct.price.toFixed(2);
         calcNet();
     }
 
@@ -434,7 +494,7 @@
         const subtotal = net * price;
 
         document.getElementById('netWeight').value = isNaN(net) ? "0.00" : net.toFixed(2);
-        document.getElementById('subtotalText').innerText = (isNaN(subtotal) ? "0.00" : subtotal.toLocaleString('th-TH', {minimumFractionDigits: 2})) + " ฿";
+        document.getElementById('subtotalText').innerText = (isNaN(subtotal) ? "0.00" : subtotal.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})) + " ฿";
     }
 
     function addToCart() {
@@ -463,16 +523,23 @@
         }
         cart.forEach((item, idx) => {
             total += item.subtotal;
-            tbody.innerHTML += `
-                <tr>
-                    <td>${item.name}</td>
-                    <td class="text-right">${item.net.toLocaleString()}</td>
-                    <td class="text-right">${item.subtotal.toLocaleString('th-TH', {minimumFractionDigits:2})}</td>
-                    <td class="text-right"><button onclick="triggerHaptic(); cart.splice(${idx},1);renderCart();" style="background:none;border:none;color:var(--apple-red);cursor:pointer;font-weight:bold;">✕</button></td>
-                </tr>
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td></td>
+                <td class="text-right">${item.net.toLocaleString('th-TH', {maximumFractionDigits: 2})}</td>
+                <td class="text-right">${item.subtotal.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits: 2})}</td>
+                <td class="text-right"><button style="background:none;border:none;color:var(--apple-red);cursor:pointer;font-weight:bold;">✕</button></td>
             `;
+            // ใส่ชื่อสินค้าแบบ textContent เพื่อกัน XSS โดยสมบูรณ์ (ไม่ต้องพึ่ง escapeHtml)
+            tr.children[0].textContent = item.name;
+            tr.querySelector('button').addEventListener('click', () => {
+                triggerHaptic();
+                cart.splice(idx, 1);
+                renderCart();
+            });
+            tbody.appendChild(tr);
         });
-        document.getElementById('grandTotal').innerText = total.toLocaleString('th-TH', {minimumFractionDigits: 2}) + " ฿";
+        document.getElementById('grandTotal').innerText = total.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " ฿";
     }
 
     async function processPayment() {
@@ -481,38 +548,41 @@
         const config = window.posConfig || {};
         let currentCash = parseFloat(config.currentCash) || 0;
 
-        if (confirm(`ยืนยันการจ่ายเงินรับซื้อ เป็นจำนวนเงิน ${total.toLocaleString()} บาท?`)) {
+        if (confirm(`ยืนยันการจ่ายเงินรับซื้อ เป็นจำนวนเงิน ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท?`)) {
             const printItems = [...cart];
             currentCash -= total;
-            
+
+            // ใช้เวลาท้องถิ่น (ไม่ใช่ UTC) ในการตัดวัน/เดือน เพื่อไม่ให้บิลช่วงเที่ยงคืน-เช้าตรู่
+            // ถูกนับผิดวันในรายงาน
+            const now = new Date();
+            const today = getLocalDateString(now);
+            const month = getLocalMonthString(now);
+
             if (db && !firebaseConfig.databaseURL.includes("YOUR_FIREBASE_DATABASE_URL")) {
                 db.ref('pos_settings/drawer_config').update({ currentCash });
-                const now = new Date();
-                const today = now.toISOString().split('T')[0];
                 db.ref('sales_history').push({
-                    timestamp: Date.now(), date: today, month: today.substring(0,7), total, items: printItems
+                    timestamp: Date.now(), date: today, month: month, total, items: printItems
                 });
             }
 
             let alerts = [];
-            if (total >= (parseFloat(config.largeBillThreshold) || 10000)) alerts.push(`🚨 **แจ้งเตือนบิลจ่ายใหญ่!**\nยอดจ่ายรับซื้อ: ${total.toLocaleString('th-TH', {minimumFractionDigits:2})} บาท`);
-            if (currentCash <= (parseFloat(config.lowCashThreshold) || 5000)) alerts.push(`⚠️ **เตือนเงินสดในลิ้นชักใกล้หมด!**\nเงินคงเหลือในเก๊ะ: ${currentCash.toLocaleString('th-TH', {minimumFractionDigits:2})} บาท`);
-            
+            if (total >= (parseFloat(config.largeBillThreshold) || 10000)) alerts.push(`🚨 **แจ้งเตือนบิลจ่ายใหญ่!**\nยอดจ่ายรับซื้อ: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
+            if (currentCash <= (parseFloat(config.lowCashThreshold) || 5000)) alerts.push(`⚠️ **เตือนเงินสดในลิ้นชักใกล้หมด!**\nเงินคงเหลือในเก๊ะ: ${currentCash.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
+
             if (alerts.length > 0 && config.webhookUrl) {
-                const now = new Date();
                 const msg = alerts.join("\n\n") + `\n⏰ เวลา: ${now.toLocaleTimeString('th-TH')}`;
-                fetch(config.webhookUrl, { 
-                    method:'POST', 
-                    headers:{'Content-Type':'application/json'}, 
+                fetch(config.webhookUrl, {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
                     keepalive: true,
-                    body:JSON.stringify({value:msg, message:msg}) 
+                    body:JSON.stringify({value:msg, message:msg})
                 }).catch(e => console.error(e));
             }
 
             const includeHeader = document.getElementById('includeHeaderToggle').checked;
             printReceipt(printItems, total, includeHeader);
-            
-            cart = []; 
+
+            cart = [];
             renderCart();
         }
     }
@@ -522,20 +592,21 @@
         headerBlock.style.display = includeHeader ? "block" : "none";
 
         document.getElementById('receiptDate').innerText = "วันที่: " + new Date().toLocaleString('th-TH');
-        const tbody = document.getElementById('receiptTableBody'); 
+        const tbody = document.getElementById('receiptTableBody');
         tbody.innerHTML = "";
-        
-        items.forEach(i => { 
-            tbody.innerHTML += `
-                <tr>
-                    <td style="text-align:left;">${i.name}</td>
-                    <td style="text-align:right;">${i.net}</td>
-                    <td style="text-align:right;">${i.subtotal.toFixed(2)}</td>
-                </tr>
-            `; 
+
+        items.forEach(i => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="text-align:left;"></td>
+                <td style="text-align:right;">${i.net}</td>
+                <td style="text-align:right;">${i.subtotal.toFixed(2)}</td>
+            `;
+            tr.children[0].textContent = i.name; // กัน XSS
+            tbody.appendChild(tr);
         });
-        
-        document.getElementById('receiptTotal').innerText = total.toLocaleString('th-TH', {minimumFractionDigits:2}) + " บาท";
+
+        document.getElementById('receiptTotal').innerText = total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2}) + " บาท";
         window.print();
     }
 
@@ -557,23 +628,23 @@
         }
 
         db.ref('sales_history').once('value', snap => {
-            const data = snap.val(); if (!data) return resultDiv.innerHTML = "<p style='text-align:center;'>ยังไม่มีประวัติการรับซื้อ</p>";
+            const data = snap.val(); if (!data) { resultDiv.innerHTML = "<p style='text-align:center;'>ยังไม่มีประวัติการรับซื้อ</p>"; return; }
             const records = Object.values(data);
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             let html = "";
 
             if (type === 'daily') {
                 const todayRecords = records.filter(r => r.date === today);
                 const sum = todayRecords.reduce((s, r) => s + r.total, 0);
                 html = `<b>📅 สรุปยอดจ่ายซื้อประจำวันนี้ (${today}):</b>
-                        <h2 style="color:var(--apple-green); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2})} ฿</h2>
+                        <h2 style="color:var(--apple-green); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</h2>
                         <p style="margin:0; font-size:13px; color:var(--apple-subtext);">จำนวนบิลทั้งหมด: ${todayRecords.length} บิล</p>`;
             } else if (type === 'monthly') {
-                const month = today.substring(0,7);
+                const month = getLocalMonthString();
                 const monthRecords = records.filter(r => r.month === month);
                 const sum = monthRecords.reduce((s, r) => s + r.total, 0);
                 html = `<b>📅 สรุปยอดจ่ายซื้อประจำเดือนนี้ (${month}):</b>
-                        <h2 style="color:var(--apple-blue); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2})} ฿</h2>
+                        <h2 style="color:var(--apple-blue); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</h2>
                         <p style="margin:0; font-size:13px; color:var(--apple-subtext);">จำนวนบิลทั้งหมด: ${monthRecords.length} บิล</p>`;
             } else if (type === 'product') {
                 let prodSummary = {};
@@ -584,23 +655,67 @@
                         prodSummary[i.name].total += (parseFloat(i.subtotal) || 0);
                     });
                 });
-                html = `<b>📦 สรุปยอดรับซื้อสะสม แยกตามประเภทสินค้า:</b><table class="cart-table" style="margin-top:8px;"><tr><th>สินค้า</th><th>น้ำหนักรวม (กก.)</th><th>ยอดเงินรวม (บาท)</th></tr>`;
+                // สร้างตารางด้วย DOM แทน string concat เพื่อกัน XSS จากชื่อสินค้า
+                const table = document.createElement('table');
+                table.className = 'cart-table';
+                table.style.marginTop = '8px';
+                table.innerHTML = `<tr><th>สินค้า</th><th>น้ำหนักรวม (กก.)</th><th>ยอดเงินรวม (บาท)</th></tr>`;
                 for (let p in prodSummary) {
-                    html += `<tr><td>${p}</td><td>${prodSummary[p].weight.toLocaleString()}</td><td>${prodSummary[p].total.toLocaleString('th-TH', {minimumFractionDigits:2})}</td></tr>`;
+                    const tr = document.createElement('tr');
+                    const tdName = document.createElement('td');
+                    tdName.textContent = p;
+                    const tdWeight = document.createElement('td');
+                    tdWeight.textContent = prodSummary[p].weight.toLocaleString('th-TH', {maximumFractionDigits: 2});
+                    const tdTotal = document.createElement('td');
+                    tdTotal.textContent = prodSummary[p].total.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    tr.appendChild(tdName); tr.appendChild(tdWeight); tr.appendChild(tdTotal);
+                    table.appendChild(tr);
                 }
-                html += `</table>`;
+                resultDiv.innerHTML = `<b>📦 สรุปยอดรับซื้อสะสม แยกตามประเภทสินค้า:</b>`;
+                resultDiv.appendChild(table);
+                return;
             }
             resultDiv.innerHTML = html;
         });
     }
 
     function renderManagerProducts() {
-        const tbody = document.getElementById('managerProductTable'); 
+        const tbody = document.getElementById('managerProductTable');
         if(!tbody) return;
         tbody.innerHTML = "";
         window.productList.forEach(p => {
-            const pName = p.name.replace(/'/g, "\\'");
-            tbody.innerHTML += `<tr><td><img src="${p.img}" width="30" height="30" style="object-fit:cover;border-radius:6px;" onerror="this.src='https://via.placeholder.com/30'"></td><td>${p.name}</td><td>${parseFloat(p.price).toFixed(2)}</td><td><button onclick="editProd('${p.id}', '${pName}', ${p.price}, '${p.img}')" style="color:var(--apple-blue);border:none;background:none;cursor:pointer;font-weight:bold;margin-right:6px;">แก้ไข</button><button onclick="deleteProd('${p.id}')" style="color:var(--apple-red);border:none;background:none;cursor:pointer;font-weight:bold;">ลบ</button></td></tr>`;
+            const price = parseFloat(p.price) || 0;
+            const tr = document.createElement('tr');
+
+            const tdImg = document.createElement('td');
+            const img = document.createElement('img');
+            img.src = p.img; img.width = 30; img.height = 30;
+            img.style.objectFit = 'cover'; img.style.borderRadius = '6px';
+            img.onerror = function(){ this.onerror = null; this.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2230%22 height=%2230%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23e5e5ea%22/%3E%3C/svg%3E'; };
+            tdImg.appendChild(img);
+
+            const tdName = document.createElement('td');
+            tdName.textContent = p.name; // กัน XSS
+
+            const tdPrice = document.createElement('td');
+            tdPrice.textContent = price.toFixed(2);
+
+            const tdActions = document.createElement('td');
+            const editBtn = document.createElement('button');
+            editBtn.textContent = 'แก้ไข';
+            editBtn.style.cssText = 'color:var(--apple-blue);border:none;background:none;cursor:pointer;font-weight:bold;margin-right:6px;';
+            editBtn.addEventListener('click', () => editProd(p.id, p.name, price, p.img));
+
+            const delBtn = document.createElement('button');
+            delBtn.textContent = 'ลบ';
+            delBtn.style.cssText = 'color:var(--apple-red);border:none;background:none;cursor:pointer;font-weight:bold;';
+            delBtn.addEventListener('click', () => deleteProd(p.id));
+
+            tdActions.appendChild(editBtn);
+            tdActions.appendChild(delBtn);
+
+            tr.appendChild(tdImg); tr.appendChild(tdName); tr.appendChild(tdPrice); tr.appendChild(tdActions);
+            tbody.appendChild(tr);
         });
     }
 
@@ -609,7 +724,7 @@
         document.getElementById('newProdName').value = name;
         document.getElementById('newProdPrice').value = price;
         document.getElementById('newProdImg').value = img;
-        
+
         document.getElementById('formTitleText').innerText = "✏️ แก้ไขรายการสินค้า";
         const saveBtn = document.getElementById('saveProdBtn');
         saveBtn.innerText = "อัปเดต";
@@ -622,7 +737,7 @@
         document.getElementById('newProdName').value = "";
         document.getElementById('newProdPrice').value = "";
         document.getElementById('newProdImg').value = "";
-        
+
         document.getElementById('formTitleText').innerText = "🏷️ เพิ่มรายการสินค้าใหม่";
         const saveBtn = document.getElementById('saveProdBtn');
         saveBtn.innerText = "บันทึก";
@@ -652,6 +767,13 @@
         if (editId !== "") {
             const idx = window.productList.findIndex(p => p.id === editId);
             if (idx !== -1) window.productList[idx] = { id: editId, name, price, img };
+            // ถ้ากำลังแก้ไขสินค้าที่เลือกอยู่ ให้อัปเดตราคาที่แสดงด้วย ไม่ให้ค้างราคาเก่า
+            if (currentProduct && currentProduct.id === editId) {
+                currentProduct = { id: editId, name, price };
+                document.getElementById('selectedProdNameText').innerText = "เลือก: " + name + " (" + price.toFixed(2) + " ฿)";
+                document.getElementById('unitPrice').value = price.toFixed(2);
+                calcNet();
+            }
         } else {
             const newId = "p_" + Date.now();
             window.productList.push({ id: newId, name, price, img });
@@ -680,6 +802,16 @@
         if (confirm('ยืนยันการลบสินค้านี้?')) {
             window.productList = window.productList.filter(p => p.id !== prodId);
             localStorage.setItem('rungnapa_products', JSON.stringify(window.productList));
+
+            // เคลียร์สินค้าที่กำลังเลือกอยู่ ถ้ามันคือตัวที่เพิ่งถูกลบ
+            // (บั๊กเดิม: ลบสินค้าที่เลือกอยู่แล้วยังกดเพิ่มลงบิลได้)
+            if (currentProduct && currentProduct.id === prodId) {
+                currentProduct = null;
+                document.getElementById('selectedProdNameText').innerText = "กรุณาเลือกสินค้า";
+                document.getElementById('unitPrice').value = "";
+                calcNet();
+            }
+
             renderProducts();
             renderManagerProducts();
 
