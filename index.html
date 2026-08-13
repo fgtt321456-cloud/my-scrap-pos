@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>POS หจก.รุ่งนภา รีไซเคิล (Thermal Printer Supported)</title>
+    <title>POS หจก.รุ่งนภา รีไซเคิล (Fully Fixed Version)</title>
     
     <!-- Firebase Real-time SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -118,25 +118,16 @@
         .modal { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
         .modal-box { background: white; padding: 22px; border-radius: 24px; width: 90%; max-width: 420px; }
 
-        /* CSS สำหรับปรับแต่งเครื่องพิมพ์สลิปความร้อน (Thermal Printer 58mm / 80mm) */
+        /* CSS สำหรับรองรับเครื่องพิมพ์สลิปความร้อน (58mm / 80mm Thermal Printer) */
         @media print {
-            @page {
-                margin: 0;
-                size: auto;
-            }
+            @page { margin: 0; size: auto; }
             body * { visibility: hidden; }
             #receiptArea, #receiptArea * { visibility: visible; }
             #receiptArea {
-                position: absolute;
-                left: 0; top: 0;
-                width: 100%;
-                max-width: 80mm; /* ปรับขนาดอัตโนมัติตามสลิป 58mm-80mm */
-                padding: 10px;
-                font-family: 'Prompt', monospace, sans-serif !important;
-                color: #000 !important;
-                display: block !important;
+                position: absolute; left: 0; top: 0; width: 100%; max-width: 80mm;
+                padding: 10px; font-family: 'Prompt', monospace, sans-serif !important;
+                color: #000 !important; display: block !important;
             }
-            .no-print { display: none !important; }
         }
     </style>
 </head>
@@ -163,14 +154,18 @@
                 <div class="product-grid" id="productGrid"></div>
             </div>
 
+            <!-- ส่วนเพิ่ม/ตั้งราคาสินค้า (แก้ไขฟังก์ชันเพิ่มสินค้าเรียบร้อย) -->
             <div class="panel">
-                <div class="panel-title">🏷️ เพิ่มรายการ / ปรับราคาสินค้า</div>
+                <div class="panel-title">
+                    <span>🏷️ เพิ่มรายการ / ปรับราคาสินค้า</span>
+                    <button id="cancelEditBtn" style="display:none; background:none; border:none; color:var(--apple-red); cursor:pointer; font-size:12px; font-weight:600;" onclick="clearProductForm()">✕ ยกเลิกแก้ไข</button>
+                </div>
                 <input type="hidden" id="editingProdId" value="">
                 <div style="display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 6px; margin-bottom: 10px;">
-                    <input type="text" id="newProdName" placeholder="ชื่อสินค้า" style="padding:8px; border-radius:10px; border:1px solid #d1d1d6;">
-                    <input type="number" id="newProdPrice" placeholder="ราคา/กก." step="any" inputmode="decimal" style="padding:8px; border-radius:10px; border:1px solid #d1d1d6;">
-                    <input type="text" id="newProdImg" placeholder="URL รูปภาพ" style="padding:8px; border-radius:10px; border:1px solid #d1d1d6;">
-                    <button class="btn btn-add" style="padding:8px 14px;" onclick="saveProduct()">บันทึก</button>
+                    <input type="text" id="newProdName" placeholder="ชื่อสินค้า">
+                    <input type="number" id="newProdPrice" placeholder="ราคา/กก." step="any" inputmode="decimal">
+                    <input type="text" id="newProdImg" placeholder="URL รูปภาพ (หรือเว้นว่างไว้)">
+                    <button class="btn btn-add" style="padding:8px 14px;" id="saveProdBtn" onclick="saveProduct()">บันทึก</button>
                 </div>
                 <div style="max-height: 150px; overflow-y: auto;">
                     <table class="cart-table">
@@ -225,7 +220,7 @@
                 </table>
             </div>
 
-            <!-- ตัวเลือกสวิตช์เปิด/ปิด พิมพ์หัวกระดาษ -->
+            <!-- ตัวเลือกสวิตช์ พิมพ์หัวใบเสร็จ -->
             <div class="print-option-box">
                 <input type="checkbox" id="includeHeaderToggle" checked>
                 <label for="includeHeaderToggle">🖨️ พิมพ์หัวใบเสร็จ (หจก.รุ่งนภา รีไซเคิล)</label>
@@ -258,9 +253,8 @@
     </div>
 </div>
 
-<!-- โครงสร้างใบเสร็จสำหรับเครื่องพิมพ์สลิปความร้อน (Thermal Printer Ready) -->
+<!-- โครงสร้างใบเสร็จพิมพ์สลิปความร้อน -->
 <div id="receiptArea" style="display:none;">
-    <!-- ส่วนหัวกระดาษ (ซ่อน/แสดงได้ตามการติ๊กเลือก) -->
     <div id="receiptHeaderBlock" style="text-align: center;">
         <h3 style="margin: 0; font-size: 16px; font-weight: bold;">หจก.รุ่งนภา รีไซเคิล</h3>
         <p style="margin: 2px 0 0 0; font-size: 10px; font-weight: bold;">RUNGNAPA RECYCLE Part.,Ltd.</p>
@@ -290,7 +284,7 @@
     <p style="text-align: center; font-size: 10px; margin-top: 10px; margin-bottom: 0;">ขอบคุณที่ใช้บริการ</p>
 </div>
 
-<!-- Modal ตั้งค่า -->
+<!-- Modal ตั้งค่างบเก๊ะ -->
 <div class="modal" id="configModal">
     <div class="modal-box">
         <h3 style="margin-top:0;">⚙️ ตั้งค่างบเก๊ะเงินสด & เตือน LINE</h3>
@@ -304,6 +298,7 @@
 </div>
 
 <script>
+    // ⚠️ อย่าลืมใส่ DATABASE URL ของ Firebase ของคุณตรงนี้
     const firebaseConfig = { databaseURL: "https://YOUR_FIREBASE_DATABASE_URL.firebaseio.com" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -460,7 +455,6 @@
                 timestamp: Date.now(), date: today, month: today.substring(0,7), total, items: printItems
             });
 
-            // เตือน LINE Webhook
             let alerts = [];
             if (total >= (parseFloat(config.largeBillThreshold) || 10000)) alerts.push(`🚨 **แจ้งเตือนบิลจ่ายใหญ่!**\nยอดจ่ายรับซื้อ: ${total.toLocaleString('th-TH', {minimumFractionDigits:2})} บาท`);
             if (currentCash <= (parseFloat(config.lowCashThreshold) || 5000)) alerts.push(`⚠️ **เตือนเงินสดในลิ้นชักใกล้หมด!**\nเงินคงเหลือในเก๊ะ: ${currentCash.toLocaleString('th-TH', {minimumFractionDigits:2})} บาท`);
@@ -475,7 +469,6 @@
                 }).catch(e => console.error(e));
             }
 
-            // พิมพ์ใบเสร็จ
             const includeHeader = document.getElementById('includeHeaderToggle').checked;
             printReceipt(printItems, total, includeHeader);
             
@@ -485,7 +478,6 @@
     }
 
     function printReceipt(items, total, includeHeader) {
-        // ควบคุมการแสดงผลหัวใบเสร็จตามสวิตช์เปิด/ปิด
         const headerBlock = document.getElementById('receiptHeaderBlock');
         headerBlock.style.display = includeHeader ? "block" : "none";
 
@@ -504,7 +496,6 @@
         });
         
         document.getElementById('receiptTotal').innerText = total.toLocaleString('th-TH', {minimumFractionDigits:2}) + " บาท";
-        
         window.print();
     }
 
@@ -571,34 +562,62 @@
         document.getElementById('newProdName').value = name;
         document.getElementById('newProdPrice').value = price;
         document.getElementById('newProdImg').value = img;
+        
+        document.getElementById('saveProdBtn').innerText = "อัปเดต";
+        document.getElementById('cancelEditBtn').style.display = "inline-block";
     }
 
+    function clearProductForm() {
+        document.getElementById('editingProdId').value = "";
+        document.getElementById('newProdName').value = "";
+        document.getElementById('newProdPrice').value = "";
+        document.getElementById('newProdImg').value = "";
+        
+        document.getElementById('saveProdBtn').innerText = "บันทึก";
+        document.getElementById('cancelEditBtn').style.display = "none";
+    }
+
+    // ฟังก์ชันเพิ่ม/แก้ไขสินค้าที่ปรับปรุงแก้ไขให้ทำงานได้ 100%
     function saveProduct() {
-        const editId = document.getElementById('editingProdId').value;
+        const editId = document.getElementById('editingProdId').value.trim();
         const name = document.getElementById('newProdName').value.trim();
         const price = parseFloat(document.getElementById('newProdPrice').value);
         const img = document.getElementById('newProdImg').value.trim() || "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=200";
 
-        if (name && !isNaN(price)) {
-            const targetRef = editId ? db.ref('products/' + editId) : db.ref('products').push();
-            targetRef.set({ name, price, img }, (error) => {
+        if (!name || isNaN(price) || price < 0) {
+            alert('กรุณากรอกชื่อสินค้าและราคาให้ถูกต้อง');
+            return;
+        }
+
+        const productData = { name: name, price: price, img: img };
+
+        if (editId) {
+            // โหมดแก้ไขรายการเดิม
+            db.ref('products/' + editId).update(productData, (error) => {
                 if (!error) {
-                    document.getElementById('editingProdId').value = "";
-                    document.getElementById('newProdName').value = "";
-                    document.getElementById('newProdPrice').value = "";
-                    document.getElementById('newProdImg').value = "";
-                    alert('บันทึก/อัปเดตสินค้าเรียบร้อยแล้ว!');
+                    clearProductForm();
+                    alert('อัปเดตข้อมูลสินค้าเรียบร้อยแล้ว!');
+                } else {
+                    alert('เกิดข้อผิดพลาดในการอัปเดต: ' + error.message);
+                }
+            });
+        } else {
+            // โหมดเพิ่มรายการใหม่
+            db.ref('products').push(productData, (error) => {
+                if (!error) {
+                    clearProductForm();
+                    alert('เพิ่มรายการสินค้าใหม่เรียบร้อยแล้ว!');
                 } else {
                     alert('เกิดข้อผิดพลาดในการบันทึก: ' + error.message);
                 }
             });
-        } else {
-            alert('กรุณากรอกชื่อสินค้าและราคาให้ถูกต้อง');
         }
     }
 
     function deleteProd(prodId) {
-        if (confirm('ยืนยันการลบสินค้านี้?')) db.ref('products/' + prodId).remove();
+        if (confirm('ยืนยันการลบสินค้านี้?')) {
+            db.ref('products/' + prodId).remove();
+        }
     }
 
     function openConfigModal() {
