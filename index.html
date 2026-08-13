@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>POS หจก.รุ่งนภา รีไซเคิล (Instant Save Guaranteed)</title>
-
-    <!-- Firebase Real-time SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <title>POS หจก.รุ่งนภา รีไซเคิล (บันทึกในเครื่อง)</title>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
@@ -159,7 +155,6 @@
                 <div class="panel-title">
                     <span id="formTitleText">🏷️ เพิ่มรายการสินค้าใหม่</span>
                     <div>
-                        <button style="background:none; border:none; color:var(--apple-blue); cursor:pointer; font-size:12px; font-weight:600; margin-right:8px;" onclick="testFirebaseConnection()">🧪 ทดสอบ Firebase</button>
                         <button id="cancelEditBtn" style="display:none; background:none; border:none; color:var(--apple-red); cursor:pointer; font-size:12px; font-weight:600;" onclick="clearProductForm()">✕ ยกเลิกแก้ไข</button>
                     </div>
                 </div>
@@ -300,13 +295,18 @@
 </div>
 
 <script>
-    // ⚠️ ใส่ DATABASE URL จากหน้า Firebase ของคุณตรงนี้
-    const firebaseConfig = { databaseURL: "https://YOUR_FIREBASE_DATABASE_URL.firebaseio.com" };
+    // ---------- เก็บข้อมูลทั้งหมดในเครื่อง (localStorage) ไม่มีคลาวด์ ----------
+    const STORAGE_KEYS = {
+        products: 'rungnapa_products',
+        drawerConfig: 'rungnapa_drawer_config',
+        salesHistory: 'rungnapa_sales_history'
+    };
+    const SALES_RETENTION_DAYS = 30; // เก็บประวัติการขายไว้ 30 วัน เกินกว่านี้ลบทิ้งอัตโนมัติ
 
-    let db = null;
     let currentProduct = null;
     let cart = [];
     window.productList = [];
+    window.posConfig = {};
 
     // ---------- ยูทิลป้องกัน XSS ----------
     // ทุกครั้งที่นำข้อความ (ชื่อสินค้า/URL รูป) ไปแทรกด้วย innerHTML
@@ -344,8 +344,8 @@
         return getLocalDateString(d).substring(0, 7);
     }
 
-    // เริ่มต้นดึงข้อมูลจาก LocalStorage ไว้ก่อนทันที
-    const localSavedProds = localStorage.getItem('rungnapa_products');
+    // เริ่มต้นดึงข้อมูลสินค้าจาก LocalStorage
+    const localSavedProds = localStorage.getItem(STORAGE_KEYS.products);
     if (localSavedProds) {
         try { window.productList = JSON.parse(localSavedProds); } catch(e){}
     } else {
@@ -355,14 +355,42 @@
             { id: "p3", name: "ขวด PET", price: 12.00, img: "https://images.unsplash.com/photo-1528323273322-d81458248d40?w=200" },
             { id: "p4", name: "กระป๋องอลูมิเนียม", price: 45.00, img: "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=200" }
         ];
+        localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(window.productList));
     }
 
-    // เชื่อมต่อ Firebase
-    try {
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        db = firebase.database();
-    } catch(err) {
-        console.warn("Firebase Config Warning:", err);
+    // โหลดค่าตั้งค่าเก๊ะเงิน/webhook จาก LocalStorage
+    function loadDrawerConfig() {
+        const saved = localStorage.getItem(STORAGE_KEYS.drawerConfig);
+        let cfg = {};
+        if (saved) {
+            try { cfg = JSON.parse(saved); } catch(e) { cfg = {}; }
+        }
+        window.posConfig = cfg;
+        const cash = parseFloat(cfg.currentCash) || 0;
+        document.getElementById('cashInDrawer').innerText = cash.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    // อ่านประวัติการขายจาก LocalStorage
+    function loadSalesHistory() {
+        const saved = localStorage.getItem(STORAGE_KEYS.salesHistory);
+        if (!saved) return [];
+        try { return JSON.parse(saved) || []; } catch(e) { return []; }
+    }
+
+    function saveSalesHistory(records) {
+        localStorage.setItem(STORAGE_KEYS.salesHistory, JSON.stringify(records));
+    }
+
+    // ลบประวัติการขายที่เก่ากว่า SALES_RETENTION_DAYS วันออกทิ้งอัตโนมัติ
+    // เรียกทุกครั้งที่เปิดแอป และหลังบันทึกบิลใหม่ทุกครั้ง
+    function purgeOldSales() {
+        const records = loadSalesHistory();
+        const cutoff = Date.now() - (SALES_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+        const kept = records.filter(r => (r.timestamp || 0) >= cutoff);
+        if (kept.length !== records.length) {
+            saveSalesHistory(kept);
+        }
+        return kept;
     }
 
     function triggerHaptic() {
@@ -377,56 +405,15 @@
 
     // โหลดครั้งแรก
     document.addEventListener('DOMContentLoaded', () => {
+        loadDrawerConfig();
+        purgeOldSales(); // ลบบิลที่เก็บเกิน 30 วันทิ้งตั้งแต่เปิดแอป
         renderProducts();
         renderManagerProducts();
     });
 
-    if (db) {
-        db.ref('pos_settings/drawer_config').on('value', snap => {
-            const data = snap.val() || {};
-            const cash = parseFloat(data.currentCash) || 0;
-            document.getElementById('cashInDrawer').innerText = cash.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            window.posConfig = data;
-        });
-
-        db.ref('products').on('value', snap => {
-            const data = snap.val();
-            if (data) {
-                window.productList = Object.keys(data).map(k => ({ id: k, ...data[k] }));
-                localStorage.setItem('rungnapa_products', JSON.stringify(window.productList));
-
-                // ถ้าสินค้าที่กำลังเลือกอยู่ถูกลบ/ไม่มีอยู่ใน Firebase แล้ว ให้เคลียร์ทิ้ง
-                // ป้องกันการเพิ่มรายการลงบิลด้วยสินค้าที่ไม่มีอยู่จริงแล้ว
-                if (currentProduct && !window.productList.some(p => p.id === currentProduct.id)) {
-                    currentProduct = null;
-                    document.getElementById('selectedProdNameText').innerText = "กรุณาเลือกสินค้า";
-                    document.getElementById('unitPrice').value = "";
-                }
-
-                renderProducts();
-                renderManagerProducts();
-            }
-        });
-    }
-
-    function testFirebaseConnection() {
-        if (!db || firebaseConfig.databaseURL.includes("YOUR_FIREBASE_DATABASE_URL")) {
-            alert("❌ Firebase ยังไม่ได้ใส่ URL ฐานข้อมูลจริง!\nระบบกำลังทำงานในโหมดออฟไลน์/บันทึกลงเครื่องชั่วคราว");
-            return;
-        }
-        db.ref('.info/connected').once('value', snap => {
-            if (snap.val() === true) {
-                alert("✅ เชื่อมต่อ Firebase Realtime Database สำเร็จเรียบร้อย!");
-            } else {
-                alert("⚠️ เชื่อมต่อไม่ได้! กรุณาตรวจสอบอินเทอร์เน็ต หรือเช็กว่าเปิด Rules (.write: true) ใน Firebase หรือยัง");
-            }
-        });
-    }
-
     // ⚠️ หมายเหตุความปลอดภัย: PIN นี้ฝังอยู่ในโค้ดฝั่ง client ใครก็ตามที่เปิด
     // "ดูซอร์สโค้ดหน้าเว็บ" จะเห็นรหัสนี้ตรงๆ ได้ทันที การกันหน้าแบบนี้เหมาะสำหรับ
     // กันคนเผลอกดเข้าหน้าผิดเท่านั้น ไม่ใช่การป้องกันความปลอดภัยจริง
-    // หากต้องการความปลอดภัยจริง ควรทำระบบ authentication ฝั่ง server/Firebase Auth
     function authManager() {
         const pin = prompt("🔐 กรุณาใส่รหัสผ่านผู้จัดการ (6 หลัก):");
         if (pin === "202923") switchTab('manager');
@@ -558,12 +545,17 @@
             const today = getLocalDateString(now);
             const month = getLocalMonthString(now);
 
-            if (db && !firebaseConfig.databaseURL.includes("YOUR_FIREBASE_DATABASE_URL")) {
-                db.ref('pos_settings/drawer_config').update({ currentCash });
-                db.ref('sales_history').push({
-                    timestamp: Date.now(), date: today, month: month, total, items: printItems
-                });
-            }
+            // บันทึกยอดเงินในเก๊ะ + ประวัติการขายลงเครื่อง (localStorage)
+            window.posConfig.currentCash = currentCash;
+            localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(window.posConfig));
+            document.getElementById('cashInDrawer').innerText = currentCash.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            const salesRecords = loadSalesHistory();
+            salesRecords.push({
+                timestamp: Date.now(), date: today, month: month, total, items: printItems
+            });
+            saveSalesHistory(salesRecords);
+            purgeOldSales(); // ลบบิลที่เก็บเกิน 30 วันทิ้งทันทีหลังบันทึกบิลใหม่
 
             let alerts = [];
             if (total >= (parseFloat(config.largeBillThreshold) || 10000)) alerts.push(`🚨 **แจ้งเตือนบิลจ่ายใหญ่!**\nยอดจ่ายรับซื้อ: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
@@ -620,63 +612,62 @@
         if(type==='product') document.getElementById('btnRepProduct').classList.add('active');
 
         const resultDiv = document.getElementById('reportResult');
-        resultDiv.innerHTML = "กำลังดึงข้อมูลรายงาน...";
 
-        if (!db || firebaseConfig.databaseURL.includes("YOUR_FIREBASE_DATABASE_URL")) {
-            resultDiv.innerHTML = "<p style='color:orange; text-align:center;'>ยังไม่ได้เชื่อมต่อ Firebase ออนไลน์ (ดูสรุปไม่ได้)</p>";
+        // ลบบิลเก่ากว่า 30 วันทิ้งก่อนสรุปรายงานทุกครั้ง เพื่อไม่ให้ข้อมูลเก่าปนอยู่
+        const records = purgeOldSales();
+
+        if (records.length === 0) {
+            resultDiv.innerHTML = "<p style='text-align:center;'>ยังไม่มีประวัติการรับซื้อ (เก็บย้อนหลังได้ไม่เกิน " + SALES_RETENTION_DAYS + " วัน)</p>";
             return;
         }
 
-        db.ref('sales_history').once('value', snap => {
-            const data = snap.val(); if (!data) { resultDiv.innerHTML = "<p style='text-align:center;'>ยังไม่มีประวัติการรับซื้อ</p>"; return; }
-            const records = Object.values(data);
-            const today = getLocalDateString();
-            let html = "";
+        const today = getLocalDateString();
+        let html = "";
 
-            if (type === 'daily') {
-                const todayRecords = records.filter(r => r.date === today);
-                const sum = todayRecords.reduce((s, r) => s + r.total, 0);
-                html = `<b>📅 สรุปยอดจ่ายซื้อประจำวันนี้ (${today}):</b>
-                        <h2 style="color:var(--apple-green); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</h2>
-                        <p style="margin:0; font-size:13px; color:var(--apple-subtext);">จำนวนบิลทั้งหมด: ${todayRecords.length} บิล</p>`;
-            } else if (type === 'monthly') {
-                const month = getLocalMonthString();
-                const monthRecords = records.filter(r => r.month === month);
-                const sum = monthRecords.reduce((s, r) => s + r.total, 0);
-                html = `<b>📅 สรุปยอดจ่ายซื้อประจำเดือนนี้ (${month}):</b>
-                        <h2 style="color:var(--apple-blue); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</h2>
-                        <p style="margin:0; font-size:13px; color:var(--apple-subtext);">จำนวนบิลทั้งหมด: ${monthRecords.length} บิล</p>`;
-            } else if (type === 'product') {
-                let prodSummary = {};
-                records.forEach(r => {
-                    (r.items || []).forEach(i => {
-                        if (!prodSummary[i.name]) prodSummary[i.name] = { weight: 0, total: 0 };
-                        prodSummary[i.name].weight += (parseFloat(i.net) || 0);
-                        prodSummary[i.name].total += (parseFloat(i.subtotal) || 0);
-                    });
+        if (type === 'daily') {
+            const todayRecords = records.filter(r => r.date === today);
+            const sum = todayRecords.reduce((s, r) => s + r.total, 0);
+            html = `<b>📅 สรุปยอดจ่ายซื้อประจำวันนี้ (${today}):</b>
+                    <h2 style="color:var(--apple-green); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</h2>
+                    <p style="margin:0; font-size:13px; color:var(--apple-subtext);">จำนวนบิลทั้งหมด: ${todayRecords.length} บิล</p>`;
+        } else if (type === 'monthly') {
+            const month = getLocalMonthString();
+            const monthRecords = records.filter(r => r.month === month);
+            const sum = monthRecords.reduce((s, r) => s + r.total, 0);
+            html = `<b>📅 สรุปยอดจ่ายซื้อประจำเดือนนี้ (${month}):</b>
+                    <h2 style="color:var(--apple-blue); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</h2>
+                    <p style="margin:0; font-size:13px; color:var(--apple-subtext);">จำนวนบิลทั้งหมด: ${monthRecords.length} บิล</p>
+                    <p style="margin:6px 0 0 0; font-size:12px; color:var(--apple-subtext);">⚠️ เก็บประวัติย้อนหลังได้สูงสุด ${SALES_RETENTION_DAYS} วัน บิลเก่ากว่านี้จะถูกลบอัตโนมัติ</p>`;
+        } else if (type === 'product') {
+            let prodSummary = {};
+            records.forEach(r => {
+                (r.items || []).forEach(i => {
+                    if (!prodSummary[i.name]) prodSummary[i.name] = { weight: 0, total: 0 };
+                    prodSummary[i.name].weight += (parseFloat(i.net) || 0);
+                    prodSummary[i.name].total += (parseFloat(i.subtotal) || 0);
                 });
-                // สร้างตารางด้วย DOM แทน string concat เพื่อกัน XSS จากชื่อสินค้า
-                const table = document.createElement('table');
-                table.className = 'cart-table';
-                table.style.marginTop = '8px';
-                table.innerHTML = `<tr><th>สินค้า</th><th>น้ำหนักรวม (กก.)</th><th>ยอดเงินรวม (บาท)</th></tr>`;
-                for (let p in prodSummary) {
-                    const tr = document.createElement('tr');
-                    const tdName = document.createElement('td');
-                    tdName.textContent = p;
-                    const tdWeight = document.createElement('td');
-                    tdWeight.textContent = prodSummary[p].weight.toLocaleString('th-TH', {maximumFractionDigits: 2});
-                    const tdTotal = document.createElement('td');
-                    tdTotal.textContent = prodSummary[p].total.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    tr.appendChild(tdName); tr.appendChild(tdWeight); tr.appendChild(tdTotal);
-                    table.appendChild(tr);
-                }
-                resultDiv.innerHTML = `<b>📦 สรุปยอดรับซื้อสะสม แยกตามประเภทสินค้า:</b>`;
-                resultDiv.appendChild(table);
-                return;
+            });
+            // สร้างตารางด้วย DOM แทน string concat เพื่อกัน XSS จากชื่อสินค้า
+            const table = document.createElement('table');
+            table.className = 'cart-table';
+            table.style.marginTop = '8px';
+            table.innerHTML = `<tr><th>สินค้า</th><th>น้ำหนักรวม (กก.)</th><th>ยอดเงินรวม (บาท)</th></tr>`;
+            for (let p in prodSummary) {
+                const tr = document.createElement('tr');
+                const tdName = document.createElement('td');
+                tdName.textContent = p;
+                const tdWeight = document.createElement('td');
+                tdWeight.textContent = prodSummary[p].weight.toLocaleString('th-TH', {maximumFractionDigits: 2});
+                const tdTotal = document.createElement('td');
+                tdTotal.textContent = prodSummary[p].total.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                tr.appendChild(tdName); tr.appendChild(tdWeight); tr.appendChild(tdTotal);
+                table.appendChild(tr);
             }
-            resultDiv.innerHTML = html;
-        });
+            resultDiv.innerHTML = `<b>📦 สรุปยอดรับซื้อสะสม แยกตามประเภทสินค้า (ย้อนหลัง ${SALES_RETENTION_DAYS} วัน):</b>`;
+            resultDiv.appendChild(table);
+            return;
+        }
+        resultDiv.innerHTML = html;
     }
 
     function renderManagerProducts() {
@@ -780,19 +771,9 @@
         }
 
         // บันทึกลงเครื่อง
-        localStorage.setItem('rungnapa_products', JSON.stringify(window.productList));
+        localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(window.productList));
         renderProducts();
         renderManagerProducts();
-
-        // 2. ส่งขึ้น Firebase เบื้องหลัง
-        if (db && !firebaseConfig.databaseURL.includes("YOUR_FIREBASE_DATABASE_URL")) {
-            const productData = { name, price, img };
-            if (editId !== "") {
-                db.ref('products/' + editId).update(productData);
-            } else {
-                db.ref('products').push(productData);
-            }
-        }
 
         clearProductForm();
         alert('✅ บันทึกรายการสินค้าเรียบร้อยแล้ว!');
@@ -801,7 +782,7 @@
     function deleteProd(prodId) {
         if (confirm('ยืนยันการลบสินค้านี้?')) {
             window.productList = window.productList.filter(p => p.id !== prodId);
-            localStorage.setItem('rungnapa_products', JSON.stringify(window.productList));
+            localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(window.productList));
 
             // เคลียร์สินค้าที่กำลังเลือกอยู่ ถ้ามันคือตัวที่เพิ่งถูกลบ
             // (บั๊กเดิม: ลบสินค้าที่เลือกอยู่แล้วยังกดเพิ่มลงบิลได้)
@@ -814,10 +795,6 @@
 
             renderProducts();
             renderManagerProducts();
-
-            if (db && !firebaseConfig.databaseURL.includes("YOUR_FIREBASE_DATABASE_URL")) {
-                db.ref('products/' + prodId).remove();
-            }
         }
     }
 
@@ -831,15 +808,16 @@
     }
     function closeModal() { document.getElementById('configModal').style.display = 'none'; }
     function saveConfig() {
-        if (db && !firebaseConfig.databaseURL.includes("YOUR_FIREBASE_DATABASE_URL")) {
-            db.ref('pos_settings/drawer_config').set({
-                currentCash: parseFloat(document.getElementById('cfgCash').value) || 0,
-                lowCashThreshold: parseFloat(document.getElementById('cfgLow').value) || 5000,
-                largeBillThreshold: parseFloat(document.getElementById('cfgLarge').value) || 10000,
-                webhookUrl: document.getElementById('cfgWebhook').value.trim()
-            });
-        }
-        alert('บันทึกการตั้งค่าเรียบร้อยแล้ว');
+        const cfg = {
+            currentCash: parseFloat(document.getElementById('cfgCash').value) || 0,
+            lowCashThreshold: parseFloat(document.getElementById('cfgLow').value) || 5000,
+            largeBillThreshold: parseFloat(document.getElementById('cfgLarge').value) || 10000,
+            webhookUrl: document.getElementById('cfgWebhook').value.trim()
+        };
+        window.posConfig = cfg;
+        localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
+        document.getElementById('cashInDrawer').innerText = cfg.currentCash.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        alert('บันทึกการตั้งค่าเรียบร้อยแล้ว (เก็บในเครื่องนี้)');
         closeModal();
     }
 </script>
