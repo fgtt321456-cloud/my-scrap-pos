@@ -174,7 +174,6 @@
             </div>
         </div>
 
-        <!-- ฝั่งขวา: เครื่องคิดเลข/ใส่น้ำหนัก -->
         <div class="panel">
             <div class="panel-title">⚖️ คำนวณน้ำหนัก (ด้านขวา)</div>
 
@@ -232,7 +231,6 @@
         </div>
     </div>
 
-    <!-- Layout หลังบ้านผู้จัดการ -->
     <div id="managerSection" style="display: none;" class="panel">
         <div class="panel-title">
             <span>⚙️ สรุปรายงาน & ตั้งค่างบเก๊ะ (เฉพาะผู้จัดการ)</span>
@@ -250,7 +248,6 @@
     </div>
 </div>
 
-<!-- ใบเสร็จสลิป -->
 <div id="receiptArea" style="display:none;">
     <div id="receiptHeaderBlock" style="text-align: center;">
         <h3 style="margin: 0; font-size: 16px; font-weight: bold;">หจก.รุ่งนภา รีไซเคิล</h3>
@@ -281,7 +278,6 @@
     <p style="text-align: center; font-size: 10px; margin-top: 10px; margin-bottom: 0;">ขอบคุณที่ใช้บริการ</p>
 </div>
 
-<!-- Modal ตั้งค่า -->
 <div class="modal" id="configModal">
     <div class="modal-box">
         <h3 style="margin-top:0;">⚙️ ตั้งค่างบเก๊ะเงินสด & เตือน LINE</h3>
@@ -314,14 +310,6 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
-    }
-
-    function escapeJsString(str) {
-        return String(str)
-            .replace(/\\/g, "\\\\")
-            .replace(/'/g, "\\'")
-            .replace(/"/g, '\\"')
-            .replace(/\n/g, "\\n");
     }
 
     function getLocalDateString(d = new Date()) {
@@ -552,7 +540,7 @@
     }
 
     // =================================----------------================-
-    // ระบบ Web Bluetooth Direct Print (อัปเดตค้นหา Characteristic ชิป CY-BX58D-5215)
+    // ระบบ Web Bluetooth Direct Print (สแกนกว้าง + ยิงข้อมูลย่อยป้องกันการ์ดหลุด)
     // =================================---------------------------------
     async function printReceipt(items, total, includeHeader) {
         const includeH = includeHeader;
@@ -561,17 +549,17 @@
             try {
                 // 1. สร้างชุดคำสั่ง ESC/POS
                 let printData = "";
-                printData += "\x1B\x40"; // ESC @ Initialize printer
-                printData += "\x1B\x74\x1E"; // ESC t 30 (Select Codepage Cp874 ภาษาไทย)
+                printData += "\x1B\x40"; // ESC @ Initialize
+                printData += "\x1B\x74\x1E"; // Select Codepage Cp874 ภาษาไทย
 
                 if (includeH) {
-                    printData += "\x1B\x61\x01"; // ESC a 1 (Align Center)
+                    printData += "\x1B\x61\x01"; // Align Center
                     printData += "    หจก.รุ่งนภา รีไซเคิล\n";
                     printData += " RUNGNAPA RECYCLE Part.,Ltd.\n";
                     printData += "   ใบเสร็จรับซื้อขยะรีไซเคิล\n";
                 }
 
-                printData += "\x1B\x61\x00"; // ESC a 0 (Align Left)
+                printData += "\x1B\x61\x00"; // Align Left
                 printData += "--------------------------------\n";
                 printData += "วันที่: " + new Date().toLocaleString('th-TH') + "\n";
                 printData += "--------------------------------\n";
@@ -593,7 +581,7 @@
                 const encoder = new TextEncoder();
                 const dataBuffer = encoder.encode(printData);
 
-                // 2. ค้นหาเชื่อมต่อ Bluetooth (สแกนหาเครื่อง CY-BX58D-5215)
+                // 2. ขอสิทธิ์สแกนจับคู่ Bluetooth แบบปลดล็อกให้แสดงอุปกรณ์รอบตัวทันที
                 const device = await navigator.bluetooth.requestDevice({
                     acceptAllDevices: true,
                     optionalServices: [
@@ -609,7 +597,7 @@
                 const services = await server.getPrimaryServices();
                 let targetCharacteristic = null;
 
-                // 3. วนลูปสแกนหาช่องสัญญาณส่งข้อมูล (Writable Characteristic) ที่ตรงกับชิปเครื่องพิมพ์
+                // 3. วนลูปสแกนหาช่องสัญญาณส่งข้อมูลที่รองรับบนชิปเครื่องพิมพ์
                 for (const service of services) {
                     try {
                         const characteristics = await service.getCharacteristics();
@@ -624,7 +612,7 @@
                 }
 
                 if (targetCharacteristic) {
-                    // แบ่งส่งข้อมูลทีละ Chunk ขนาด 100 ไบต์ ป้องกันสายสัญญาณล้น
+                    // แบ่งส่งข้อมูลทีละ 100 ไบต์
                     const chunkSize = 100;
                     for (let i = 0; i < dataBuffer.length; i += chunkSize) {
                         const chunk = dataBuffer.slice(i, i + chunkSize);
@@ -634,17 +622,17 @@
                             await targetCharacteristic.writeValue(chunk);
                         }
                     }
-                    alert("✅ ส่งข้อมูลพิมพ์เข้าเครื่อง CY-BX58D-5215 เรียบร้อยแล้ว!");
+                    alert("✅ สั่งพิมพ์ออกเครื่อง CY-BX58D-5215 สำเร็จเรียบร้อย!");
                     return;
                 } else {
-                    alert("⚠️ เชื่อมต่อได้ แต่หาช่องส่งข้อมูลไม่พบ ลองปิด-เปิดเครื่องพิมพ์ใหม่ครับ");
+                    alert("⚠️ เชื่อมต่อได้ แต่หาช่องส่งข้อมูลไม่พบ ให้ลองปิด-เปิดเครื่องพิมพ์แล้วกดใหม่อีกครั้งครับ");
                 }
             } catch (err) {
-                console.log("Bluetooth Print Error / Bypassed:", err);
+                console.log("Bluetooth Direct Print Fallback:", err);
             }
         }
 
-        // ระบบสำรอง (Fallback) สั่งพิมพ์ปกติกรณีไม่ได้เปิด Bluetooth
+        // ระบบสำรองกรณีใช้การพิมพ์ปกติของเบราว์เซอร์
         const headerBlock = document.getElementById('receiptHeaderBlock');
         headerBlock.style.display = includeH ? "block" : "none";
 
