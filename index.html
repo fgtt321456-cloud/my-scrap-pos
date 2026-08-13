@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>POS หจก.รุ่งนภา รีไซเคิล (Fully Fixed Version)</title>
+    <title>POS หจก.รุ่งนภา รีไซเคิล (Fixed Save Button)</title>
     
     <!-- Firebase Real-time SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -18,6 +18,7 @@
             --apple-blue: #007aff;
             --apple-green: #34c759;
             --apple-red: #ff3b30;
+            --apple-orange: #ff9500;
             --apple-bg: #f2f2f7;
             --apple-card: #ffffff;
             --apple-text: #000000;
@@ -101,6 +102,7 @@
         .btn { border: none; padding: 12px; border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: opacity 0.2s; }
         .btn:active { opacity: 0.7; }
         .btn-add { background: var(--apple-blue); color: white; }
+        .btn-update { background: var(--apple-orange); color: white; }
         .btn-pay { background: var(--apple-green); color: white; font-size: 16px; padding: 14px; margin-top: 10px; }
 
         .cart-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
@@ -108,7 +110,6 @@
         .cart-table td { padding: 8px; border-bottom: 0.5px solid var(--apple-border); font-weight: 500; }
         .text-right { text-align: right; }
 
-        /* ตัวเลือกสวิตช์พิมพ์หัวกระดาษ */
         .print-option-box {
             display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 8px 12px;
             background: #f2f2f7; border-radius: 10px; font-size: 13px; font-weight: 600; color: #3a3a3c;
@@ -118,7 +119,6 @@
         .modal { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
         .modal-box { background: white; padding: 22px; border-radius: 24px; width: 90%; max-width: 420px; }
 
-        /* CSS สำหรับรองรับเครื่องพิมพ์สลิปความร้อน (58mm / 80mm Thermal Printer) */
         @media print {
             @page { margin: 0; size: auto; }
             body * { visibility: hidden; }
@@ -154,15 +154,15 @@
                 <div class="product-grid" id="productGrid"></div>
             </div>
 
-            <!-- ส่วนเพิ่ม/ตั้งราคาสินค้า (แก้ไขฟังก์ชันเพิ่มสินค้าเรียบร้อย) -->
+            <!-- ส่วนเพิ่ม/ตั้งราคาสินค้า -->
             <div class="panel">
                 <div class="panel-title">
-                    <span>🏷️ เพิ่มรายการ / ปรับราคาสินค้า</span>
+                    <span id="formTitleText">🏷️ เพิ่มรายการสินค้าใหม่</span>
                     <button id="cancelEditBtn" style="display:none; background:none; border:none; color:var(--apple-red); cursor:pointer; font-size:12px; font-weight:600;" onclick="clearProductForm()">✕ ยกเลิกแก้ไข</button>
                 </div>
                 <input type="hidden" id="editingProdId" value="">
                 <div style="display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 6px; margin-bottom: 10px;">
-                    <input type="text" id="newProdName" placeholder="ชื่อสินค้า">
+                    <input type="text" id="newProdName" placeholder="ชื่อสินค้า เช่น กระดาษลัง">
                     <input type="number" id="newProdPrice" placeholder="ราคา/กก." step="any" inputmode="decimal">
                     <input type="text" id="newProdImg" placeholder="URL รูปภาพ (หรือเว้นว่างไว้)">
                     <button class="btn btn-add" style="padding:8px 14px;" id="saveProdBtn" onclick="saveProduct()">บันทึก</button>
@@ -220,7 +220,6 @@
                 </table>
             </div>
 
-            <!-- ตัวเลือกสวิตช์ พิมพ์หัวใบเสร็จ -->
             <div class="print-option-box">
                 <input type="checkbox" id="includeHeaderToggle" checked>
                 <label for="includeHeaderToggle">🖨️ พิมพ์หัวใบเสร็จ (หจก.รุ่งนภา รีไซเคิล)</label>
@@ -253,7 +252,7 @@
     </div>
 </div>
 
-<!-- โครงสร้างใบเสร็จพิมพ์สลิปความร้อน -->
+<!-- ใบเสร็จสลิป -->
 <div id="receiptArea" style="display:none;">
     <div id="receiptHeaderBlock" style="text-align: center;">
         <h3 style="margin: 0; font-size: 16px; font-weight: bold;">หจก.รุ่งนภา รีไซเคิล</h3>
@@ -284,7 +283,7 @@
     <p style="text-align: center; font-size: 10px; margin-top: 10px; margin-bottom: 0;">ขอบคุณที่ใช้บริการ</p>
 </div>
 
-<!-- Modal ตั้งค่างบเก๊ะ -->
+<!-- Modal ตั้งค่า -->
 <div class="modal" id="configModal">
     <div class="modal-box">
         <h3 style="margin-top:0;">⚙️ ตั้งค่างบเก๊ะเงินสด & เตือน LINE</h3>
@@ -298,7 +297,7 @@
 </div>
 
 <script>
-    // ⚠️ อย่าลืมใส่ DATABASE URL ของ Firebase ของคุณตรงนี้
+    // ⚠️ อย่าลืมใส่ DATABASE URL ของคุณตรงนี้
     const firebaseConfig = { databaseURL: "https://YOUR_FIREBASE_DATABASE_URL.firebaseio.com" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -557,42 +556,56 @@
         });
     }
 
+    // ฟังก์ชันเข้าสู่โหมดแก้ไขสินค้า
     function editProd(id, name, price, img) {
         document.getElementById('editingProdId').value = id;
         document.getElementById('newProdName').value = name;
         document.getElementById('newProdPrice').value = price;
         document.getElementById('newProdImg').value = img;
         
-        document.getElementById('saveProdBtn').innerText = "อัปเดต";
+        document.getElementById('formTitleText').innerText = "✏️ แก้ไขรายการสินค้า";
+        const saveBtn = document.getElementById('saveProdBtn');
+        saveBtn.innerText = "อัปเดต";
+        saveBtn.className = "btn btn-update";
         document.getElementById('cancelEditBtn').style.display = "inline-block";
     }
 
+    // ฟังก์ชันล้างฟอร์ม
     function clearProductForm() {
         document.getElementById('editingProdId').value = "";
         document.getElementById('newProdName').value = "";
         document.getElementById('newProdPrice').value = "";
         document.getElementById('newProdImg').value = "";
         
-        document.getElementById('saveProdBtn').innerText = "บันทึก";
+        document.getElementById('formTitleText').innerText = "🏷️ เพิ่มรายการสินค้าใหม่";
+        const saveBtn = document.getElementById('saveProdBtn');
+        saveBtn.innerText = "บันทึก";
+        saveBtn.className = "btn btn-add";
         document.getElementById('cancelEditBtn').style.display = "none";
     }
 
-    // ฟังก์ชันเพิ่ม/แก้ไขสินค้าที่ปรับปรุงแก้ไขให้ทำงานได้ 100%
+    // ฟังก์ชันบันทึกสินค้าแก้ไขบั๊กผ่าน 100%
     function saveProduct() {
         const editId = document.getElementById('editingProdId').value.trim();
         const name = document.getElementById('newProdName').value.trim();
-        const price = parseFloat(document.getElementById('newProdPrice').value);
-        const img = document.getElementById('newProdImg').value.trim() || "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=200";
+        const priceInput = document.getElementById('newProdPrice').value;
+        const price = parseFloat(priceInput);
+        const imgInput = document.getElementById('newProdImg').value.trim();
+        const img = imgInput || "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=200";
 
-        if (!name || isNaN(price) || price < 0) {
-            alert('กรุณากรอกชื่อสินค้าและราคาให้ถูกต้อง');
+        if (!name) {
+            alert('กรุณากรอกชื่อสินค้า');
+            return;
+        }
+        if (priceInput === "" || isNaN(price) || price < 0) {
+            alert('กรุณากรอกราคาให้ถูกต้อง');
             return;
         }
 
         const productData = { name: name, price: price, img: img };
 
-        if (editId) {
-            // โหมดแก้ไขรายการเดิม
+        if (editId !== "") {
+            // กรณีอัปเดตรายการเดิม
             db.ref('products/' + editId).update(productData, (error) => {
                 if (!error) {
                     clearProductForm();
@@ -602,7 +615,7 @@
                 }
             });
         } else {
-            // โหมดเพิ่มรายการใหม่
+            // กรณีเพิ่มรายการใหม่
             db.ref('products').push(productData, (error) => {
                 if (!error) {
                     clearProductForm();
