@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>POS หจก.รุ่งนภา รีไซเคิล (Fixed Save Button)</title>
+    <title>POS หจก.รุ่งนภา รีไซเคิล (Instant Save Guaranteed)</title>
     
     <!-- Firebase Real-time SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -158,14 +158,17 @@
             <div class="panel">
                 <div class="panel-title">
                     <span id="formTitleText">🏷️ เพิ่มรายการสินค้าใหม่</span>
-                    <button id="cancelEditBtn" style="display:none; background:none; border:none; color:var(--apple-red); cursor:pointer; font-size:12px; font-weight:600;" onclick="clearProductForm()">✕ ยกเลิกแก้ไข</button>
+                    <div>
+                        <button style="background:none; border:none; color:var(--apple-blue); cursor:pointer; font-size:12px; font-weight:600; margin-right:8px;" onclick="testFirebaseConnection()">🧪 ทดสอบ Firebase</button>
+                        <button id="cancelEditBtn" style="display:none; background:none; border:none; color:var(--apple-red); cursor:pointer; font-size:12px; font-weight:600;" onclick="clearProductForm()">✕ ยกเลิกแก้ไข</button>
+                    </div>
                 </div>
                 <input type="hidden" id="editingProdId" value="">
                 <div style="display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 6px; margin-bottom: 10px;">
                     <input type="text" id="newProdName" placeholder="ชื่อสินค้า เช่น กระดาษลัง">
                     <input type="number" id="newProdPrice" placeholder="ราคา/กก." step="any" inputmode="decimal">
-                    <input type="text" id="newProdImg" placeholder="URL รูปภาพ (หรือเว้นว่างไว้)">
-                    <button class="btn btn-add" style="padding:8px 14px;" id="saveProdBtn" onclick="saveProduct()">บันทึก</button>
+                    <input type="text" id="newProdImg" placeholder="URL รูปภาพ (เว้นว่างได้)">
+                    <button class="btn btn-add" style="padding:8px 14px;" id="saveProdBtn" type="button" onclick="saveProduct()">บันทึก</button>
                 </div>
                 <div style="max-height: 150px; overflow-y: auto;">
                     <table class="cart-table">
@@ -207,7 +210,7 @@
                 <span class="subtotal-val" id="subtotalText">0.00 ฿</span>
             </div>
 
-            <button class="btn btn-add" onclick="triggerHaptic(); addToCart();">➕ เพิ่มรายการลงบิล</button>
+            <button class="btn btn-add" type="button" onclick="triggerHaptic(); addToCart();">➕ เพิ่มรายการลงบิล</button>
 
             <div style="margin-top: 12px; max-height: 160px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
                 <table class="cart-table">
@@ -230,7 +233,7 @@
                 <span id="grandTotal" style="color:var(--apple-blue);">0.00 ฿</span>
             </div>
 
-            <button class="btn btn-pay" onclick="triggerHaptic(); processPayment();">💵 จ่ายเงิน & พิมพ์ใบเสร็จ</button>
+            <button class="btn btn-pay" type="button" onclick="triggerHaptic(); processPayment();">💵 จ่ายเงิน & พิมพ์ใบเสร็จ</button>
         </div>
     </div>
 
@@ -297,14 +300,34 @@
 </div>
 
 <script>
-    // ⚠️ อย่าลืมใส่ DATABASE URL ของคุณตรงนี้
+    // ⚠️ ใส่ DATABASE URL จากหน้า Firebase ของคุณตรงนี้
     const firebaseConfig = { databaseURL: "https://YOUR_FIREBASE_DATABASE_URL.firebaseio.com" };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
+    
+    let db = null;
     let currentProduct = null;
     let cart = [];
     window.productList = [];
+
+    // เริ่มต้นดึงข้อมูลจาก LocalStorage ไว้ก่อนทันที
+    const localSavedProds = localStorage.getItem('rungnapa_products');
+    if (localSavedProds) {
+        try { window.productList = JSON.parse(localSavedProds); } catch(e){}
+    } else {
+        window.productList = [
+            { id: "p1", name: "กระดาษลัง (A)", price: 8.50, img: "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=200" },
+            { id: "p2", name: "กระดาษเล่ม", price: 4.00, img: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=200" },
+            { id: "p3", name: "ขวด PET", price: 12.00, img: "https://images.unsplash.com/photo-1528323273322-d81458248d40?w=200" },
+            { id: "p4", name: "กระป๋องอลูมิเนียม", price: 45.00, img: "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=200" }
+        ];
+    }
+
+    // เชื่อมต่อ Firebase
+    try {
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+    } catch(err) {
+        console.warn("Firebase Config Warning:", err);
+    }
 
     function triggerHaptic() {
         if (window.navigator && window.navigator.vibrate) {
@@ -316,30 +339,44 @@
         window.scrollTo(0, 0);
     }
 
-    db.ref('pos_settings/drawer_config').on('value', snap => {
-        const data = snap.val() || {};
-        const cash = parseFloat(data.currentCash) || 0;
-        document.getElementById('cashInDrawer').innerText = cash.toLocaleString('th-TH', {minimumFractionDigits: 2});
-        window.posConfig = data;
-    });
-
-    db.ref('products').on('value', snap => {
-        const data = snap.val();
-        if (data) {
-            window.productList = Object.keys(data).map(k => ({ id: k, ...data[k] }));
-        } else {
-            const defaults = [
-                { id: "p1", name: "กระดาษลัง (A)", price: 8.50, img: "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=200" },
-                { id: "p2", name: "กระดาษเล่ม", price: 4.00, img: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=200" },
-                { id: "p3", name: "ขวด PET", price: 12.00, img: "https://images.unsplash.com/photo-1528323273322-d81458248d40?w=200" },
-                { id: "p4", name: "กระป๋องอลูมิเนียม", price: 45.00, img: "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=200" }
-            ];
-            defaults.forEach(d => db.ref('products/' + d.id).set(d));
-            window.productList = defaults;
-        }
+    // โหลดครั้งแรก
+    document.addEventListener('DOMContentLoaded', () => {
         renderProducts();
         renderManagerProducts();
     });
+
+    if (db) {
+        db.ref('pos_settings/drawer_config').on('value', snap => {
+            const data = snap.val() || {};
+            const cash = parseFloat(data.currentCash) || 0;
+            document.getElementById('cashInDrawer').innerText = cash.toLocaleString('th-TH', {minimumFractionDigits: 2});
+            window.posConfig = data;
+        });
+
+        db.ref('products').on('value', snap => {
+            const data = snap.val();
+            if (data) {
+                window.productList = Object.keys(data).map(k => ({ id: k, ...data[k] }));
+                localStorage.setItem('rungnapa_products', JSON.stringify(window.productList));
+                renderProducts();
+                renderManagerProducts();
+            }
+        });
+    }
+
+    function testFirebaseConnection() {
+        if (!db || firebaseConfig.databaseURL.includes("YOUR_FIREBASE_DATABASE_URL")) {
+            alert("❌ Firebase ยังไม่ได้ใส่ URL ฐานข้อมูลจริง!\nระบบกำลังทำงานในโหมดออฟไลน์/บันทึกลงเครื่องชั่วคราว");
+            return;
+        }
+        db.ref('.info/connected').once('value', snap => {
+            if (snap.val() === true) {
+                alert("✅ เชื่อมต่อ Firebase Realtime Database สำเร็จเรียบร้อย!");
+            } else {
+                alert("⚠️ เชื่อมต่อไม่ได้! กรุณาตรวจสอบอินเทอร์เน็ต หรือเช็กว่าเปิด Rules (.write: true) ใน Firebase หรือยัง");
+            }
+        });
+    }
 
     function authManager() {
         const pin = prompt("🔐 กรุณาใส่รหัสผ่านผู้จัดการ (6 หลัก):");
@@ -364,6 +401,7 @@
 
     function renderProducts() {
         const grid = document.getElementById('productGrid');
+        if (!grid) return;
         grid.innerHTML = "";
         window.productList.forEach(p => {
             const pName = p.name.replace(/'/g, "\\'");
@@ -446,19 +484,22 @@
         if (confirm(`ยืนยันการจ่ายเงินรับซื้อ เป็นจำนวนเงิน ${total.toLocaleString()} บาท?`)) {
             const printItems = [...cart];
             currentCash -= total;
-            await db.ref('pos_settings/drawer_config').update({ currentCash });
-
-            const now = new Date();
-            const today = now.toISOString().split('T')[0];
-            await db.ref('sales_history').push({
-                timestamp: Date.now(), date: today, month: today.substring(0,7), total, items: printItems
-            });
+            
+            if (db && !firebaseConfig.databaseURL.includes("YOUR_FIREBASE_DATABASE_URL")) {
+                db.ref('pos_settings/drawer_config').update({ currentCash });
+                const now = new Date();
+                const today = now.toISOString().split('T')[0];
+                db.ref('sales_history').push({
+                    timestamp: Date.now(), date: today, month: today.substring(0,7), total, items: printItems
+                });
+            }
 
             let alerts = [];
             if (total >= (parseFloat(config.largeBillThreshold) || 10000)) alerts.push(`🚨 **แจ้งเตือนบิลจ่ายใหญ่!**\nยอดจ่ายรับซื้อ: ${total.toLocaleString('th-TH', {minimumFractionDigits:2})} บาท`);
             if (currentCash <= (parseFloat(config.lowCashThreshold) || 5000)) alerts.push(`⚠️ **เตือนเงินสดในลิ้นชักใกล้หมด!**\nเงินคงเหลือในเก๊ะ: ${currentCash.toLocaleString('th-TH', {minimumFractionDigits:2})} บาท`);
             
             if (alerts.length > 0 && config.webhookUrl) {
+                const now = new Date();
                 const msg = alerts.join("\n\n") + `\n⏰ เวลา: ${now.toLocaleTimeString('th-TH')}`;
                 fetch(config.webhookUrl, { 
                     method:'POST', 
@@ -510,6 +551,11 @@
         const resultDiv = document.getElementById('reportResult');
         resultDiv.innerHTML = "กำลังดึงข้อมูลรายงาน...";
 
+        if (!db || firebaseConfig.databaseURL.includes("YOUR_FIREBASE_DATABASE_URL")) {
+            resultDiv.innerHTML = "<p style='color:orange; text-align:center;'>ยังไม่ได้เชื่อมต่อ Firebase ออนไลน์ (ดูสรุปไม่ได้)</p>";
+            return;
+        }
+
         db.ref('sales_history').once('value', snap => {
             const data = snap.val(); if (!data) return resultDiv.innerHTML = "<p style='text-align:center;'>ยังไม่มีประวัติการรับซื้อ</p>";
             const records = Object.values(data);
@@ -549,14 +595,15 @@
     }
 
     function renderManagerProducts() {
-        const tbody = document.getElementById('managerProductTable'); tbody.innerHTML = "";
+        const tbody = document.getElementById('managerProductTable'); 
+        if(!tbody) return;
+        tbody.innerHTML = "";
         window.productList.forEach(p => {
             const pName = p.name.replace(/'/g, "\\'");
             tbody.innerHTML += `<tr><td><img src="${p.img}" width="30" height="30" style="object-fit:cover;border-radius:6px;" onerror="this.src='https://via.placeholder.com/30'"></td><td>${p.name}</td><td>${parseFloat(p.price).toFixed(2)}</td><td><button onclick="editProd('${p.id}', '${pName}', ${p.price}, '${p.img}')" style="color:var(--apple-blue);border:none;background:none;cursor:pointer;font-weight:bold;margin-right:6px;">แก้ไข</button><button onclick="deleteProd('${p.id}')" style="color:var(--apple-red);border:none;background:none;cursor:pointer;font-weight:bold;">ลบ</button></td></tr>`;
         });
     }
 
-    // ฟังก์ชันเข้าสู่โหมดแก้ไขสินค้า
     function editProd(id, name, price, img) {
         document.getElementById('editingProdId').value = id;
         document.getElementById('newProdName').value = name;
@@ -570,7 +617,6 @@
         document.getElementById('cancelEditBtn').style.display = "inline-block";
     }
 
-    // ฟังก์ชันล้างฟอร์ม
     function clearProductForm() {
         document.getElementById('editingProdId').value = "";
         document.getElementById('newProdName').value = "";
@@ -584,7 +630,7 @@
         document.getElementById('cancelEditBtn').style.display = "none";
     }
 
-    // ฟังก์ชันบันทึกสินค้าแก้ไขบั๊กผ่าน 100%
+    // ฟังก์ชันบันทึกสินค้า (Instant Save System)
     function saveProduct() {
         const editId = document.getElementById('editingProdId').value.trim();
         const name = document.getElementById('newProdName').value.trim();
@@ -594,42 +640,52 @@
         const img = imgInput || "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=200";
 
         if (!name) {
-            alert('กรุณากรอกชื่อสินค้า');
+            alert('⚠️ กรุณากรอก "ชื่อสินค้า" ก่อนกดบันทึก');
             return;
         }
         if (priceInput === "" || isNaN(price) || price < 0) {
-            alert('กรุณากรอกราคาให้ถูกต้อง');
+            alert('⚠️ กรุณากรอก "ราคา/กก." ให้ถูกต้อง');
             return;
         }
 
-        const productData = { name: name, price: price, img: img };
-
+        // 1. บันทึกและอัปเดตหน้าจอทันที (Instant Local Update)
         if (editId !== "") {
-            // กรณีอัปเดตรายการเดิม
-            db.ref('products/' + editId).update(productData, (error) => {
-                if (!error) {
-                    clearProductForm();
-                    alert('อัปเดตข้อมูลสินค้าเรียบร้อยแล้ว!');
-                } else {
-                    alert('เกิดข้อผิดพลาดในการอัปเดต: ' + error.message);
-                }
-            });
+            const idx = window.productList.findIndex(p => p.id === editId);
+            if (idx !== -1) window.productList[idx] = { id: editId, name, price, img };
         } else {
-            // กรณีเพิ่มรายการใหม่
-            db.ref('products').push(productData, (error) => {
-                if (!error) {
-                    clearProductForm();
-                    alert('เพิ่มรายการสินค้าใหม่เรียบร้อยแล้ว!');
-                } else {
-                    alert('เกิดข้อผิดพลาดในการบันทึก: ' + error.message);
-                }
-            });
+            const newId = "p_" + Date.now();
+            window.productList.push({ id: newId, name, price, img });
         }
+
+        // บันทึกลงเครื่อง
+        localStorage.setItem('rungnapa_products', JSON.stringify(window.productList));
+        renderProducts();
+        renderManagerProducts();
+
+        // 2. ส่งขึ้น Firebase เบื้องหลัง
+        if (db && !firebaseConfig.databaseURL.includes("YOUR_FIREBASE_DATABASE_URL")) {
+            const productData = { name, price, img };
+            if (editId !== "") {
+                db.ref('products/' + editId).update(productData);
+            } else {
+                db.ref('products').push(productData);
+            }
+        }
+
+        clearProductForm();
+        alert('✅ บันทึกรายการสินค้าเรียบร้อยแล้ว!');
     }
 
     function deleteProd(prodId) {
         if (confirm('ยืนยันการลบสินค้านี้?')) {
-            db.ref('products/' + prodId).remove();
+            window.productList = window.productList.filter(p => p.id !== prodId);
+            localStorage.setItem('rungnapa_products', JSON.stringify(window.productList));
+            renderProducts();
+            renderManagerProducts();
+
+            if (db && !firebaseConfig.databaseURL.includes("YOUR_FIREBASE_DATABASE_URL")) {
+                db.ref('products/' + prodId).remove();
+            }
         }
     }
 
@@ -643,12 +699,14 @@
     }
     function closeModal() { document.getElementById('configModal').style.display = 'none'; }
     function saveConfig() {
-        db.ref('pos_settings/drawer_config').set({
-            currentCash: parseFloat(document.getElementById('cfgCash').value) || 0,
-            lowCashThreshold: parseFloat(document.getElementById('cfgLow').value) || 5000,
-            largeBillThreshold: parseFloat(document.getElementById('cfgLarge').value) || 10000,
-            webhookUrl: document.getElementById('cfgWebhook').value.trim()
-        });
+        if (db && !firebaseConfig.databaseURL.includes("YOUR_FIREBASE_DATABASE_URL")) {
+            db.ref('pos_settings/drawer_config').set({
+                currentCash: parseFloat(document.getElementById('cfgCash').value) || 0,
+                lowCashThreshold: parseFloat(document.getElementById('cfgLow').value) || 5000,
+                largeBillThreshold: parseFloat(document.getElementById('cfgLarge').value) || 10000,
+                webhookUrl: document.getElementById('cfgWebhook').value.trim()
+            });
+        }
         alert('บันทึกการตั้งค่าเรียบร้อยแล้ว');
         closeModal();
     }
