@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>POS หจก.รุ่งนภา รีไซเคิล (Web Bluetooth Thermal Print)</title>
+    <title>POS หจก.รุ่งนภา รีไซเคิล (CY-BX58D-5215 Connected)</title>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
@@ -552,20 +552,19 @@
     }
 
     // =================================----------------================-
-    // ระบบ Web Bluetooth Direct Print (ยิงตรงสู่เครื่องพิมพ์สลิป 58mm)
+    // ระบบ Web Bluetooth Direct Print (ล็อกสเปกเครื่อง CY-BX58D-5215 / Cp874)
     // =================================---------------------------------
     async function printReceipt(items, total, includeHeader) {
         const includeH = includeHeader;
-        
-        // 1. ลองสั่งพิมพ์ผ่านระบบ Web Bluetooth Direct Print ก่อน
+
         if (navigator.bluetooth) {
             try {
-                // สร้างชุดคำสั่งตัวอักษรสำหรับเครื่องพิมพ์สลิปความร้อน 58mm
                 let printData = "";
-                
-                // คำสั่งตั้งค่าเริ่มต้น และปรับกึ่งกลางข้อความ
+
+                // คำสั่งตั้งค่าเครื่องพิมพ์ ESC/POS สากล
                 printData += "\x1B\x40"; // ESC @ Initialize printer
-                
+                printData += "\x1B\x74\x1E"; // ESC t 30 Select Codepage Cp874 (ภาษาไทย)
+
                 if (includeH) {
                     printData += "\x1B\x61\x01"; // ESC a 1 (Align Center)
                     printData += "    หจก.รุ่งนภา รีไซเคิล\n";
@@ -592,22 +591,21 @@
                 printData += "--------------------------------\n";
                 printData += "       ขอบคุณที่ใช้บริการ\n\n\n\n\n";
 
-                // แปลงข้อความความยาว UTF-8 / Tis-620
                 const encoder = new TextEncoder();
                 const dataBuffer = encoder.encode(printData);
 
-                // ค้นหาและจับคู่เครื่องพิมพ์ Bluetooth
+                // ค้นหาเฉพาะเจาะจงเครื่องพิมพ์ CY-BX58D-5215 ของคุณ
                 const device = await navigator.bluetooth.requestDevice({
                     filters: [
-                        { namePrefix: 'Bluetooth' },
-                        { namePrefix: 'Printer' },
-                        { namePrefix: 'RPP' },
-                        { namePrefix: 'MPT' }
+                        { name: 'CY-BX58D-5215' },
+                        { namePrefix: 'CY-BX' },
+                        { namePrefix: 'Bluetooth' }
                     ],
                     optionalServices: [
                         '000018f0-0000-1000-8000-00805f9b34fb',
                         'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
-                        '0000ff00-0000-1000-8000-00805f9b34fb'
+                        '0000ff00-0000-1000-8000-00805f9b34fb',
+                        '0000ffe0-0000-1000-8000-00805f9b34fb'
                     ]
                 });
 
@@ -625,9 +623,8 @@
                 }
 
                 if (targetCharacteristic) {
-                    // ส่งชุดข้อมูลเข้าเครื่องพิมพ์
                     await targetCharacteristic.writeValue(dataBuffer);
-                    alert("✅ พิมพ์ใบเสร็จผ่าน Bluetooth เรียบร้อยแล้ว!");
+                    alert("✅ พิมพ์ใบเสร็จออกเครื่อง CY-BX58D-5215 เรียบร้อยแล้ว!");
                     return;
                 }
             } catch (err) {
@@ -635,7 +632,7 @@
             }
         }
 
-        // 2. ระบบ Fallback: หาก Bluetooth ปิดอยู่ หรือยกเลิก ให้แสดงหน้าพิมพ์เบราว์เซอร์ปกติ
+        // ระบบสำรอง (Fallback) หากไม่ได้เปิด Bluetooth ให้ใช้หน้าพิมพ์ปกติ
         const headerBlock = document.getElementById('receiptHeaderBlock');
         headerBlock.style.display = includeH ? "block" : "none";
 
@@ -865,7 +862,7 @@
         window.posConfig = cfg;
         localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
         document.getElementById('cashInDrawer').innerText = cfg.currentCash.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        alert('บันทึกการตั้งค่าเรียบร้อยแล้ว (เก็บในเครื่องนี้)');
+        alert('บันทึกการตั้งค่าเรียบร้อยแล้ว');
         closeModal();
     }
 </script>
