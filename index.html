@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>POS หจก.รุ่งนภา รีไซเคิล (Full Production & Auto Disconnect Ready)</title>
+    <title>POS หจก.รุ่งนภา รีไซเคิล (Full Production & Fix Connection)</title>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
@@ -560,7 +560,7 @@
     }
 
     // =================================----------------================-
-    // ระบบ Web Bluetooth Native Text Print (ปิดโหมดจีน + ตัดการเชื่อมต่อออโต้)
+    // ระบบ Web Bluetooth Native Text Print (ปิดโหมดจีน + เคลียร์สายสัญญาณพิมพ์ได้ต่อเนื่อง)
     // =================================---------------------------------
     async function printReceipt(items, total, includeHeader) {
         const includeH = includeHeader;
@@ -647,41 +647,45 @@
                         await new Promise(r => setTimeout(r, 20));
                     }
                     
+                    // หน่วงเวลาให้เครื่องพิมพ์รับข้อมูลครบถ้วนก่อนตัดสาย
+                    await new Promise(r => setTimeout(r, 600));
                     alert("✅ พิมพ์ใบเสร็จเรียบร้อยแล้ว!");
-                    return;
                 } else {
                     alert("⚠️ เชื่อมต่อได้ แต่หาช่องสั่งพิมพ์ไม่พบ ให้ลองสั่งใหม่อีกครั้งครับ");
                 }
             } catch (err) {
                 console.log("Bluetooth Text Print Fallback:", err);
             } finally {
-                // 🔴 บรรทัดสำคัญ: ตัดสายเชื่อมต่อหลังพิมพ์จบ เพื่อให้บิลถัดไปพิมพ์ได้ทันทีโดยไม่ต้องเปิด-ปิดเครื่องใหม่
+                // 🔴 บรรทัดสำคัญ: สั่ง Disconnect สายสัญญาณทันทีเพื่อให้บิลถัดไปพิมพ์ได้ต่อเนื่องโดยไม่ต้องปิด-เปิดเครื่องใหม่
                 if (device && device.gatt && device.gatt.connected) {
-                    device.gatt.disconnect();
+                    try {
+                        device.gatt.disconnect();
+                    } catch(e) {}
                 }
             }
+        } else {
+            // ระบบพิมพ์สำรองกรณีไม่ได้เปิด Bluetooth
+            const headerBlock = document.getElementById('receiptHeaderBlock');
+            headerBlock.style.display = includeH ? "block" : "none";
+
+            document.getElementById('receiptDate').innerText = "วันที่: " + new Date().toLocaleString('th-TH');
+            const tbody = document.getElementById('receiptTableBody');
+            tbody.innerHTML = "";
+
+            items.forEach(i => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align:left;"></td>
+                    <td style="text-align:right;">${i.net.toFixed(2)} x ${i.price.toFixed(2)}</td>
+                    <td style="text-align:right; font-weight:bold;">${i.subtotal.toFixed(2)}</td>
+                `;
+                tr.children[0].textContent = i.name;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('receiptTotal').innerText = total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2}) + " บาท";
+            window.print();
         }
-
-        const headerBlock = document.getElementById('receiptHeaderBlock');
-        headerBlock.style.display = includeH ? "block" : "none";
-
-        document.getElementById('receiptDate').innerText = "วันที่: " + new Date().toLocaleString('th-TH');
-        const tbody = document.getElementById('receiptTableBody');
-        tbody.innerHTML = "";
-
-        items.forEach(i => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="text-align:left;"></td>
-                <td style="text-align:right;">${i.net.toFixed(2)} x ${i.price.toFixed(2)}</td>
-                <td style="text-align:right; font-weight:bold;">${i.subtotal.toFixed(2)}</td>
-            `;
-            tr.children[0].textContent = i.name;
-            tbody.appendChild(tr);
-        });
-
-        document.getElementById('receiptTotal').innerText = total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2}) + " บาท";
-        window.print();
     }
 
     function loadReport(type) {
