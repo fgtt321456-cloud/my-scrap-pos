@@ -5,13 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>POS หจก.รุ่งนภา รีไซเคิล (Full Production & Bluetooth Thermal Ready)</title>
-
-    <!-- ไลบรารีแปลงข้อความภาษาไทยเป็น TIS-620 / CP874 แก้ปัญหาภาษาต่างดาวบนเครื่องพิมพ์สลิป -->
-    <script src="https://cdn.jsdelivr.net/npm/iconv-lite-umd@0.6.8/lib/iconv-lite-umd.min.js"></script>
+    <title>POS หจก.รุ่งนภา รีไซเคิล (Bitmap Print Ready)</title>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap');
 
         :root {
             --apple-blue: #007aff;
@@ -253,7 +250,7 @@
     </div>
 </div>
 
-<!-- โครงสร้างใบเสร็จสำหรับ พิมพ์ออกกระดาษ/เบราว์เซอร์ -->
+<!-- โครงสร้างใบเสร็จพิมพ์เบราว์เซอร์ปกติ -->
 <div id="receiptArea" style="display:none;">
     <div id="receiptHeaderBlock" style="text-align: center;">
         <h3 style="margin: 0; font-size: 16px; font-weight: bold;">หจก.รุ่งนภา รีไซเคิล</h3>
@@ -547,53 +544,122 @@
     }
 
     // =================================----------------================-
-    // ระบบ Web Bluetooth Direct Print (แปลงภาษาเป็น TIS-620 แก้ภาษาต่างดาว 100%)
+    // ระบบ Web Bluetooth Bitmap Direct Print (แปลงข้อความไทยเป็นรูปภาพสลิป)
     // =================================---------------------------------
     async function printReceipt(items, total, includeHeader) {
         const includeH = includeHeader;
 
         if (navigator.bluetooth) {
             try {
-                // 1. สร้างชุดคำสั่ง ESC/POS
-                let printData = "";
-                printData += "\x1B\x40"; // ESC @ Initialize
-                printData += "\x1B\x74\x1E"; // Select Codepage Cp874 ภาษาไทย
+                // 1. สร้าง Canvas สำหรับวาดใบเสร็จเป็นรูปภาพ ความกว้าง 384 พิกเซล (สำหรับสลิป 58mm)
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 384;
+                
+                // คำนวณความสูง canvas
+                let lineCount = 8 + (items.length * 2);
+                if (includeH) lineCount += 4;
+                canvas.height = lineCount * 28 + 40;
 
+                // วาดพื้นหลังขาว
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // ตั้งค่าฟอนต์
+                ctx.fillStyle = '#000000';
+                ctx.textBaseline = 'top';
+
+                let y = 10;
+
+                // ส่วนหัวใบเสร็จ
                 if (includeH) {
-                    printData += "\x1B\x61\x01"; // Align Center
-                    printData += "    หจก.รุ่งนภา รีไซเคิล\n";
-                    printData += " RUNGNAPA RECYCLE Part.,Ltd.\n";
-                    printData += "   ใบเสร็จรับซื้อขยะรีไซเคิล\n";
+                    ctx.font = 'bold 22px "Prompt", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText("หจก.รุ่งนภา รีไซเคิล", 192, y); y += 30;
+                    ctx.font = 'bold 15px "Prompt", sans-serif';
+                    ctx.fillText("RUNGNAPA RECYCLE Part.,Ltd.", 192, y); y += 24;
+                    ctx.font = '16px "Prompt", sans-serif';
+                    ctx.fillText("ใบเสร็จรับซื้อขยะรีไซเคิล", 192, y); y += 28;
                 }
 
-                printData += "\x1B\x61\x00"; // Align Left
-                printData += "--------------------------------\n";
-                printData += "วันที่: " + new Date().toLocaleString('th-TH') + "\n";
-                printData += "--------------------------------\n";
-                printData += "รายการ          กก. x บาท  จำนวนเงิน\n";
-                printData += "--------------------------------\n";
+                ctx.font = '16px "Prompt", sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText("--------------------------------------------------", 10, y); y += 22;
+                ctx.fillText("วันที่: " + new Date().toLocaleString('th-TH'), 10, y); y += 24;
+                ctx.fillText("--------------------------------------------------", 10, y); y += 22;
 
+                // หัวตาราง
+                ctx.font = 'bold 16px "Prompt", sans-serif';
+                ctx.fillText("รายการ", 10, y);
+                ctx.textAlign = 'right';
+                ctx.fillText("กก. x บาท", 260, y);
+                ctx.fillText("บาท", 374, y);
+                y += 26;
+
+                ctx.font = '16px "Prompt", sans-serif';
+                ctx.fillText("--------------------------------------------------", 374, y); y += 22;
+
+                // รายการสินค้า
                 items.forEach(i => {
-                    let name = i.name.substring(0, 11).padEnd(12, ' ');
-                    let detail = `${i.net.toFixed(2)}x${i.price.toFixed(2)}`.padStart(11, ' ');
-                    let sub = i.subtotal.toFixed(2).padStart(8, ' ');
-                    printData += `${name}${detail}${sub}\n`;
+                    ctx.textAlign = 'left';
+                    let nameStr = i.name;
+                    if (nameStr.length > 14) nameStr = nameStr.substring(0, 13) + "..";
+                    ctx.fillText(nameStr, 10, y);
+                    
+                    ctx.textAlign = 'right';
+                    ctx.fillText(`${i.net.toFixed(2)}x${i.price.toFixed(2)}`, 260, y);
+                    ctx.fillText(i.subtotal.toFixed(2), 374, y);
+                    y += 26;
                 });
 
-                printData += "--------------------------------\n";
-                printData += `รวมทั้งสิ้น:         ${total.toFixed(2)} บาท\n`;
-                printData += "--------------------------------\n";
-                printData += "       ขอบคุณที่ใช้บริการ\n\n\n\n\n";
+                ctx.textAlign = 'right';
+                ctx.fillText("--------------------------------------------------", 374, y); y += 22;
 
-                // 2. แปลงข้อความภาษาไทยเข้า TIS-620 / CP874
-                let dataBuffer;
-                if (window.iconv) {
-                    dataBuffer = window.iconv.encode(printData, 'tis620');
-                } else {
-                    dataBuffer = new TextEncoder().encode(printData);
+                // ยอดรวมทั้งสิ้น
+                ctx.font = 'bold 20px "Prompt", sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText("รวมทั้งสิ้น:", 10, y);
+                ctx.textAlign = 'right';
+                ctx.fillText(`${total.toFixed(2)} บาท`, 374, y); y += 34;
+
+                ctx.font = '16px "Prompt", sans-serif';
+                ctx.fillText("--------------------------------------------------", 374, y); y += 24;
+                ctx.textAlign = 'center';
+                ctx.fillText("ขอบคุณที่ใช้บริการ", 192, y); y += 30;
+
+                // 2. แปลง Canvas เป็น ESC/POS Raster Bit Image (1D / 0x1B 0x2A)
+                const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const bytesPerLine = canvas.width / 8;
+                let escPosCmds = [];
+
+                // Initialize Printer
+                escPosCmds.push(0x1B, 0x40);
+
+                for (let l = 0; l < canvas.height; l++) {
+                    escPosCmds.push(0x1B, 0x2A, 0, bytesPerLine & 0xFF, (bytesPerLine >> 8) & 0xFF);
+                    for (let b = 0; b < bytesPerLine; b++) {
+                        let byteVal = 0;
+                        for (let bit = 0; b < 8; bit++) {
+                            const x = (b * 8) + bit;
+                            const idx = (l * canvas.width + x) * 4;
+                            const r = imgData.data[idx];
+                            const g = imgData.data[idx + 1];
+                            const bVal = imgData.data[idx + 2];
+                            const avg = (r + g + bVal) / 3;
+                            if (avg < 128) {
+                                byteVal |= (1 << (7 - bit));
+                            }
+                        }
+                        escPosCmds.push(byteVal);
+                    }
+                    escPosCmds.push(0x0A); // Line feed
                 }
 
-                // 3. สแกนหาเครื่องพิมพ์ Bluetooth
+                // Feed & Cut Spacing
+                escPosCmds.push(0x0A, 0x0A, 0x0A, 0x0A);
+                const dataBuffer = new Uint8Array(escPosCmds);
+
+                // 3. ขอสิทธิ์สแกนจับคู่ Bluetooth
                 const device = await navigator.bluetooth.requestDevice({
                     acceptAllDevices: true,
                     optionalServices: [
@@ -632,13 +698,13 @@
                             await targetCharacteristic.writeValue(chunk);
                         }
                     }
-                    alert("✅ สั่งพิมพ์ออกเครื่อง CY-BX58D-5215 เรียบร้อยแล้ว!");
+                    alert("✅ พิมพ์ใบเสร็จออกเครื่อง CY-BX58D-5215 คมชัดเรียบร้อยแล้ว!");
                     return;
                 } else {
                     alert("⚠️ เชื่อมต่อได้ แต่หาช่องส่งข้อมูลไม่พบ ลองปิด-เปิดเครื่องพิมพ์แล้วสั่งใหม่อีกครั้งครับ");
                 }
             } catch (err) {
-                console.log("Bluetooth Print Fallback:", err);
+                console.log("Bluetooth Bitmap Print Fallback:", err);
             }
         }
 
