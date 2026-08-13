@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>POS หจก.รุ่งนภา รีไซเคิล (CY-BX58D-5215 Print Fixed)</title>
+    <title>POS หจก.รุ่งนภา รีไซเคิล (Full Production & Bluetooth Thermal Ready)</title>
+
+    <!-- ไลบรารีแปลงข้อความภาษาไทยเป็น TIS-620 / CP874 แก้ปัญหาภาษาต่างดาวบนเครื่องพิมพ์สลิป -->
+    <script src="https://cdn.jsdelivr.net/npm/iconv-lite-umd@0.6.8/lib/iconv-lite-umd.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
@@ -174,6 +177,7 @@
             </div>
         </div>
 
+        <!-- ฝั่งขวา: เครื่องคิดเลข/ใส่น้ำหนัก -->
         <div class="panel">
             <div class="panel-title">⚖️ คำนวณน้ำหนัก (ด้านขวา)</div>
 
@@ -209,7 +213,7 @@
             <div style="margin-top: 12px; max-height: 160px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
                 <table class="cart-table">
                     <thead>
-                        <tr><th>รายการ</th><th class="text-right">สุทธิ</th><th class="text-right">รวม (฿)</th><th></th></tr>
+                        <tr><th>รายการ</th><th class="text-right">รายละเอียด (กก. x บาท)</th><th class="text-right">รวม (฿)</th><th></th></tr>
                     </thead>
                     <tbody id="cartTable">
                         <tr><td colspan="4" style="text-align:center; color:#8e8e93;">ยังไม่มีรายการ</td></tr>
@@ -222,15 +226,16 @@
                 <label for="includeHeaderToggle">🖨️ พิมพ์หัวใบเสร็จ (หจก.รุ่งนภา รีไซเคิล)</label>
             </div>
 
-            <div style="display:flex; justify-content:space-between; margin-top:10px; font-weight:700; font-size:16px;">
-                <span>ยอดรวมทั้งสิ้น:</span>
-                <span id="grandTotal" style="color:var(--apple-blue);">0.00 ฿</span>
+            <div style="display:flex; justify-content:space-between; margin-top:14px; padding:12px; background:#f2f8ff; border-radius:14px; border:1px solid #cce5ff;">
+                <span style="font-weight:700; font-size:16px;">ยอดรวมทั้งสิ้น:</span>
+                <span id="grandTotal" style="color:var(--apple-blue); font-weight:800; font-size:20px;">0.00 ฿</span>
             </div>
 
             <button class="btn btn-pay" type="button" onclick="triggerHaptic(); processPayment();">💵 จ่ายเงิน & พิมพ์ใบเสร็จ</button>
         </div>
     </div>
 
+    <!-- Layout หลังบ้านผู้จัดการ -->
     <div id="managerSection" style="display: none;" class="panel">
         <div class="panel-title">
             <span>⚙️ สรุปรายงาน & ตั้งค่างบเก๊ะ (เฉพาะผู้จัดการ)</span>
@@ -248,6 +253,7 @@
     </div>
 </div>
 
+<!-- โครงสร้างใบเสร็จสำหรับ พิมพ์ออกกระดาษ/เบราว์เซอร์ -->
 <div id="receiptArea" style="display:none;">
     <div id="receiptHeaderBlock" style="text-align: center;">
         <h3 style="margin: 0; font-size: 16px; font-weight: bold;">หจก.รุ่งนภา รีไซเคิล</h3>
@@ -262,15 +268,15 @@
         <thead>
             <tr>
                 <th style="text-align: left;">รายการ</th>
-                <th style="text-align: right;">กก.</th>
-                <th style="text-align: right;">บาท</th>
+                <th style="text-align: right;">กก. x บาท</th>
+                <th style="text-align: right;">จำนวนเงิน</th>
             </tr>
         </thead>
         <tbody id="receiptTableBody"></tbody>
     </table>
 
     <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
-    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 13px;">
+    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; padding: 4px 0;">
         <span>รวมทั้งสิ้น:</span>
         <span id="receiptTotal">0.00 บาท</span>
     </div>
@@ -278,6 +284,7 @@
     <p style="text-align: center; font-size: 10px; margin-top: 10px; margin-bottom: 0;">ขอบคุณที่ใช้บริการ</p>
 </div>
 
+<!-- Modal ตั้งค่า -->
 <div class="modal" id="configModal">
     <div class="modal-box">
         <h3 style="margin-top:0;">⚙️ ตั้งค่างบเก๊ะเงินสด & เตือน LINE</h3>
@@ -477,8 +484,8 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td></td>
-                <td class="text-right">${item.net.toLocaleString('th-TH', {maximumFractionDigits: 2})}</td>
-                <td class="text-right">${item.subtotal.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits: 2})}</td>
+                <td class="text-right">${item.net.toLocaleString('th-TH', {maximumFractionDigits: 2})} x ${item.price.toFixed(2)}</td>
+                <td class="text-right" style="font-weight:700;">${item.subtotal.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits: 2})}</td>
                 <td class="text-right"><button style="background:none;border:none;color:var(--apple-red);cursor:pointer;font-weight:bold;">✕</button></td>
             `;
             tr.children[0].textContent = item.name;
@@ -540,7 +547,7 @@
     }
 
     // =================================----------------================-
-    // ระบบ Web Bluetooth Direct Print (สแกนกว้าง + ยิงข้อมูลย่อยป้องกันการ์ดหลุด)
+    // ระบบ Web Bluetooth Direct Print (แปลงภาษาเป็น TIS-620 แก้ภาษาต่างดาว 100%)
     // =================================---------------------------------
     async function printReceipt(items, total, includeHeader) {
         const includeH = includeHeader;
@@ -563,14 +570,14 @@
                 printData += "--------------------------------\n";
                 printData += "วันที่: " + new Date().toLocaleString('th-TH') + "\n";
                 printData += "--------------------------------\n";
-                printData += "รายการ           กก.       บาท\n";
+                printData += "รายการ          กก. x บาท  จำนวนเงิน\n";
                 printData += "--------------------------------\n";
 
                 items.forEach(i => {
-                    let name = i.name.substring(0, 12).padEnd(14, ' ');
-                    let net = i.net.toString().padStart(6, ' ');
+                    let name = i.name.substring(0, 11).padEnd(12, ' ');
+                    let detail = `${i.net.toFixed(2)}x${i.price.toFixed(2)}`.padStart(11, ' ');
                     let sub = i.subtotal.toFixed(2).padStart(8, ' ');
-                    printData += `${name}${net}${sub}\n`;
+                    printData += `${name}${detail}${sub}\n`;
                 });
 
                 printData += "--------------------------------\n";
@@ -578,10 +585,15 @@
                 printData += "--------------------------------\n";
                 printData += "       ขอบคุณที่ใช้บริการ\n\n\n\n\n";
 
-                const encoder = new TextEncoder();
-                const dataBuffer = encoder.encode(printData);
+                // 2. แปลงข้อความภาษาไทยเข้า TIS-620 / CP874
+                let dataBuffer;
+                if (window.iconv) {
+                    dataBuffer = window.iconv.encode(printData, 'tis620');
+                } else {
+                    dataBuffer = new TextEncoder().encode(printData);
+                }
 
-                // 2. ขอสิทธิ์สแกนจับคู่ Bluetooth แบบปลดล็อกให้แสดงอุปกรณ์รอบตัวทันที
+                // 3. สแกนหาเครื่องพิมพ์ Bluetooth
                 const device = await navigator.bluetooth.requestDevice({
                     acceptAllDevices: true,
                     optionalServices: [
@@ -597,7 +609,6 @@
                 const services = await server.getPrimaryServices();
                 let targetCharacteristic = null;
 
-                // 3. วนลูปสแกนหาช่องสัญญาณส่งข้อมูลที่รองรับบนชิปเครื่องพิมพ์
                 for (const service of services) {
                     try {
                         const characteristics = await service.getCharacteristics();
@@ -612,7 +623,6 @@
                 }
 
                 if (targetCharacteristic) {
-                    // แบ่งส่งข้อมูลทีละ 100 ไบต์
                     const chunkSize = 100;
                     for (let i = 0; i < dataBuffer.length; i += chunkSize) {
                         const chunk = dataBuffer.slice(i, i + chunkSize);
@@ -622,17 +632,17 @@
                             await targetCharacteristic.writeValue(chunk);
                         }
                     }
-                    alert("✅ สั่งพิมพ์ออกเครื่อง CY-BX58D-5215 สำเร็จเรียบร้อย!");
+                    alert("✅ สั่งพิมพ์ออกเครื่อง CY-BX58D-5215 เรียบร้อยแล้ว!");
                     return;
                 } else {
-                    alert("⚠️ เชื่อมต่อได้ แต่หาช่องส่งข้อมูลไม่พบ ให้ลองปิด-เปิดเครื่องพิมพ์แล้วกดใหม่อีกครั้งครับ");
+                    alert("⚠️ เชื่อมต่อได้ แต่หาช่องส่งข้อมูลไม่พบ ลองปิด-เปิดเครื่องพิมพ์แล้วสั่งใหม่อีกครั้งครับ");
                 }
             } catch (err) {
-                console.log("Bluetooth Direct Print Fallback:", err);
+                console.log("Bluetooth Print Fallback:", err);
             }
         }
 
-        // ระบบสำรองกรณีใช้การพิมพ์ปกติของเบราว์เซอร์
+        // ระบบสำรองสั่งพิมพ์ปกติกรณีไม่ได้เปิด Bluetooth
         const headerBlock = document.getElementById('receiptHeaderBlock');
         headerBlock.style.display = includeH ? "block" : "none";
 
@@ -644,8 +654,8 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td style="text-align:left;"></td>
-                <td style="text-align:right;">${i.net}</td>
-                <td style="text-align:right;">${i.subtotal.toFixed(2)}</td>
+                <td style="text-align:right;">${i.net.toFixed(2)} x ${i.price.toFixed(2)}</td>
+                <td style="text-align:right; font-weight:bold;">${i.subtotal.toFixed(2)}</td>
             `;
             tr.children[0].textContent = i.name;
             tbody.appendChild(tr);
