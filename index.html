@@ -702,16 +702,38 @@
                 }
 
                 if (targetCharacteristic) {
-                    // ส่งข้อมูลเป็นก้อนเล็กๆ ต่อเนื่อง — ถ้าพิมพ์ขาดหาย/ไม่ครบ ให้ลดค่า chunkSize ลง
-                    const chunkSize = 100;
+                    window.btLastCharacteristic = targetCharacteristic; // เก็บไว้ใช้รีเซ็ตเครื่องพิมพ์ถ้าพิมพ์พลาดกลางคัน
+
+                    // ขนาดก้อนข้อมูลต่อการเขียนหนึ่งครั้ง — ใช้ 20 ไบต์เป็นค่าปลอดภัยสุดสำหรับ BLE
+                    // ที่ไม่ได้เจรจาขยาย MTU ก่อน (เดิมใช้ 100 ไบต์ ซึ่งเกินขนาดที่เบราว์เซอร์อย่าง Bluefy
+                    // บน iOS เขียนได้ในครั้งเดียว ทำให้ข้อมูลภาพขาดหายกลางทาง แล้วเครื่องพิมพ์ตีความไบต์
+                    // ที่เหลือผิดเพี้ยนกลายเป็นตัวอักษรมั่วๆ)
+                    const chunkSize = 20;
+                    const useWithoutResponse = !!targetCharacteristic.properties.writeWithoutResponse
+                        && !targetCharacteristic.properties.write; // ใช้ writeValue (มี response ยืนยัน) ก่อนถ้าเครื่องรองรับ เพราะให้ error ที่เชื่อถือได้กว่า
+
                     for (let i = 0; i < fullBuffer.length; i += chunkSize) {
                         const chunk = fullBuffer.slice(i, i + chunkSize);
-                        if (targetCharacteristic.properties.writeWithoutResponse) {
-                            await targetCharacteristic.writeValueWithoutResponse(chunk);
-                        } else {
-                            await targetCharacteristic.writeValue(chunk);
+                        // ลองเขียนซ้ำได้สูงสุด 3 ครั้งต่อก้อน ถ้าพลาดเพราะสัญญาณสะดุดชั่วคราว
+                        let lastErr = null;
+                        let sent = false;
+                        for (let attempt = 0; attempt < 3 && !sent; attempt++) {
+                            try {
+                                if (useWithoutResponse) {
+                                    await targetCharacteristic.writeValueWithoutResponse(chunk);
+                                } else {
+                                    await targetCharacteristic.writeValue(chunk);
+                                }
+                                sent = true;
+                            } catch (chunkErr) {
+                                lastErr = chunkErr;
+                                await new Promise(r => setTimeout(r, 80)); // เว้นจังหวะก่อนลองใหม่
+                            }
                         }
-                        await new Promise(r => setTimeout(r, 20));
+                        if (!sent) {
+                            throw lastErr || new Error('เขียนข้อมูลไปเครื่องพิมพ์ไม่สำเร็จ (ก้อนที่ ' + (i / chunkSize + 1) + ')');
+                        }
+                        await new Promise(r => setTimeout(r, 25));
                     }
 
                     // หน่วงเวลาให้เครื่องพิมพ์พิมพ์ภาพให้เสร็จก่อนตัดสาย (ภาพข้อมูลเยอะกว่าข้อความ ใช้เวลานานกว่าเดิมเล็กน้อย)
@@ -722,8 +744,21 @@
                 }
             } catch (err) {
                 console.log("Bluetooth Print Error/Fallback:", err);
-                if (err && err.name !== 'NotFoundError') {
-                    alert("❌ พิมพ์ผ่าน Bluetooth ไม่สำเร็จ: " + err.message);
+                // ถ้าพิมพ์พลาดกลางคันขณะกำลังส่งข้อมูลภาพ เครื่องพิมพ์อาจค้างอยู่กลางคำสั่งพิมพ์รูปภาพ
+                // ส่งคำสั่งรีเซ็ต (ESC @) ซ้ำแบบ best-effort เพื่อล้างสถานะไม่ให้พิมพ์มั่วในบิลถัดไป
+                if (window.btLastCharacteristic && device && device.gatt && device.gatt.connected) {
+                    try {
+                        const reset = new Uint8Array([0x1B, 0x40, 0x0A, 0x0A, 0x0A]);
+                        if (window.btLastCharacteristic.properties.write) {
+                            await window.btLastCharacteristic.writeValue(reset);
+                        } else if (window.btLastCharacteristic.properties.writeWithoutResponse) {
+                            await window.btLastCharacteristic.writeValueWithoutResponse(reset);
+                        }
+                    } catch (resetErr) { /* เครื่องอาจหลุดการเชื่อมต่อไปแล้ว ไม่ต้องทำอะไรเพิ่ม */ }
+                }
+                if (!err || err.name !== 'NotFoundError') {
+                    const detail = (err && (err.message || err.name)) || 'ไม่ทราบสาเหตุ — สัญญาณ Bluetooth อาจสะดุดระหว่างพิมพ์ ลองกดพิมพ์ใหม่อีกครั้ง';
+                    alert("❌ พิมพ์ผ่าน Bluetooth ไม่สำเร็จ: " + detail + "\n\nถ้าเกิดซ้ำบ่อย ลองปิด-เปิดเครื่องพิมพ์ 1 ครั้ง แล้วลองใหม่");
                 }
             } finally {
                 // สั่ง Disconnect ทันทีหลังพิมพ์เสร็จ เพื่อให้บิลถัดไปเชื่อมต่อใหม่ได้โดยไม่ต้องปิด-เปิดเครื่องพิมพ์
