@@ -250,7 +250,7 @@
     </div>
 </div>
 
-<!-- โครงสร้างใบเสร็จพิมพ์เบราว์เซอร์ปกติ -->
+<!-- โครงสร้างใบเสร็จพิมพ์เบราว์เซอร์ปกติ (ใช้เมื่อไม่มี Web Bluetooth เช่น iOS) -->
 <div id="receiptArea" style="display:none;">
     <div id="receiptHeaderBlock" style="text-align: center;">
         <h3 style="margin: 0; font-size: 16px; font-weight: bold;">หจก.รุ่งนภา รีไซเคิล</h3>
@@ -314,22 +314,6 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
-    }
-
-    // แปลงรหัสตัวอักษรไทยเข้าตาราง CP874 (สำหรับเครื่องพิมพ์ CY-BX58D-5215)
-    function encodeThaiCP874(str) {
-        let bytes = [];
-        for (let i = 0; i < str.length; i++) {
-            let code = str.charCodeAt(i);
-            if (code >= 0x0E01 && code <= 0x0E5B) {
-                bytes.push(code - 0x0E00 + 0xA0);
-            } else if (code < 0x80) {
-                bytes.push(code);
-            } else {
-                bytes.push(0x20); // space
-            }
-        }
-        return new Uint8Array(bytes);
     }
 
     function getLocalDateString(d = new Date()) {
@@ -559,47 +543,129 @@
         }
     }
 
-    // =================================----------------================-
-    // ระบบ Web Bluetooth Native Text Print (ปิดโหมดจีน + เคลียร์สายสัญญาณพิมพ์ได้ต่อเนื่อง)
-    // =================================---------------------------------
-    async function printReceipt(items, total, includeHeader) {
-        const includeH = includeHeader;
+    // ==========================================================================
+    // ระบบพิมพ์ผ่าน Web Bluetooth — โหมด "พิมพ์เป็นรูปภาพ" (Raster Bit Image)
+    // ==========================================================================
+    // เดิมโค้ดพิมพ์เป็น "ข้อความ" แล้วสั่งเลือก code page ไทย (ESC t 30) และปิดโหมด
+    // Kanji (FS .) แต่เลขตาราง code page เป็นค่าเฉพาะของแต่ละยี่ห้อเครื่องพิมพ์ เครื่องรุ่นนี้
+    // ตีความเลข 30 เป็นตารางอักษรอื่น ทำให้ไบต์ภาษาไทยกลายเป็นตัวอักษรเพี้ยน และคำสั่ง FS .
+    // ที่เครื่องไม่รองรับทำให้เฟิร์มแวร์ค้าง ต้องปิด-เปิดเครื่องใหม่ทุกครั้ง
+    //
+    // วิธีแก้: วาดใบเสร็จเป็น "ภาพ" ในเบราว์เซอร์ก่อน (เบราว์เซอร์วาดฟอนต์ไทยถูกต้องอยู่แล้ว)
+    // แล้วแปลงเป็นจุดพิกเซลขาว-ดำส่งไปแบบคำสั่งมาตรฐาน GS v 0 (Print Raster Bit Image)
+    // เครื่องพิมพ์แค่พิมพ์ตามภาพที่ได้รับ ไม่ต้องตีความตัวอักษรหรือ code page ใดๆ เลย
+    // จึงไม่มีทางเพี้ยนหรือทำให้เฟิร์มแวร์ค้างจากปัญหานี้อีก
 
+    async function buildReceiptCanvas(items, total, includeHeader) {
+        // รอให้ฟอนต์ Prompt โหลดเสร็จก่อนวาด ป้องกันกรณีพิมพ์ทันทีหลังเปิดเว็บแล้วฟอนต์ยังโหลดไม่เสร็จ
+        try { await document.fonts.ready; } catch(e) {}
+
+        const WIDTH = 384; // ความกว้างมาตรฐานกระดาษ 58mm ที่ 203dpi
+        const PADDING = 8;
+        const now = new Date();
+
+        const lines = [];
+        if (includeHeader) {
+            lines.push({ text: 'หจก.รุ่งนภา รีไซเคิล', size: 24, bold: true, align: 'center' });
+            lines.push({ text: 'RUNGNAPA RECYCLE Part.,Ltd.', size: 13, align: 'center' });
+            lines.push({ text: 'ใบเสร็จรับซื้อขยะรีไซเคิล', size: 14, align: 'center' });
+            lines.push({ divider: true });
+        }
+        lines.push({ text: 'วันที่: ' + now.toLocaleString('th-TH'), size: 15, align: 'left' });
+        lines.push({ divider: true });
+        items.forEach(i => {
+            lines.push({ text: i.name, size: 17, bold: true, align: 'left' });
+            lines.push({ text: `  ${i.net.toFixed(2)} กก. x ${i.price.toFixed(2)} บาท = ${i.subtotal.toFixed(2)} บาท`, size: 15, align: 'left' });
+        });
+        lines.push({ divider: true });
+        lines.push({ text: 'รวมทั้งสิ้น: ' + total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' บาท', size: 20, bold: true, align: 'left' });
+        lines.push({ divider: true });
+        lines.push({ text: 'ขอบคุณที่ใช้บริการ', size: 15, align: 'center' });
+        lines.push({ text: '', size: 6 });
+
+        let height = PADDING * 2;
+        lines.forEach(l => { height += l.divider ? 14 : (l.size + 10); });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = WIDTH;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, WIDTH, height);
+        ctx.fillStyle = '#000';
+        ctx.textBaseline = 'top';
+
+        let y = PADDING;
+        lines.forEach(l => {
+            if (l.divider) {
+                ctx.beginPath();
+                ctx.setLineDash([4, 3]);
+                ctx.moveTo(PADDING, y + 6);
+                ctx.lineTo(WIDTH - PADDING, y + 6);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                y += 14;
+                return;
+            }
+            if (!l.text) { y += l.size + 10; return; }
+            ctx.font = (l.bold ? 'bold ' : '') + l.size + "px 'Prompt', 'Noto Sans Thai', sans-serif";
+            let x = PADDING;
+            if (l.align === 'center') {
+                const w = ctx.measureText(l.text).width;
+                x = Math.max(PADDING, (WIDTH - w) / 2);
+            }
+            ctx.fillText(l.text, x, y);
+            y += l.size + 10;
+        });
+
+        return canvas;
+    }
+
+    // แปลง canvas เป็นคำสั่ง ESC/POS raster bit image (GS v 0) — เป็นคำสั่งมาตรฐานที่เครื่องพิมพ์
+    // ESC/POS แทบทุกยี่ห้อรองรับเหมือนกันหมด ต่างจากคำสั่งเลือก code page ที่แต่ละยี่ห้อไม่เหมือนกัน
+    function canvasToEscPosRaster(canvas) {
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height;
+        const imgData = ctx.getImageData(0, 0, w, h).data;
+
+        const widthBytes = Math.ceil(w / 8);
+        const raster = new Uint8Array(widthBytes * h);
+
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                const idx = (y * w + x) * 4;
+                const r = imgData[idx], g = imgData[idx+1], b = imgData[idx+2], a = imgData[idx+3];
+                const gray = r * 0.3 + g * 0.59 + b * 0.11;
+                const isBlack = a > 128 && gray < 200; // threshold: ปรับเลข 200 ได้ถ้าพิมพ์ออกมาจางไป/เข้มไป
+                if (isBlack) raster[y * widthBytes + (x >> 3)] |= (0x80 >> (x % 8));
+            }
+        }
+
+        const xL = widthBytes & 0xFF, xH = (widthBytes >> 8) & 0xFF;
+        const yL = h & 0xFF, yH = (h >> 8) & 0xFF;
+        const header = new Uint8Array([0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH]); // GS v 0 m xL xH yL yH
+        const out = new Uint8Array(header.length + raster.length);
+        out.set(header, 0);
+        out.set(raster, header.length);
+        return out;
+    }
+
+    async function printReceipt(items, total, includeHeader) {
         if (navigator.bluetooth) {
             let device = null;
             try {
-                let printText = "";
-                printText += "\x1B\x40";   // ESC @ Reset
-                printText += "\x1C\x2E";     // FS . (ปิดโหมดอักษรจีน/Kanji Mode)
-                printText += "\x1B\x74\x1E"; // ESC t 30 (Select CP874 ไทย)
+                const canvas = await buildReceiptCanvas(items, total, includeHeader);
+                const rasterData = canvasToEscPosRaster(canvas);
 
-                if (includeH) {
-                    printText += "\x1B\x61\x01"; // Center
-                    printText += "    หจก.รุ่งนภา รีไซเคิล\n";
-                    printText += " RUNGNAPA RECYCLE Part.,Ltd.\n";
-                    printText += "   ใบเสร็จรับซื้อขยะรีไซเคิล\n";
-                }
+                const init = new Uint8Array([0x1B, 0x40]); // ESC @ : รีเซ็ตเครื่องพิมพ์เท่านั้น ไม่ส่งคำสั่งเลือก code page/Kanji ที่เคยทำให้ค้าง
+                const feed = new Uint8Array([0x0A, 0x0A, 0x0A]);
+                const cut = new Uint8Array([0x1D, 0x56, 0x00]); // ตัดกระดาษ (ถ้าเครื่องไม่มี auto-cutter จะไม่มีผลอะไร ไม่ error)
 
-                printText += "\x1B\x61\x00"; // Left
-                printText += "--------------------------------\n";
-                printText += "วันที่: " + new Date().toLocaleString('th-TH') + "\n";
-                printText += "--------------------------------\n";
-                printText += "รายการ          กก. x บาท  จำนวนเงิน\n";
-                printText += "--------------------------------\n";
-
-                items.forEach(i => {
-                    let name = i.name.substring(0, 11).padEnd(12, ' ');
-                    let detail = `${i.net.toFixed(2)}x${i.price.toFixed(2)}`.padStart(11, ' ');
-                    let sub = i.subtotal.toFixed(2).padStart(8, ' ');
-                    printText += `${name}${detail}${sub}\n`;
-                });
-
-                printText += "--------------------------------\n";
-                printText += `รวมทั้งสิ้น:         ${total.toFixed(2)} บาท\n`;
-                printText += "--------------------------------\n";
-                printText += "       ขอบคุณที่ใช้บริการ\n\n\n";
-
-                const dataBuffer = encodeThaiCP874(printText);
+                const fullBuffer = new Uint8Array(init.length + rasterData.length + feed.length + cut.length);
+                fullBuffer.set(init, 0);
+                fullBuffer.set(rasterData, init.length);
+                fullBuffer.set(feed, init.length + rasterData.length);
+                fullBuffer.set(cut, init.length + rasterData.length + feed.length);
 
                 device = await navigator.bluetooth.requestDevice({
                     filters: [
@@ -636,9 +702,10 @@
                 }
 
                 if (targetCharacteristic) {
-                    const chunkSize = 50;
-                    for (let i = 0; i < dataBuffer.length; i += chunkSize) {
-                        const chunk = dataBuffer.slice(i, i + chunkSize);
+                    // ส่งข้อมูลเป็นก้อนเล็กๆ ต่อเนื่อง — ถ้าพิมพ์ขาดหาย/ไม่ครบ ให้ลดค่า chunkSize ลง
+                    const chunkSize = 100;
+                    for (let i = 0; i < fullBuffer.length; i += chunkSize) {
+                        const chunk = fullBuffer.slice(i, i + chunkSize);
                         if (targetCharacteristic.properties.writeWithoutResponse) {
                             await targetCharacteristic.writeValueWithoutResponse(chunk);
                         } else {
@@ -646,27 +713,28 @@
                         }
                         await new Promise(r => setTimeout(r, 20));
                     }
-                    
-                    // หน่วงเวลาให้เครื่องพิมพ์รับข้อมูลครบถ้วนก่อนตัดสาย
-                    await new Promise(r => setTimeout(r, 600));
+
+                    // หน่วงเวลาให้เครื่องพิมพ์พิมพ์ภาพให้เสร็จก่อนตัดสาย (ภาพข้อมูลเยอะกว่าข้อความ ใช้เวลานานกว่าเดิมเล็กน้อย)
+                    await new Promise(r => setTimeout(r, 900));
                     alert("✅ พิมพ์ใบเสร็จเรียบร้อยแล้ว!");
                 } else {
                     alert("⚠️ เชื่อมต่อได้ แต่หาช่องสั่งพิมพ์ไม่พบ ให้ลองสั่งใหม่อีกครั้งครับ");
                 }
             } catch (err) {
-                console.log("Bluetooth Text Print Fallback:", err);
+                console.log("Bluetooth Print Error/Fallback:", err);
+                if (err && err.name !== 'NotFoundError') {
+                    alert("❌ พิมพ์ผ่าน Bluetooth ไม่สำเร็จ: " + err.message);
+                }
             } finally {
-                // 🔴 บรรทัดสำคัญ: สั่ง Disconnect สายสัญญาณทันทีเพื่อให้บิลถัดไปพิมพ์ได้ต่อเนื่องโดยไม่ต้องปิด-เปิดเครื่องใหม่
+                // สั่ง Disconnect ทันทีหลังพิมพ์เสร็จ เพื่อให้บิลถัดไปเชื่อมต่อใหม่ได้โดยไม่ต้องปิด-เปิดเครื่องพิมพ์
                 if (device && device.gatt && device.gatt.connected) {
-                    try {
-                        device.gatt.disconnect();
-                    } catch(e) {}
+                    try { device.gatt.disconnect(); } catch(e) {}
                 }
             }
         } else {
-            // ระบบพิมพ์สำรองกรณีไม่ได้เปิด Bluetooth
+            // ระบบพิมพ์สำรองกรณีเบราว์เซอร์ไม่รองรับ Web Bluetooth (เช่น Safari/iOS)
             const headerBlock = document.getElementById('receiptHeaderBlock');
-            headerBlock.style.display = includeH ? "block" : "none";
+            headerBlock.style.display = includeHeader ? "block" : "none";
 
             document.getElementById('receiptDate').innerText = "วันที่: " + new Date().toLocaleString('th-TH');
             const tbody = document.getElementById('receiptTableBody');
