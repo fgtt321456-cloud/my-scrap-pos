@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>POS หจก.รุ่งนภา รีไซเคิล (Full Production Code)</title>
+    <title>POS หจก.รุ่งนภา รีไซเคิล (Full Production & Auto Disconnect Ready)</title>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
 
         :root {
             --apple-blue: #007aff;
@@ -316,7 +316,7 @@
             .replace(/'/g, "&#039;");
     }
 
-    // ฟังก์ชันแปลงตัวอักษรภาษาไทยเป็นรหัส CP874 (สำหรับเครื่องพิมพ์ CY-BX58D-5215)
+    // แปลงรหัสตัวอักษรไทยเข้าตาราง CP874 (สำหรับเครื่องพิมพ์ CY-BX58D-5215)
     function encodeThaiCP874(str) {
         let bytes = [];
         for (let i = 0; i < str.length; i++) {
@@ -560,17 +560,18 @@
     }
 
     // =================================----------------================-
-    // ระบบ Web Bluetooth Native Text Print (หยุดกระดาษไหล + ส่งรหัส CP874)
+    // ระบบ Web Bluetooth Native Text Print (ปิดโหมดจีน + ตัดการเชื่อมต่อออโต้)
     // =================================---------------------------------
     async function printReceipt(items, total, includeHeader) {
         const includeH = includeHeader;
 
         if (navigator.bluetooth) {
+            let device = null;
             try {
                 let printText = "";
                 printText += "\x1B\x40";   // ESC @ Reset
-                printText += "\x1B\x74\x19"; // ESC t 25 (เปิดโหมด CP874 บนเครื่อง CY-BX58D-5215)
-                printText += "\x1C\x26";     // FS & (Enable Thai Mode)
+                printText += "\x1C\x2E";     // FS . (ปิดโหมดอักษรจีน/Kanji Mode)
+                printText += "\x1B\x74\x1E"; // ESC t 30 (Select CP874 ไทย)
 
                 if (includeH) {
                     printText += "\x1B\x61\x01"; // Center
@@ -600,7 +601,7 @@
 
                 const dataBuffer = encodeThaiCP874(printText);
 
-                const device = await navigator.bluetooth.requestDevice({
+                device = await navigator.bluetooth.requestDevice({
                     filters: [
                         { namePrefix: 'CY-BX' },
                         { namePrefix: 'Bluetooth' },
@@ -645,13 +646,19 @@
                         }
                         await new Promise(r => setTimeout(r, 20));
                     }
+                    
                     alert("✅ พิมพ์ใบเสร็จเรียบร้อยแล้ว!");
                     return;
                 } else {
-                    alert("⚠️ เชื่อมต่อได้ แต่หาช่องสั่งพิมพ์ไม่พบ ให้ลองปิด-เปิดเครื่องพิมพ์แล้วสั่งใหม่อีกครั้งครับ");
+                    alert("⚠️ เชื่อมต่อได้ แต่หาช่องสั่งพิมพ์ไม่พบ ให้ลองสั่งใหม่อีกครั้งครับ");
                 }
             } catch (err) {
                 console.log("Bluetooth Text Print Fallback:", err);
+            } finally {
+                // 🔴 บรรทัดสำคัญ: ตัดสายเชื่อมต่อหลังพิมพ์จบ เพื่อให้บิลถัดไปพิมพ์ได้ทันทีโดยไม่ต้องเปิด-ปิดเครื่องใหม่
+                if (device && device.gatt && device.gatt.connected) {
+                    device.gatt.disconnect();
+                }
             }
         }
 
