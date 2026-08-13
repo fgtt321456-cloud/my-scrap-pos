@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>POS หจก.รุ่งนภา รีไซเคิล (CY-BX58D-5215 Connected)</title>
+    <title>POS หจก.รุ่งนภา รีไซเคิล (CY-BX58D-5215 Print Fixed)</title>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
@@ -552,18 +552,17 @@
     }
 
     // =================================----------------================-
-    // ระบบ Web Bluetooth Direct Print (ล็อกสเปกเครื่อง CY-BX58D-5215 / Cp874)
+    // ระบบ Web Bluetooth Direct Print (อัปเดตค้นหา Characteristic ชิป CY-BX58D-5215)
     // =================================---------------------------------
     async function printReceipt(items, total, includeHeader) {
         const includeH = includeHeader;
 
         if (navigator.bluetooth) {
             try {
+                // 1. สร้างชุดคำสั่ง ESC/POS
                 let printData = "";
-
-                // คำสั่งตั้งค่าเครื่องพิมพ์ ESC/POS สากล
                 printData += "\x1B\x40"; // ESC @ Initialize printer
-                printData += "\x1B\x74\x1E"; // ESC t 30 Select Codepage Cp874 (ภาษาไทย)
+                printData += "\x1B\x74\x1E"; // ESC t 30 (Select Codepage Cp874 ภาษาไทย)
 
                 if (includeH) {
                     printData += "\x1B\x61\x01"; // ESC a 1 (Align Center)
@@ -594,45 +593,58 @@
                 const encoder = new TextEncoder();
                 const dataBuffer = encoder.encode(printData);
 
-                // ค้นหาเฉพาะเจาะจงเครื่องพิมพ์ CY-BX58D-5215 ของคุณ
+                // 2. ค้นหาเชื่อมต่อ Bluetooth (สแกนหาเครื่อง CY-BX58D-5215)
                 const device = await navigator.bluetooth.requestDevice({
-                    filters: [
-                        { name: 'CY-BX58D-5215' },
-                        { namePrefix: 'CY-BX' },
-                        { namePrefix: 'Bluetooth' }
-                    ],
+                    acceptAllDevices: true,
                     optionalServices: [
                         '000018f0-0000-1000-8000-00805f9b34fb',
-                        'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+                        '0000ffe0-0000-1000-8000-00805f9b34fb',
                         '0000ff00-0000-1000-8000-00805f9b34fb',
-                        '0000ffe0-0000-1000-8000-00805f9b34fb'
+                        'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+                        '49535343-fe7d-41a3-8c2f-86080b29d213'
                     ]
                 });
 
                 const server = await device.gatt.connect();
-                let targetService = null;
+                const services = await server.getPrimaryServices();
                 let targetCharacteristic = null;
 
-                const primaryServices = await server.getPrimaryServices();
-                if (primaryServices.length > 0) {
-                    targetService = primaryServices[0];
-                    const characteristics = await targetService.getCharacteristics();
-                    if (characteristics.length > 0) {
-                        targetCharacteristic = characteristics[0];
-                    }
+                // 3. วนลูปสแกนหาช่องสัญญาณส่งข้อมูล (Writable Characteristic) ที่ตรงกับชิปเครื่องพิมพ์
+                for (const service of services) {
+                    try {
+                        const characteristics = await service.getCharacteristics();
+                        for (const char of characteristics) {
+                            if (char.properties.write || char.properties.writeWithoutResponse) {
+                                targetCharacteristic = char;
+                                break;
+                            }
+                        }
+                    } catch (e) {}
+                    if (targetCharacteristic) break;
                 }
 
                 if (targetCharacteristic) {
-                    await targetCharacteristic.writeValue(dataBuffer);
-                    alert("✅ พิมพ์ใบเสร็จออกเครื่อง CY-BX58D-5215 เรียบร้อยแล้ว!");
+                    // แบ่งส่งข้อมูลทีละ Chunk ขนาด 100 ไบต์ ป้องกันสายสัญญาณล้น
+                    const chunkSize = 100;
+                    for (let i = 0; i < dataBuffer.length; i += chunkSize) {
+                        const chunk = dataBuffer.slice(i, i + chunkSize);
+                        if (targetCharacteristic.properties.writeWithoutResponse) {
+                            await targetCharacteristic.writeValueWithoutResponse(chunk);
+                        } else {
+                            await targetCharacteristic.writeValue(chunk);
+                        }
+                    }
+                    alert("✅ ส่งข้อมูลพิมพ์เข้าเครื่อง CY-BX58D-5215 เรียบร้อยแล้ว!");
                     return;
+                } else {
+                    alert("⚠️ เชื่อมต่อได้ แต่หาช่องส่งข้อมูลไม่พบ ลองปิด-เปิดเครื่องพิมพ์ใหม่ครับ");
                 }
             } catch (err) {
-                console.log("Web Bluetooth print bypassed or canceled, fallback to System Print:", err);
+                console.log("Bluetooth Print Error / Bypassed:", err);
             }
         }
 
-        // ระบบสำรอง (Fallback) หากไม่ได้เปิด Bluetooth ให้ใช้หน้าพิมพ์ปกติ
+        // ระบบสำรอง (Fallback) สั่งพิมพ์ปกติกรณีไม่ได้เปิด Bluetooth
         const headerBlock = document.getElementById('receiptHeaderBlock');
         headerBlock.style.display = includeH ? "block" : "none";
 
