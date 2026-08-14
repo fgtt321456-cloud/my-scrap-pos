@@ -7,6 +7,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>POS หจก.รุ่งนภา รีไซเคิล (Full Production & Fix Connection)</title>
 
+    <!-- jsPDF ใช้สร้างไฟล์ PDF รายงาน (วาดข้อความไทยลง canvas ก่อนฝังเป็นภาพ ภาษาไทยจึงไม่เพี้ยน) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
 
@@ -115,6 +118,40 @@
         .modal { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
         .modal-box { background: white; padding: 22px; border-radius: 24px; width: 90%; max-width: 420px; }
 
+        /* ---- แป้นตัวเลขแบบป๊อบอัพ ---- */
+        #numpadModal { z-index: 2000; align-items: flex-end; }
+        @media (min-width: 700px) { #numpadModal { align-items: center; } }
+        .numpad-box {
+            background: #fff; border-radius: 24px 24px 0 0; padding: 18px 16px calc(18px + var(--sab)) 16px;
+            width: 100%; max-width: 440px;
+        }
+        @media (min-width: 700px) { .numpad-box { border-radius: 24px; } }
+        .numpad-display {
+            background: #f2f2f7; border-radius: 16px; padding: 14px 18px; margin-bottom: 14px;
+            text-align: right; font-size: 34px; font-weight: 700; min-height: 62px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .numpad-label { font-size: 13px; font-weight: 600; color: var(--apple-subtext); margin-bottom: 6px; }
+        .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .numpad-key {
+            border: none; background: #f2f2f7; border-radius: 16px; padding: 18px 0;
+            font-size: 26px; font-weight: 600; cursor: pointer; transition: transform 0.1s, background 0.15s;
+        }
+        .numpad-key:active { transform: scale(0.94); background: #e0e0e5; }
+        .numpad-key.wide { grid-column: span 2; }
+        .numpad-key.act { background: #ffe5e2; color: var(--apple-red); font-size: 20px; }
+        .numpad-key.ok { background: var(--apple-green); color: #fff; font-size: 20px; }
+        .numpad-quick { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .numpad-quick button {
+            flex: 1; min-width: 62px; border: none; background: #e5f1ff; color: var(--apple-blue);
+            border-radius: 12px; padding: 10px 0; font-size: 14px; font-weight: 700; cursor: pointer;
+        }
+        .numpad-quick button:active { opacity: 0.6; }
+
+        /* ช่องกรอกที่เปิดแป้นตัวเลข ให้ดูกดได้ชัดเจน */
+        .tap-num { cursor: pointer; }
+        .tap-num:read-only:not([data-locked]) { background: #fafafa !important; color: var(--apple-text) !important; }
+
         @media print {
             @page { margin: 0; size: 58mm auto; }
             body * { visibility: hidden; }
@@ -133,6 +170,8 @@
     <div class="top-bar">
         <div class="brand">♻️ หจก.รุ่งนภา รีไซเคิล</div>
         <div class="cash-badge">💵 เก๊ะ: <span id="cashInDrawer">0.00</span> ฿</div>
+        <div class="cash-badge" id="staffBadge" style="background:#f0f0f5; color:#3a3a3c; cursor:pointer;" onclick="promptStaffName()">👤 <span id="staffNameText">ยังไม่ระบุ</span></div>
+        <div class="cash-badge" id="printerBadge" style="background:#f0f0f5; color:#8e8e93; cursor:pointer;" onclick="connectPrinterPersistent()">🖨️ <span id="printerStatusText">ยังไม่เชื่อม</span></div>
         <div class="nav-actions">
             <button class="btn-tab active" id="btnTabPos" onclick="switchTab('pos')">🛒 หน้าขาย/รับซื้อ</button>
             <button class="btn-tab" onclick="openAddProductModal()">➕ เพิ่มสินค้า</button>
@@ -210,6 +249,11 @@
                 </table>
             </div>
 
+            <div class="field" style="margin-top:12px;">
+                <label>👤 ชื่อผู้นำของมาขาย (ไม่บังคับ — สำหรับบันทึกไว้ตรวจสอบ)</label>
+                <input type="text" id="sellerName" placeholder="ชื่อ / เบอร์โทร (เว้นว่างได้)" style="font-weight:500;">
+            </div>
+
             <div style="display:flex; justify-content:space-between; margin-top:14px; padding:12px; background:#f2f8ff; border-radius:14px; border:1px solid #cce5ff;">
                 <span style="font-weight:700; font-size:16px;">ยอดรวมทั้งสิ้น:</span>
                 <span id="grandTotal" style="color:var(--apple-blue); font-weight:800; font-size:20px;">0.00 ฿</span>
@@ -223,10 +267,22 @@
     <div id="managerSection" style="display: none;" class="panel">
         <div class="panel-title">
             <span>⚙️ สรุปรายงาน & ตั้งค่างบเก๊ะ (เฉพาะผู้จัดการ)</span>
-            <div style="display:flex; gap:6px;">
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button class="btn-tab" style="background:var(--apple-green); color:#fff;" onclick="openCloseoutModal()">🔒 ปิดยอดประจำวัน</button>
                 <button class="btn-tab" onclick="openDenomModal()">🧮 นับเงินตั้งแก๊ะ</button>
+                <button class="btn-tab" onclick="exportBackup()">💾 สำรองข้อมูล</button>
+                <button class="btn-tab" onclick="document.getElementById('importFile').click()">📥 กู้คืน</button>
+                <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importBackup(this)">
                 <button class="btn-tab" onclick="openConfigModal()">⚙️ ตั้งค่าอื่นๆ</button>
             </div>
+        </div>
+
+        <!-- ค้นหาบิลด้วยเลขที่ตั๋ว ใช้ตอนลูกค้าถือใบเสร็จมาถาม -->
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <input type="text" id="searchTicket" placeholder="🔍 ค้นหาเลขที่ตั๋ว / ชื่อผู้ขาย / ชื่อสินค้า"
+                   style="flex:1; padding:10px 14px; border:1px solid #d1d1d6; border-radius:12px; font-size:15px; outline:none; background:#fafafa;"
+                   oninput="searchBills(this.value)">
+            <button class="btn-tab" onclick="document.getElementById('searchTicket').value=''; searchBills('');">✕ ล้าง</button>
         </div>
 
         <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
@@ -238,8 +294,10 @@
         <div id="reportResult" style="background:#f2f2f7; padding:14px; border-radius:14px; min-height:100px;">
             <p style="text-align: center; color: var(--apple-subtext);">กดเลือกเมนูด้านบนเพื่อเรียกดูรายงานสรุปยอด</p>
         </div>
-        <div id="reportSendLineBox" style="display:none; margin-top:10px;">
-            <button class="btn btn-add" id="btnSendReportLine" type="button">📤 ส่งรายงานนี้ไปที่ LINE</button>
+        <div id="reportSendLineBox" style="display:none; margin-top:10px; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-add" id="btnSendReportLine" type="button" style="flex:1; min-width:160px;">📤 ส่งข้อความไป LINE</button>
+            <button class="btn" id="btnDownloadPdf" type="button" style="flex:1; min-width:160px; background:var(--apple-orange); color:#fff;">📄 บันทึก/แชร์ PDF</button>
+            <button class="btn" id="btnSendPdfLine" type="button" style="flex:1; min-width:160px; background:#5856d6; color:#fff;">📎 ส่ง PDF ไป LINE</button>
         </div>
     </div>
 </div>
@@ -274,6 +332,50 @@
     <p style="text-align: center; font-size: 10px; margin-top: 10px; margin-bottom: 0;">ขอบคุณที่ใช้บริการ</p>
 </div>
 
+<!-- Modal ปิดยอดประจำวัน — เทียบเงินที่ระบบคำนวณกับเงินที่นับได้จริง -->
+<div class="modal" id="closeoutModal">
+    <div class="modal-box" style="max-width:420px;">
+        <h3 style="margin-top:0;">🔒 ปิดยอดประจำวัน</h3>
+        <div id="closeoutSummary" style="background:#f2f2f7; border-radius:14px; padding:14px; margin-bottom:12px; font-size:14px;"></div>
+
+        <div class="field" style="margin-bottom:10px;">
+            <label>💵 นับเงินในเก๊ะได้จริง (บาท)</label>
+            <input type="number" id="closeoutCounted" placeholder="0.00" step="any" inputmode="decimal">
+        </div>
+        <button class="btn-tab" style="width:100%; margin-bottom:12px;" onclick="closeCloseoutModal(); openDenomModal();">🧮 เปิดเครื่องนับเงินแยกชนิดธนบัตร</button>
+
+        <div id="closeoutDiff" style="border-radius:14px; padding:14px; margin-bottom:12px; text-align:center; font-weight:700; display:none;"></div>
+
+        <button class="btn btn-add" onclick="confirmCloseout()">✅ ยืนยันปิดยอด & บันทึก</button>
+        <button class="btn" style="background:#e5e5ea; color:#3a3a3c; margin-top:6px;" onclick="closeCloseoutModal()">ยกเลิก</button>
+    </div>
+</div>
+
+<!-- ป๊อบอัพแป้นตัวเลข ใช้แทนคีย์บอร์ดระบบ กดง่าย ปุ่มใหญ่ ไม่กดผิด -->
+<div class="modal" id="numpadModal">
+    <div class="numpad-box">
+        <div class="numpad-label" id="numpadLabel">กรอกตัวเลข</div>
+        <div class="numpad-display" id="numpadDisplay">0</div>
+        <div class="numpad-quick" id="numpadQuick"></div>
+        <div class="numpad-grid">
+            <button class="numpad-key" type="button" data-k="7">7</button>
+            <button class="numpad-key" type="button" data-k="8">8</button>
+            <button class="numpad-key" type="button" data-k="9">9</button>
+            <button class="numpad-key" type="button" data-k="4">4</button>
+            <button class="numpad-key" type="button" data-k="5">5</button>
+            <button class="numpad-key" type="button" data-k="6">6</button>
+            <button class="numpad-key" type="button" data-k="1">1</button>
+            <button class="numpad-key" type="button" data-k="2">2</button>
+            <button class="numpad-key" type="button" data-k="3">3</button>
+            <button class="numpad-key" type="button" data-k=".">.</button>
+            <button class="numpad-key" type="button" data-k="0">0</button>
+            <button class="numpad-key act" type="button" data-k="del">⌫ ลบ</button>
+            <button class="numpad-key act" type="button" data-k="clear">ล้าง</button>
+            <button class="numpad-key ok wide" type="button" data-k="ok">✓ ตกลง</button>
+        </div>
+    </div>
+</div>
+
 <!-- Modal ตั้งค่า -->
 <div class="modal" id="configModal">
     <div class="modal-box">
@@ -282,9 +384,13 @@
         <div class="field" style="margin-bottom:8px;"><label>เตือนเงินในเก๊ะต่ำกว่า (บาท)</label><input type="number" id="cfgLow" step="any" inputmode="decimal"></div>
         <div class="field" style="margin-bottom:8px;"><label>เตือนบิลใหญ่เกินกว่า (บาท)</label><input type="number" id="cfgLarge" step="any" inputmode="decimal"></div>
         <div class="field" style="margin-bottom:8px;"><label>LINE Webhook URL (Make.com)</label><input type="text" id="cfgWebhook"></div>
-        <div class="print-option-box" style="margin-top:0; margin-bottom:15px;">
+        <div class="print-option-box" style="margin-top:0; margin-bottom:8px;">
             <input type="checkbox" id="cfgNotifyEverySale">
             <label for="cfgNotifyEverySale">🔔 แจ้งเตือนทุกบิลที่ขาย (ไม่ใช่แค่บิลใหญ่/เงินใกล้หมด)</label>
+        </div>
+        <div class="print-option-box" style="margin-top:0; margin-bottom:15px;">
+            <input type="checkbox" id="cfgSmallFont" checked>
+            <label for="cfgSmallFont">🖨️ ใช้ตัวอักษรเล็ก (ประหยัดกระดาษ) — ปิดถ้าอ่านยาก</label>
         </div>
         <button class="btn btn-add" onclick="saveConfig()">บันทึกการตั้งค่า</button>
         <button class="btn" style="background:#e5e5ea; color:#3a3a3c; margin-top:6px;" onclick="closeModal()">ยกเลิก</button>
@@ -324,7 +430,8 @@
         products: 'rungnapa_products',
         drawerConfig: 'rungnapa_drawer_config',
         salesHistory: 'rungnapa_sales_history',
-        ticketCounter: 'rungnapa_ticket_counter'
+        ticketCounter: 'rungnapa_ticket_counter',
+        closeouts: 'rungnapa_closeouts'
     };
     // เก็บข้อมูลการขายไว้ "เดือนปัจจุบัน + เดือนก่อนหน้า" เท่านั้น พอครบเดือนก่อนหน้าจะถูกลบทิ้งอัตโนมัติ
     // (เปลี่ยนจากเดิมที่นับเป็นจำนวนวันคงที่ มาเป็นตามรอบเดือนปฏิทินจริง ตามที่ขอ)
@@ -422,6 +529,225 @@
 
     function resetIOSScroll() {
         window.scrollTo(0, 0);
+    }
+
+    // ---------- ระบบชื่อพนักงานผู้ปฏิบัติงาน ----------
+    // บันทึกว่าบิลไหนใครเป็นคนออก ช่วยเรื่องความรับผิดชอบและตรวจสอบย้อนหลัง
+    function getStaffName() {
+        return (window.posConfig && window.posConfig.staffName) || '';
+    }
+
+    function renderStaffBadge() {
+        const name = getStaffName();
+        document.getElementById('staffNameText').textContent = name || 'ยังไม่ระบุ';
+        const badge = document.getElementById('staffBadge');
+        badge.style.background = name ? '#e8f8ec' : '#fff2f2';
+        badge.style.color = name ? '#1d7a3a' : 'var(--apple-red)';
+    }
+
+    function promptStaffName() {
+        const current = getStaffName();
+        const name = prompt('👤 ชื่อพนักงานที่ปฏิบัติงานตอนนี้:\n(ชื่อนี้จะถูกบันทึกไว้กับทุกบิลที่ออก)', current);
+        if (name === null) return;
+        const cfg = window.posConfig || {};
+        cfg.staffName = name.trim();
+        window.posConfig = cfg;
+        localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
+        renderStaffBadge();
+    }
+
+    // ---------- ระบบจำเครื่องพิมพ์ ----------
+    // เดิมต้องกดเลือกเครื่องพิมพ์ใหม่ทุกครั้งที่พิมพ์ ซึ่งน่ารำคาญมากเวลาขายวันละหลายสิบบิล
+    // ระบบนี้เก็บอุปกรณ์ที่เชื่อมไว้ในหน่วยความจำ และใช้ getDevices() เรียกคืนอุปกรณ์ที่เคยอนุญาตไว้
+    // ทำให้พิมพ์บิลถัดไปได้ทันทีโดยไม่ต้องกดเลือกซ้ำ
+    window.savedPrinter = null;
+
+    function renderPrinterBadge(state) {
+        const el = document.getElementById('printerStatusText');
+        const badge = document.getElementById('printerBadge');
+        if (!el) return;
+        if (state === 'connected') {
+            el.textContent = 'พร้อมพิมพ์';
+            badge.style.background = '#e8f8ec';
+            badge.style.color = '#1d7a3a';
+        } else if (state === 'connecting') {
+            el.textContent = 'กำลังเชื่อม...';
+            badge.style.background = '#fff8e5';
+            badge.style.color = '#8a6d1f';
+        } else {
+            el.textContent = 'ยังไม่เชื่อม';
+            badge.style.background = '#f0f0f5';
+            badge.style.color = '#8e8e93';
+        }
+    }
+
+    const PRINTER_FILTERS = {
+        filters: [
+            { namePrefix: 'CY-BX' },
+            { namePrefix: 'Bluetooth' },
+            { namePrefix: 'Printer' },
+            { services: ['000018f0-0000-1000-8000-00805f9b34fb'] },
+            { services: ['0000ffe0-0000-1000-8000-00805f9b34fb'] }
+        ],
+        optionalServices: [
+            '000018f0-0000-1000-8000-00805f9b34fb',
+            '0000ffe0-0000-1000-8000-00805f9b34fb',
+            '0000ff00-0000-1000-8000-00805f9b34fb',
+            'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+            '49535343-fe7d-41a3-8c2f-86080b29d213'
+        ]
+    };
+
+    // หา characteristic ที่เขียนข้อมูลได้จากอุปกรณ์ที่เชื่อมต่อแล้ว
+    async function findPrinterCharacteristic(server) {
+        const services = await server.getPrimaryServices();
+        for (const service of services) {
+            try {
+                const chars = await service.getCharacteristics();
+                for (const c of chars) {
+                    if (c.properties.write || c.properties.writeWithoutResponse) return c;
+                }
+            } catch (e) {}
+        }
+        return null;
+    }
+
+    // เชื่อมต่อเครื่องพิมพ์แบบค้างไว้ (กดครั้งเดียว ใช้ได้ทั้งวัน)
+    async function connectPrinterPersistent() {
+        if (!navigator.bluetooth) {
+            alert('⚠️ เบราว์เซอร์นี้ไม่รองรับการพิมพ์ผ่าน Bluetooth\n\nAndroid: ใช้ Chrome หรือ Edge\niPhone: ใช้แอป Bluefy');
+            return;
+        }
+        renderPrinterBadge('connecting');
+        try {
+            const device = await navigator.bluetooth.requestDevice(PRINTER_FILTERS);
+            const server = await device.gatt.connect();
+            await new Promise(r => setTimeout(r, 150));
+            const char = await findPrinterCharacteristic(server);
+            if (!char) throw new Error('เชื่อมต่อได้ แต่หาช่องสั่งพิมพ์ไม่พบ');
+
+            window.savedPrinter = { device, characteristic: char };
+            // ถ้าเครื่องพิมพ์หลุดการเชื่อมต่อ (ปิดเครื่อง/ออกนอกระยะ) ให้อัปเดตสถานะทันที
+            device.addEventListener('gattserverdisconnected', () => {
+                window.savedPrinter = null;
+                renderPrinterBadge('idle');
+            });
+            renderPrinterBadge('connected');
+            alert('✅ เชื่อมต่อเครื่องพิมพ์แล้ว\n\nจากนี้พิมพ์บิลได้เลยโดยไม่ต้องเลือกเครื่องพิมพ์ซ้ำ จนกว่าจะปิดเครื่องพิมพ์หรือปิดหน้าเว็บ');
+        } catch (e) {
+            renderPrinterBadge('idle');
+            if (e && e.name === 'NotFoundError') return; // ผู้ใช้กดยกเลิกเอง ไม่ต้องแจ้ง
+            alert('❌ เชื่อมต่อเครื่องพิมพ์ไม่สำเร็จ: ' + describeError(e));
+        }
+    }
+
+    // พยายามเชื่อมต่อเครื่องพิมพ์ที่เคยอนุญาตไว้อัตโนมัติตอนเปิดแอป (รองรับ Chrome Android)
+    async function tryAutoReconnectPrinter() {
+        if (!navigator.bluetooth || !navigator.bluetooth.getDevices) return;
+        try {
+            const devices = await navigator.bluetooth.getDevices();
+            if (!devices || !devices.length) return;
+            // ไม่เชื่อมทันทีเพราะเบราว์เซอร์ต้องให้ผู้ใช้กดก่อน แค่บอกว่ามีเครื่องที่เคยใช้อยู่
+            renderPrinterBadge('idle');
+        } catch (e) { /* ไม่รองรับก็ข้ามไป ไม่กระทบการใช้งาน */ }
+    }
+
+    // ---------- ระบบแป้นตัวเลขป๊อบอัพ ----------
+    // ใช้แทนคีย์บอร์ดของระบบ ปุ่มใหญ่ กดง่าย ลดการกดผิดของพนักงานหน้าร้าน
+    // และไม่มีปัญหาคีย์บอร์ดบังหน้าจอบนมือถือ
+    let numpadState = { targetId: null, buffer: '', onDone: null, allowDecimal: true };
+
+    function openNumpad(targetId, options) {
+        const opts = options || {};
+        const input = document.getElementById(targetId);
+        if (!input) return;
+
+        numpadState.targetId = targetId;
+        numpadState.buffer = (input.value || '').toString();
+        numpadState.onDone = opts.onDone || null;
+        numpadState.allowDecimal = opts.allowDecimal !== false;
+
+        document.getElementById('numpadLabel').textContent = opts.label || 'กรอกตัวเลข';
+
+        // ปุ่มลัดค่าที่ใช้บ่อย (ถ้าระบุมา) เช่น จำนวนใบธนบัตร หรือน้ำหนักกลมๆ
+        const quick = document.getElementById('numpadQuick');
+        quick.innerHTML = '';
+        (opts.quickValues || []).forEach(v => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = v.label !== undefined ? v.label : v;
+            b.addEventListener('click', () => {
+                const val = v.value !== undefined ? v.value : v;
+                if (v.mode === 'add') {
+                    const cur = parseFloat(numpadState.buffer) || 0;
+                    numpadState.buffer = String(cur + parseFloat(val));
+                } else {
+                    numpadState.buffer = String(val);
+                }
+                renderNumpad();
+            });
+            quick.appendChild(b);
+        });
+        quick.style.display = (opts.quickValues && opts.quickValues.length) ? 'flex' : 'none';
+
+        renderNumpad();
+        document.getElementById('numpadModal').style.display = 'flex';
+    }
+
+    function renderNumpad() {
+        const disp = document.getElementById('numpadDisplay');
+        disp.textContent = numpadState.buffer === '' ? '0' : numpadState.buffer;
+    }
+
+    function closeNumpad() {
+        document.getElementById('numpadModal').style.display = 'none';
+        numpadState.targetId = null;
+        numpadState.onDone = null;
+    }
+
+    function numpadPress(key) {
+        triggerHaptic();
+        if (key === 'ok') {
+            const input = document.getElementById(numpadState.targetId);
+            if (input) {
+                // ตัดจุดท้ายที่ยังไม่ได้พิมพ์ตัวเลขต่อ เช่น "12." -> "12" กันค่าเพี้ยน
+                let v = numpadState.buffer;
+                if (v.endsWith('.')) v = v.slice(0, -1);
+                input.value = v;
+                // แจ้ง event ให้โค้ดเดิมที่ผูก oninput/onchange ทำงานตามปกติ
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            const cb = numpadState.onDone;
+            closeNumpad();
+            if (cb) cb();
+            return;
+        }
+        if (key === 'del') {
+            numpadState.buffer = numpadState.buffer.slice(0, -1);
+        } else if (key === 'clear') {
+            numpadState.buffer = '';
+        } else if (key === '.') {
+            if (!numpadState.allowDecimal) return;
+            if (numpadState.buffer.includes('.')) return;      // มีจุดแล้วไม่ให้ใส่ซ้ำ
+            numpadState.buffer = (numpadState.buffer || '0') + '.';
+        } else {
+            // กัน 0 นำหน้าซ้ำซ้อน เช่น 007
+            if (numpadState.buffer === '0') numpadState.buffer = '';
+            if (numpadState.buffer.length >= 12) return;       // จำกัดความยาว กันตัวเลขล้นจอ
+            numpadState.buffer += key;
+        }
+        renderNumpad();
+    }
+
+    // ผูกช่องกรอกให้เปิดแป้นตัวเลขแทนคีย์บอร์ดระบบ
+    function attachNumpad(inputId, options) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        input.classList.add('tap-num');
+        input.setAttribute('readonly', 'readonly'); // กันคีย์บอร์ดระบบเด้งขึ้นมาทับ
+        input.addEventListener('click', () => openNumpad(inputId, options));
+        input.addEventListener('focus', (e) => { e.target.blur(); openNumpad(inputId, options); });
     }
 
     // ---------- ระบบรีเซ็ตเงินตั้งแก๊ะอัตโนมัติเวลา 23:55 ทุกวัน ----------
@@ -619,6 +945,8 @@
             const today = getLocalDateString(now);
             const month = getLocalMonthString(now);
             const ticketNo = getNextTicketNumber(); // เลขที่ตั๋ว ตรงกันทั้งบนกระดาษและในระบบ ใช้ตรวจสอบย้อนหลังได้
+            const sellerName = (document.getElementById('sellerName').value || '').trim();
+            const staffName = getStaffName();
 
             window.posConfig.currentCash = currentCash;
             localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(window.posConfig));
@@ -626,7 +954,8 @@
 
             const salesRecords = loadSalesHistory();
             salesRecords.push({
-                ticketNo, timestamp: Date.now(), date: today, month: month, total, items: printItems
+                ticketNo, timestamp: Date.now(), date: today, month: month, total, items: printItems,
+                sellerName: sellerName, staffName: staffName, voided: false
             });
             saveSalesHistory(salesRecords);
             purgeOldSales();
@@ -636,13 +965,17 @@
                 `• ${i.name} ${i.net.toFixed(2)}กก. x ${i.price.toFixed(2)} = ${i.subtotal.toFixed(2)}฿`
             ).join('\n');
             const timeLabel = now.toLocaleString('th-TH');
+            // ต่อท้ายข้อมูลผู้เกี่ยวข้อง ถ้ามีการกรอกไว้
+            let whoLine = '';
+            if (sellerName) whoLine += `\n👤 ผู้ขาย: ${sellerName}`;
+            if (staffName) whoLine += `\n🧑‍💼 พนักงาน: ${staffName}`;
 
             let alerts = [];
             if (config.notifyEverySale) {
-                alerts.push(`🧾 **บิลใหม่ #${ticketNo}**\n${itemSummary}\nยอดรวม: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
+                alerts.push(`🧾 **บิลใหม่ #${ticketNo}**\n${itemSummary}\nยอดรวม: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท${whoLine}`);
             }
             if (total >= (parseFloat(config.largeBillThreshold) || 10000)) {
-                alerts.push(`🚨 **แจ้งเตือนบิลจ่ายใหญ่! #${ticketNo}**\n${itemSummary}\nยอดจ่ายรับซื้อ: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
+                alerts.push(`🚨 **แจ้งเตือนบิลจ่ายใหญ่! #${ticketNo}**\n${itemSummary}\nยอดจ่ายรับซื้อ: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท${whoLine}`);
             }
             if (currentCash <= (parseFloat(config.lowCashThreshold) || 5000)) {
                 alerts.push(`⚠️ **เตือนเงินสดในลิ้นชักใกล้หมด!**\nเงินคงเหลือในเก๊ะ: ${currentCash.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
@@ -653,9 +986,10 @@
                 sendLineNotification(config.webhookUrl, msg);
             }
 
-            await printReceipt(printItems, total, ticketNo);
+            await printReceipt(printItems, total, ticketNo, { sellerName, staffName });
 
             cart = [];
+            document.getElementById('sellerName').value = ''; // ล้างชื่อผู้ขาย เตรียมรับลูกค้าคนถัดไป
             renderCart();
         }
     }
@@ -692,33 +1026,42 @@
         return new Uint8Array(bytes);
     }
 
-    function buildReceiptText(items, total, ticketNo) {
-        const LINE_WIDTH = 32; // เครื่องพิมพ์ 58mm ฟอนต์ default 12x24 พิมพ์ได้ประมาณ 32 ตัวอักษร/บรรทัด
+    function buildReceiptText(items, total, ticketNo, extra) {
+        const cfg = window.posConfig || {};
+        // ฟอนต์ B (9x17) เล็กกว่าฟอนต์ A (12x24) ราวครึ่งหนึ่ง ทำให้ใบเสร็จสั้นลงมาก ประหยัดกระดาษ
+        // และพิมพ์ได้ 42 ตัวอักษร/บรรทัด แทน 32 ตัว จึงจัดคอลัมน์ได้สวยขึ้นด้วย
+        // ถ้าเครื่องพิมพ์แสดงภาษาไทยในฟอนต์ B ไม่สวย สามารถปิดได้ที่ตั้งค่า (useSmallFont = false)
+        const useSmallFont = cfg.useSmallFont !== false; // ค่าเริ่มต้นคือเปิด
+        const LINE_WIDTH = useSmallFont ? 42 : 32;
+
         let t = "";
         t += "\x1B\x40"; // ESC @ รีเซ็ตเครื่องพิมพ์เท่านั้น — ไม่สั่งเปลี่ยน code page/Kanji
+        t += useSmallFont ? "\x1B\x4D\x01" : "\x1B\x4D\x00"; // ESC M n : เลือกฟอนต์ B (เล็ก) หรือ A (ปกติ)
 
         // หัวกระดาษย่อให้เหลือแค่ชื่อเอกสาร + เลขที่ตั๋ว ประหยัดกระดาษกว่าหัวกระดาษเดิมที่มีชื่อร้าน 3 บรรทัด
         t += "\x1B\x61\x01"; // จัดกึ่งกลาง
         t += "ใบรับสินค้า\n";
-        t += "เลขที่: " + ticketNo + "\n";
         t += "\x1B\x61\x00"; // กลับมาชิดซ้าย
 
-        t += "-".repeat(LINE_WIDTH) + "\n";
+        // เลขที่ตั๋วกับวันที่รวมบรรทัดเดียวกัน ประหยัดอีก 1 บรรทัด
+        t += "เลขที่: " + ticketNo + "\n";
         t += "วันที่: " + new Date().toLocaleString('th-TH') + "\n";
+        if (extra && extra.sellerName) t += "ผู้ขาย: " + extra.sellerName + "\n";
+        if (extra && extra.staffName) t += "พนักงาน: " + extra.staffName + "\n";
         t += "-".repeat(LINE_WIDTH) + "\n";
 
         // แถวหัวคอลัมน์: น้ำหนัก(ซ้าย) ราคา(กลาง) ยอดรวม(ขวา)
-        const colWidth = Math.floor(LINE_WIDTH / 3); // ~10 ตัวอักษรต่อคอลัมน์
-        t += padColLeft('น้ำหนัก', colWidth) + padColCenter('ราคา', colWidth) + padColRight('ยอดรวม', LINE_WIDTH - colWidth * 2) + "\n";
+        const colWidth = Math.floor(LINE_WIDTH / 3);
+        const lastColWidth = LINE_WIDTH - colWidth * 2;
+        t += padColLeft('น้ำหนัก', colWidth) + padColCenter('ราคา', colWidth) + padColRight('ยอดรวม', lastColWidth) + "\n";
         t += "-".repeat(LINE_WIDTH) + "\n";
 
         items.forEach(i => {
             t += i.name + "\n";
             // น้ำหนักอยู่ซ้ายสุด / ราคาอยู่ตรงกลาง (ไม่มีคำว่าบาท) / ยอดรวมอยู่ขวาสุด (ไม่มีคำว่าบาท)
-            const weightStr = i.net.toFixed(2);
-            const priceStr = i.price.toFixed(2);
-            const subStr = i.subtotal.toFixed(2);
-            t += padColLeft(weightStr, colWidth) + padColCenter(priceStr, colWidth) + padColRight(subStr, LINE_WIDTH - colWidth * 2) + "\n";
+            t += padColLeft(i.net.toFixed(2), colWidth)
+               + padColCenter(i.price.toFixed(2), colWidth)
+               + padColRight(i.subtotal.toFixed(2), lastColWidth) + "\n";
         });
 
         t += "-".repeat(LINE_WIDTH) + "\n";
@@ -728,7 +1071,11 @@
         const totalSpaces = Math.max(1, LINE_WIDTH - totalLabel.length - totalValue.length);
         t += totalLabel + ' '.repeat(totalSpaces) + totalValue + "\n";
         t += "-".repeat(LINE_WIDTH) + "\n";
-        t += "\n\n"; // เว้นบรรทัดท้ายก่อนตัดกระดาษ (ลดจาก 3 บรรทัดเหลือ 2 บรรทัด ประหยัดกระดาษ)
+
+        t += "\x1B\x61\x01"; // จัดกึ่งกลาง
+        t += "ขอบคุณที่ใช้บริการ\n";
+        t += "\x1B\x61\x00";
+        t += "\n\n"; // เว้นบรรทัดท้ายให้ฉีกกระดาษได้พอดี
 
         return t;
     }
@@ -768,29 +1115,61 @@
         return 'ไม่ทราบสาเหตุ (เบราว์เซอร์ไม่ได้ส่งรายละเอียด error กลับมา)';
     }
 
-    async function printReceipt(items, total, ticketNo) {
+    // ส่งข้อมูลไปเครื่องพิมพ์ผ่าน characteristic ที่เชื่อมต่อไว้แล้ว
+    async function writeToPrinter(characteristic, fullBuffer) {
+        // ข้อความ CP874 มีขนาดเล็ก จึงใช้ก้อนข้อมูล 90 ไบต์ได้โดยไม่เสี่ยง timeout
+        const chunkSize = 90;
+        // writeWithoutResponse เร็วกว่าเพราะไม่ต้องรอ ack ก่อนส่งก้อนถัดไป
+        const useWithoutResponse = !!characteristic.properties.writeWithoutResponse;
+
+        for (let i = 0; i < fullBuffer.length; i += chunkSize) {
+            const chunk = fullBuffer.slice(i, i + chunkSize);
+            let lastErr = null;
+            let sent = false;
+            for (let attempt = 0; attempt < 4 && !sent; attempt++) {
+                try {
+                    if (useWithoutResponse) {
+                        await characteristic.writeValueWithoutResponse(chunk);
+                    } else {
+                        await characteristic.writeValue(chunk);
+                    }
+                    sent = true;
+                } catch (chunkErr) {
+                    lastErr = chunkErr;
+                    await new Promise(r => setTimeout(r, 80));
+                }
+            }
+            if (!sent) {
+                throw new Error('เขียนข้อมูลไปเครื่องพิมพ์ไม่สำเร็จที่ก้อนที่ ' + (i / chunkSize + 1) + ' จาก ' + Math.ceil(fullBuffer.length / chunkSize) + ': ' + describeError(lastErr));
+            }
+            await new Promise(r => setTimeout(r, 6));
+        }
+        await new Promise(r => setTimeout(r, 250)); // รอให้พิมพ์เสร็จ
+    }
+
+    async function printReceipt(items, total, ticketNo, extra) {
         if (navigator.bluetooth) {
+            const receiptText = buildReceiptText(items, total, ticketNo, extra);
+            const fullBuffer = encodeThaiCP874(receiptText);
+
+            // ---- ทางที่ 1: ใช้เครื่องพิมพ์ที่เชื่อมค้างไว้ (เร็วที่สุด ไม่ต้องกดเลือกซ้ำ) ----
+            if (window.savedPrinter && window.savedPrinter.device.gatt.connected) {
+                try {
+                    window.btLastCharacteristic = window.savedPrinter.characteristic;
+                    await writeToPrinter(window.savedPrinter.characteristic, fullBuffer);
+                    return; // สำเร็จแล้ว ไม่ต้องแจ้งเตือนให้เสียเวลา (พิมพ์ออกมาแล้วเห็นเอง)
+                } catch (err) {
+                    console.log('พิมพ์ผ่านการเชื่อมต่อค้างไว้ไม่สำเร็จ จะลองเชื่อมใหม่:', err);
+                    window.savedPrinter = null;
+                    renderPrinterBadge('idle');
+                    // ตกลงไปใช้ทางที่ 2 ด้านล่าง
+                }
+            }
+
+            // ---- ทางที่ 2: เชื่อมต่อใหม่แบบครั้งเดียว (ถ้ายังไม่เคยเชื่อม หรือเชื่อมค้างหลุดไป) ----
             let device = null;
             try {
-                const receiptText = buildReceiptText(items, total, ticketNo);
-                const fullBuffer = encodeThaiCP874(receiptText);
-
-                device = await navigator.bluetooth.requestDevice({
-                    filters: [
-                        { namePrefix: 'CY-BX' },
-                        { namePrefix: 'Bluetooth' },
-                        { namePrefix: 'Printer' },
-                        { services: ['000018f0-0000-1000-8000-00805f9b34fb'] },
-                        { services: ['0000ffe0-0000-1000-8000-00805f9b34fb'] }
-                    ],
-                    optionalServices: [
-                        '000018f0-0000-1000-8000-00805f9b34fb',
-                        '0000ffe0-0000-1000-8000-00805f9b34fb',
-                        '0000ff00-0000-1000-8000-00805f9b34fb',
-                        'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
-                        '49535343-fe7d-41a3-8c2f-86080b29d213'
-                    ]
-                });
+                device = await navigator.bluetooth.requestDevice(PRINTER_FILTERS);
 
                 let server;
                 try {
@@ -799,76 +1178,28 @@
                     throw new Error('เชื่อมต่อเครื่องพิมพ์ไม่สำเร็จ: ' + describeError(e));
                 }
 
-                // รอให้การเชื่อมต่อ BLE นิ่งก่อนเริ่มเขียนข้อมูล — เครื่องพิมพ์บางรุ่น/เบราว์เซอร์บางตัว
-                // (เช่น Bluefy) เขียนข้อมูลทันทีหลัง connect แล้วพลาดเพราะฝั่งเครื่องพิมพ์ยังไม่พร้อมรับ
-                // (ลดจาก 300ms เหลือ 150ms เพื่อความเร็ว ยังเผื่อเวลาความเสถียรไว้พอสมควร)
-                await new Promise(r => setTimeout(r, 150));
+                await new Promise(r => setTimeout(r, 150)); // รอให้ BLE นิ่งก่อนเขียนข้อมูล
 
-                let services;
-                try {
-                    services = await server.getPrimaryServices();
-                } catch (e) {
-                    throw new Error('หา service ของเครื่องพิมพ์ไม่พบ: ' + describeError(e));
-                }
-
-                let targetCharacteristic = null;
-                for (const service of services) {
-                    try {
-                        const characteristics = await service.getCharacteristics();
-                        for (const char of characteristics) {
-                            if (char.properties.write || char.properties.writeWithoutResponse) {
-                                targetCharacteristic = char;
-                                break;
-                            }
-                        }
-                    } catch (e) {}
-                    if (targetCharacteristic) break;
-                }
-
-                if (targetCharacteristic) {
-                    window.btLastCharacteristic = targetCharacteristic; // เก็บไว้ใช้รีเซ็ตเครื่องพิมพ์ถ้าพิมพ์พลาดกลางคัน
-
-                    // ข้อความ CP874 มีขนาดเล็กกว่ารูปภาพมาก (ไม่กี่ร้อยไบต์ เทียบกับหลายหมื่นไบต์)
-                    // จึงใช้ก้อนข้อมูลใหญ่ขึ้นได้โดยไม่เสี่ยง timeout — เพิ่มจาก 50 เป็น 90 ไบต์ เพื่อลดจำนวนรอบส่ง
-                    const chunkSize = 90;
-                    // writeWithoutResponse เร็วกว่า writeValue เพราะไม่ต้องรอ ack กลับจากเครื่องพิมพ์ก่อนส่งก้อนถัดไป
-                    // ใช้ก่อนถ้าเครื่องรองรับ เพื่อความเร็ว ถ้าไม่รองรับค่อย fallback ไป writeValue
-                    const useWithoutResponse = !!targetCharacteristic.properties.writeWithoutResponse;
-
-                    for (let i = 0; i < fullBuffer.length; i += chunkSize) {
-                        const chunk = fullBuffer.slice(i, i + chunkSize);
-                        // ลองเขียนซ้ำได้สูงสุด 4 ครั้งต่อก้อน ถ้าพลาดเพราะสัญญาณสะดุดชั่วคราว
-                        let lastErr = null;
-                        let sent = false;
-                        for (let attempt = 0; attempt < 4 && !sent; attempt++) {
-                            try {
-                                if (useWithoutResponse) {
-                                    await targetCharacteristic.writeValueWithoutResponse(chunk);
-                                } else {
-                                    await targetCharacteristic.writeValue(chunk);
-                                }
-                                sent = true;
-                            } catch (chunkErr) {
-                                lastErr = chunkErr;
-                                await new Promise(r => setTimeout(r, 80)); // เว้นจังหวะก่อนลองใหม่
-                            }
-                        }
-                        if (!sent) {
-                            throw new Error('เขียนข้อมูลไปเครื่องพิมพ์ไม่สำเร็จที่ก้อนที่ ' + (i / chunkSize + 1) + ' จาก ' + Math.ceil(fullBuffer.length / chunkSize) + ': ' + describeError(lastErr));
-                        }
-                        await new Promise(r => setTimeout(r, 6));
-                    }
-
-                    // หน่วงเวลาให้เครื่องพิมพ์พิมพ์ข้อความให้เสร็จก่อนตัดสาย (ลดจาก 500ms เหลือ 250ms)
-                    await new Promise(r => setTimeout(r, 250));
-                    alert("✅ พิมพ์ใบเสร็จเรียบร้อยแล้ว!");
-                } else {
+                const targetCharacteristic = await findPrinterCharacteristic(server);
+                if (!targetCharacteristic) {
                     alert("⚠️ เชื่อมต่อได้ แต่หาช่องสั่งพิมพ์ไม่พบ ให้ลองสั่งใหม่อีกครั้งครับ");
+                    return;
                 }
+
+                window.btLastCharacteristic = targetCharacteristic;
+                await writeToPrinter(targetCharacteristic, fullBuffer);
+
+                // เก็บการเชื่อมต่อไว้ใช้บิลถัดไป จะได้ไม่ต้องกดเลือกเครื่องพิมพ์อีก
+                window.savedPrinter = { device, characteristic: targetCharacteristic };
+                device.addEventListener('gattserverdisconnected', () => {
+                    window.savedPrinter = null;
+                    renderPrinterBadge('idle');
+                });
+                renderPrinterBadge('connected');
+                device = null; // ไม่ต้อง disconnect ใน finally เพราะเก็บไว้ใช้ต่อ
             } catch (err) {
                 console.log("Bluetooth Print Error/Fallback:", err);
                 // ถ้าพิมพ์พลาดกลางคัน เครื่องพิมพ์อาจค้างอยู่กลางคำสั่ง ส่งคำสั่งรีเซ็ต (ESC @) ซ้ำ
-                // แบบ best-effort เพื่อล้างสถานะไม่ให้พิมพ์มั่วในบิลถัดไป
                 if (window.btLastCharacteristic && device && device.gatt && device.gatt.connected) {
                     try {
                         const reset = new Uint8Array([0x1B, 0x40, 0x0A, 0x0A, 0x0A]);
@@ -877,13 +1208,12 @@
                         } else if (window.btLastCharacteristic.properties.writeWithoutResponse) {
                             await window.btLastCharacteristic.writeValueWithoutResponse(reset);
                         }
-                    } catch (resetErr) { /* เครื่องอาจหลุดการเชื่อมต่อไปแล้ว ไม่ต้องทำอะไรเพิ่ม */ }
+                    } catch (resetErr) { /* เครื่องอาจหลุดการเชื่อมต่อไปแล้ว */ }
                 }
                 if (!err || err.name !== 'NotFoundError') {
                     alert("❌ พิมพ์ผ่าน Bluetooth ไม่สำเร็จ:\n" + describeError(err) + "\n\nถ้าเกิดซ้ำบ่อย ลองปิด-เปิดเครื่องพิมพ์ 1 ครั้ง แล้วลองใหม่");
                 }
             } finally {
-                // สั่ง Disconnect ทันทีหลังพิมพ์เสร็จ เพื่อให้บิลถัดไปเชื่อมต่อใหม่ได้โดยไม่ต้องปิด-เปิดเครื่องพิมพ์
                 if (device && device.gatt && device.gatt.connected) {
                     try { device.gatt.disconnect(); } catch(e) {}
                 }
@@ -891,7 +1221,10 @@
         } else {
             // ระบบพิมพ์สำรองกรณีเบราว์เซอร์ไม่รองรับ Web Bluetooth (เช่น Safari/iOS)
             document.getElementById('receiptTicketNo').innerText = "เลขที่: " + ticketNo;
-            document.getElementById('receiptDate').innerText = "วันที่: " + new Date().toLocaleString('th-TH');
+            let dateLine = "วันที่: " + new Date().toLocaleString('th-TH');
+            if (extra && extra.staffName) dateLine += " | พนักงาน: " + extra.staffName;
+            if (extra && extra.sellerName) dateLine += " | ผู้ขาย: " + extra.sellerName;
+            document.getElementById('receiptDate').innerText = dateLine;
             const tbody = document.getElementById('receiptTableBody');
             tbody.innerHTML = "";
 
@@ -920,132 +1253,314 @@
         }
     }
 
-    function loadReport(type) {
-        document.getElementById('btnRepDaily').classList.remove('active');
-        document.getElementById('btnRepMonthly').classList.remove('active');
-        document.getElementById('btnRepProduct').classList.remove('active');
-        document.getElementById('btnRepAll').classList.remove('active');
+    // ---------- ระบบรายงาน ----------
+    // สร้างข้อมูลรายงานเป็นโครงสร้างกลาง แล้วค่อยแปลงเป็น HTML / ข้อความ LINE / PDF
+    // เพื่อให้ทั้ง 3 รูปแบบแสดงข้อมูลชุดเดียวกันเสมอ ไม่หลุดไม่ตกหล่น
+    function buildReportData(type, allRecords) {
+        // ไม่นับบิลที่ถูกยกเลิกเข้ายอดรวม (แต่ยังเก็บไว้ในระบบเพื่อตรวจสอบ)
+        const records = allRecords.filter(r => !r.voided);
+        const today = getLocalDateString();
+        const month = getLocalMonthString();
+        const money = n => n.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
 
-        if(type==='daily') document.getElementById('btnRepDaily').classList.add('active');
-        if(type==='monthly') document.getElementById('btnRepMonthly').classList.add('active');
-        if(type==='product') document.getElementById('btnRepProduct').classList.add('active');
-        if(type==='all') document.getElementById('btnRepAll').classList.add('active');
+        if (type === 'daily' || type === 'monthly') {
+            const isDaily = type === 'daily';
+            const scoped = isDaily ? records.filter(r => r.date === today) : records.filter(r => r.month === month);
+            const sum = scoped.reduce((s, r) => s + (r.total || 0), 0);
+
+            // สรุปแยกตามสินค้าภายในช่วงเวลานั้น เพื่อให้เห็นว่าซื้ออะไรไปเท่าไหร่
+            const prod = {};
+            scoped.forEach(r => (r.items || []).forEach(i => {
+                if (!prod[i.name]) prod[i.name] = { weight: 0, total: 0 };
+                prod[i.name].weight += parseFloat(i.net) || 0;
+                prod[i.name].total += parseFloat(i.subtotal) || 0;
+            }));
+            const prodRows = Object.keys(prod)
+                .sort((a, b) => prod[b].total - prod[a].total)
+                .map(name => [name, prod[name].weight.toFixed(2) + ' กก.', money(prod[name].total)]);
+
+            return {
+                title: isDaily ? `สรุปยอดรับซื้อประจำวัน` : `สรุปยอดรับซื้อประจำเดือน`,
+                period: isDaily ? today : month,
+                headline: money(sum) + ' บาท',
+                stats: [
+                    ['จำนวนบิล', scoped.length + ' บิล'],
+                    ['ยอดรวมทั้งหมด', money(sum) + ' บาท'],
+                    ['เฉลี่ยต่อบิล', (scoped.length ? money(sum / scoped.length) : '0.00') + ' บาท']
+                ],
+                tableHead: ['สินค้า', 'น้ำหนักรวม', 'ยอดเงิน'],
+                tableRows: prodRows,
+                accent: isDaily ? 'var(--apple-green)' : 'var(--apple-blue)'
+            };
+        }
+
+        if (type === 'product') {
+            const prod = {};
+            records.forEach(r => (r.items || []).forEach(i => {
+                if (!prod[i.name]) prod[i.name] = { weight: 0, total: 0, count: 0 };
+                prod[i.name].weight += parseFloat(i.net) || 0;
+                prod[i.name].total += parseFloat(i.subtotal) || 0;
+                prod[i.name].count += 1;
+            }));
+            const names = Object.keys(prod).sort((a, b) => prod[b].total - prod[a].total);
+            const grand = names.reduce((s, n) => s + prod[n].total, 0);
+            return {
+                title: 'สรุปแยกตามประเภทสินค้า',
+                period: `ย้อนหลัง ${RETENTION_MONTHS_BACK + 1} เดือน`,
+                headline: money(grand) + ' บาท',
+                stats: [
+                    ['จำนวนชนิดสินค้า', names.length + ' ชนิด'],
+                    ['ยอดรวมทั้งหมด', money(grand) + ' บาท']
+                ],
+                tableHead: ['สินค้า', 'น้ำหนักรวม', 'ยอดเงิน'],
+                tableRows: names.map(n => [n, prod[n].weight.toFixed(2) + ' กก.', money(prod[n].total)]),
+                accent: 'var(--apple-orange)'
+            };
+        }
+
+        // type === 'all'
+        const sorted = [...records].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        const shown = sorted.slice(0, 100);
+        const grand = sorted.reduce((s, r) => s + (r.total || 0), 0);
+        const voidedCount = allRecords.filter(r => r.voided).length;
+        const statsAll = [
+            ['จำนวนบิลทั้งหมด', sorted.length + ' บิล'],
+            ['ยอดรวมทั้งหมด', money(grand) + ' บาท'],
+            ['แสดงในตาราง', shown.length + ' บิลล่าสุด']
+        ];
+        if (voidedCount) statsAll.push(['บิลที่ยกเลิก (ไม่นับรวม)', voidedCount + ' บิล']);
+        return {
+            title: 'รายการซื้อทั้งหมด',
+            period: `ย้อนหลัง ${RETENTION_MONTHS_BACK + 1} เดือน`,
+            headline: money(grand) + ' บาท',
+            stats: statsAll,
+            tableHead: ['เลขที่', 'วันที่', 'ยอดรวม'],
+            tableRows: shown.map(r => [r.ticketNo || '-', new Date(r.timestamp || 0).toLocaleString('th-TH'), money(r.total || 0)]),
+            rawRecords: shown, // เก็บไว้ให้ปุ่มพิมพ์ซ้ำใช้
+            accent: 'var(--apple-blue)'
+        };
+    }
+
+    // จัดรูปแบบข้อความสำหรับส่งเข้า LINE ให้อ่านง่าย เป็นบล็อกชัดเจน ไม่ใช่บรรทัดยาวติดกัน
+    function reportToLineText(data) {
+        const L = [];
+        L.push('📊 ' + data.title);
+        L.push('📅 ' + data.period);
+        L.push('━━━━━━━━━━━━━━');
+        data.stats.forEach(([k, v]) => L.push(`${k}: ${v}`));
+        if (data.tableRows.length) {
+            L.push('━━━━━━━━━━━━━━');
+            L.push('รายละเอียด:');
+            // จำกัดไม่เกิน 30 แถว กัน LINE ตัดข้อความยาวเกิน
+            data.tableRows.slice(0, 30).forEach(row => L.push('• ' + row.join('  |  ')));
+            if (data.tableRows.length > 30) L.push(`… และอีก ${data.tableRows.length - 30} รายการ (ดูใน PDF)`);
+        }
+        L.push('━━━━━━━━━━━━━━');
+        L.push('🕐 ออกรายงาน: ' + new Date().toLocaleString('th-TH'));
+        return L.join('\n');
+    }
+
+    // สร้าง PDF โดยวาดข้อความไทยลง canvas ก่อน แล้วฝังเป็นภาพใน PDF
+    // (jsPDF ไม่รองรับฟอนต์ไทยในตัว การวาดผ่าน canvas ทำให้ภาษาไทยแสดงถูกต้องเสมอ)
+    async function buildReportPdf(data) {
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+            throw new Error('ไลบรารี PDF ยังโหลดไม่เสร็จ กรุณาลองใหม่อีกครั้ง (ต้องต่ออินเทอร์เน็ตครั้งแรก)');
+        }
+        try { await document.fonts.ready; } catch (e) {}
+
+        const SCALE = 2;               // วาดใหญ่ 2 เท่าแล้วย่อ ทำให้ตัวอักษรใน PDF คมชัด
+        const W = 794;                 // ความกว้าง A4 ที่ 96dpi
+        const M = 40;                  // ระยะขอบ
+        const rowH = 26;
+        const headerH = 150;
+        const H = Math.max(1123, headerH + (data.stats.length * 24) + ((data.tableRows.length + 3) * rowH) + 120);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = W * SCALE;
+        canvas.height = H * SCALE;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(SCALE, SCALE);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, W, H);
+        ctx.textBaseline = 'top';
+
+        let y = M;
+        ctx.fillStyle = '#000000';
+        ctx.font = "bold 26px 'Prompt', sans-serif";
+        ctx.fillText('หจก.รุ่งนภา รีไซเคิล', M, y); y += 34;
+
+        ctx.font = "bold 21px 'Prompt', sans-serif";
+        ctx.fillText(data.title, M, y); y += 28;
+
+        ctx.font = "15px 'Prompt', sans-serif";
+        ctx.fillStyle = '#555555';
+        ctx.fillText('ช่วงเวลา: ' + data.period, M, y); y += 22;
+        ctx.fillText('ออกรายงาน: ' + new Date().toLocaleString('th-TH'), M, y); y += 30;
+
+        ctx.strokeStyle = '#cccccc';
+        ctx.beginPath(); ctx.moveTo(M, y); ctx.lineTo(W - M, y); ctx.stroke(); y += 20;
+
+        // สรุปตัวเลขสำคัญ
+        ctx.fillStyle = '#000000';
+        ctx.font = "bold 17px 'Prompt', sans-serif";
+        data.stats.forEach(([k, v]) => {
+            ctx.font = "15px 'Prompt', sans-serif";
+            ctx.fillStyle = '#555555';
+            ctx.fillText(k, M, y);
+            ctx.font = "bold 15px 'Prompt', sans-serif";
+            ctx.fillStyle = '#000000';
+            const tw = ctx.measureText(v).width;
+            ctx.fillText(v, W - M - tw, y);
+            y += 24;
+        });
+        y += 10;
+        ctx.strokeStyle = '#cccccc';
+        ctx.beginPath(); ctx.moveTo(M, y); ctx.lineTo(W - M, y); ctx.stroke(); y += 18;
+
+        // ตารางรายละเอียด
+        if (data.tableRows.length) {
+            const colX = [M, M + 330, W - M];
+            ctx.font = "bold 15px 'Prompt', sans-serif";
+            ctx.fillStyle = '#555555';
+            ctx.fillText(data.tableHead[0], colX[0], y);
+            ctx.fillText(data.tableHead[1], colX[1], y);
+            const h2w = ctx.measureText(data.tableHead[2]).width;
+            ctx.fillText(data.tableHead[2], colX[2] - h2w, y);
+            y += 22;
+            ctx.strokeStyle = '#eeeeee';
+            ctx.beginPath(); ctx.moveTo(M, y); ctx.lineTo(W - M, y); ctx.stroke(); y += 8;
+
+            ctx.font = "15px 'Prompt', sans-serif";
+            data.tableRows.forEach((row, idx) => {
+                if (idx % 2 === 1) {
+                    ctx.fillStyle = '#fafafa';
+                    ctx.fillRect(M - 6, y - 4, W - M * 2 + 12, rowH);
+                }
+                ctx.fillStyle = '#000000';
+                ctx.fillText(String(row[0]).substring(0, 32), colX[0], y);
+                ctx.fillStyle = '#555555';
+                ctx.fillText(String(row[1]), colX[1], y);
+                ctx.fillStyle = '#000000';
+                const vw = ctx.measureText(String(row[2])).width;
+                ctx.fillText(String(row[2]), colX[2] - vw, y);
+                y += rowH;
+            });
+        }
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ unit: 'px', format: [W, H], orientation: 'portrait' });
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.85), 'JPEG', 0, 0, W, H);
+        return pdf;
+    }
+
+    function loadReport(type) {
+        ['btnRepDaily', 'btnRepMonthly', 'btnRepProduct', 'btnRepAll'].forEach(id => {
+            document.getElementById(id).classList.remove('active');
+        });
+        const btnMap = { daily: 'btnRepDaily', monthly: 'btnRepMonthly', product: 'btnRepProduct', all: 'btnRepAll' };
+        if (btnMap[type]) document.getElementById(btnMap[type]).classList.add('active');
 
         const resultDiv = document.getElementById('reportResult');
         const lineBox = document.getElementById('reportSendLineBox');
+        const searchBox = document.getElementById('searchTicket');
+        if (searchBox) searchBox.value = ''; // ล้างช่องค้นหา กันสับสนว่ากำลังดูผลค้นหาหรือรายงาน
         const records = purgeOldSales();
-        window.lastReportText = null; // เคลียร์ก่อนทุกครั้ง กันส่งรายงานเก่าซ้ำ
+        window.lastReportData = null; // เคลียร์ก่อนทุกครั้ง กันส่งรายงานเก่าซ้ำ
         lineBox.style.display = 'none';
 
         if (records.length === 0) {
-            resultDiv.innerHTML = "<p style='text-align:center;'>ยังไม่มีประวัติการรับซื้อ (เก็บย้อนหลังไว้ " + (RETENTION_MONTHS_BACK + 1) + " เดือนล่าสุด)</p>";
+            resultDiv.innerHTML = "<p style='text-align:center; color:var(--apple-subtext);'>ยังไม่มีประวัติการรับซื้อ (เก็บย้อนหลังไว้ " + (RETENTION_MONTHS_BACK + 1) + " เดือนล่าสุด)</p>";
             return;
         }
 
-        const today = getLocalDateString();
-        let html = "";
-        let reportText = "";
+        const data = buildReportData(type, records);
+        window.lastReportData = data;
 
-        if (type === 'daily') {
-            const todayRecords = records.filter(r => r.date === today);
-            const sum = todayRecords.reduce((s, r) => s + r.total, 0);
-            html = `<b>📅 สรุปยอดจ่ายซื้อประจำวันนี้ (${today}):</b>
-                    <h2 style="color:var(--apple-green); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</h2>
-                    <p style="margin:0; font-size:13px; color:var(--apple-subtext);">จำนวนบิลทั้งหมด: ${todayRecords.length} บิล</p>`;
-            reportText = `📅 สรุปยอดจ่ายซื้อประจำวันนี้ (${today})\nยอดรวม: ${sum.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท\nจำนวนบิล: ${todayRecords.length} บิล`;
-        } else if (type === 'monthly') {
-            const month = getLocalMonthString();
-            const monthRecords = records.filter(r => r.month === month);
-            const sum = monthRecords.reduce((s, r) => s + r.total, 0);
-            html = `<b>📅 สรุปยอดจ่ายซื้อประจำเดือนนี้ (${month}):</b>
-                    <h2 style="color:var(--apple-blue); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</h2>
-                    <p style="margin:0; font-size:13px; color:var(--apple-subtext);">จำนวนบิลทั้งหมด: ${monthRecords.length} บิล</p>
-                    <p style="margin:6px 0 0 0; font-size:12px; color:var(--apple-subtext);">⚠️ เก็บประวัติย้อนหลังไว้ ${RETENTION_MONTHS_BACK + 1} เดือนล่าสุด เดือนเก่ากว่านี้จะถูกลบอัตโนมัติ</p>`;
-            reportText = `📅 สรุปยอดจ่ายซื้อประจำเดือนนี้ (${month})\nยอดรวม: ${sum.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท\nจำนวนบิล: ${monthRecords.length} บิล`;
-        } else if (type === 'product') {
-            let prodSummary = {};
-            records.forEach(r => {
-                (r.items || []).forEach(i => {
-                    if (!prodSummary[i.name]) prodSummary[i.name] = { weight: 0, total: 0 };
-                    prodSummary[i.name].weight += (parseFloat(i.net) || 0);
-                    prodSummary[i.name].total += (parseFloat(i.subtotal) || 0);
-                });
-            });
+        // ---- แสดงผลบนหน้าจอ ----
+        resultDiv.innerHTML = '';
 
+        const head = document.createElement('div');
+        head.innerHTML = `<div style="font-size:13px; color:var(--apple-subtext); font-weight:600;">${escapeHtml(data.title)} · ${escapeHtml(data.period)}</div>
+            <div style="font-size:28px; font-weight:800; color:${data.accent}; margin:4px 0 10px 0;">${escapeHtml(data.headline)}</div>`;
+        resultDiv.appendChild(head);
+
+        const statsWrap = document.createElement('div');
+        statsWrap.style.cssText = 'display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;';
+        data.stats.forEach(([k, v]) => {
+            const chip = document.createElement('div');
+            chip.style.cssText = 'background:#fff; border-radius:10px; padding:8px 12px; font-size:12px; border:0.5px solid rgba(0,0,0,0.08);';
+            chip.innerHTML = `<div style="color:var(--apple-subtext);">${escapeHtml(k)}</div><div style="font-weight:700; font-size:14px;">${escapeHtml(v)}</div>`;
+            statsWrap.appendChild(chip);
+        });
+        resultDiv.appendChild(statsWrap);
+
+        if (data.tableRows.length) {
             const table = document.createElement('table');
             table.className = 'cart-table';
-            table.style.marginTop = '8px';
-            table.innerHTML = `<tr><th>สินค้า</th><th>น้ำหนักรวม (กก.)</th><th>ยอดเงินรวม (บาท)</th></tr>`;
-            const textLines = ['📦 สรุปยอดรับซื้อสะสม แยกตามประเภทสินค้า:'];
-            for (let p in prodSummary) {
-                const tr = document.createElement('tr');
-                const tdName = document.createElement('td');
-                tdName.textContent = p;
-                const tdWeight = document.createElement('td');
-                tdWeight.textContent = prodSummary[p].weight.toLocaleString('th-TH', {maximumFractionDigits: 2});
-                const tdTotal = document.createElement('td');
-                tdTotal.textContent = prodSummary[p].total.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                tr.appendChild(tdName); tr.appendChild(tdWeight); tr.appendChild(tdTotal);
-                table.appendChild(tr);
-                textLines.push(`• ${p}: ${prodSummary[p].weight.toFixed(2)}กก. = ${prodSummary[p].total.toFixed(2)}฿`);
-            }
-            resultDiv.innerHTML = `<b>📦 สรุปยอดรับซื้อสะสม แยกตามประเภทสินค้า (ย้อนหลัง ${RETENTION_MONTHS_BACK + 1} เดือน):</b>`;
-            resultDiv.appendChild(table);
-            window.lastReportText = textLines.join('\n');
-            lineBox.style.display = 'block';
-            return;
-        } else if (type === 'all') {
-            const sorted = [...records].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, 100);
-            const table = document.createElement('table');
-            table.className = 'cart-table';
-            table.style.marginTop = '8px';
-            table.innerHTML = `<tr><th>เลขที่</th><th>วันที่</th><th>ยอดรวม</th><th></th></tr>`;
-            const textLines = ['📋 รายการซื้อทั้งหมด (ล่าสุด ' + sorted.length + ' บิล):'];
-            sorted.forEach(r => {
-                const tr = document.createElement('tr');
-                const tdTicket = document.createElement('td');
-                tdTicket.textContent = r.ticketNo || '-';
-                const tdDate = document.createElement('td');
-                tdDate.textContent = new Date(r.timestamp || 0).toLocaleString('th-TH');
-                const tdTotal = document.createElement('td');
-                tdTotal.textContent = (r.total || 0).toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-
-                // ปุ่มพิมพ์ซ้ำ ใช้ออกใบเสร็จย้อนหลังตามเลขที่ตั๋วเดิม (ไม่ออกเลขใหม่)
-                const tdAction = document.createElement('td');
-                const reprintBtn = document.createElement('button');
-                reprintBtn.textContent = '🖨️';
-                reprintBtn.title = 'พิมพ์ซ้ำ';
-                reprintBtn.style.cssText = 'background:none;border:none;cursor:pointer;font-size:15px;';
-                reprintBtn.addEventListener('click', () => {
-                    if (confirm('พิมพ์ใบรับสินค้าซ้ำ เลขที่ ' + (r.ticketNo || '-') + ' ?')) {
-                        printReceipt(r.items || [], r.total || 0, r.ticketNo || '-');
-                    }
-                });
-                tdAction.appendChild(reprintBtn);
-
-                tr.appendChild(tdTicket); tr.appendChild(tdDate); tr.appendChild(tdTotal); tr.appendChild(tdAction);
-                table.appendChild(tr);
-                textLines.push(`#${r.ticketNo || '-'} ${new Date(r.timestamp || 0).toLocaleString('th-TH')} — ${(r.total || 0).toFixed(2)}฿`);
+            const thead = document.createElement('tr');
+            data.tableHead.forEach((h, i) => {
+                const th = document.createElement('th');
+                th.textContent = h;
+                if (i === 2) th.className = 'text-right';
+                thead.appendChild(th);
             });
-            resultDiv.innerHTML = `<b>📋 รายการซื้อทั้งหมด (แสดงล่าสุด ${sorted.length} บิล จากทั้งหมด ${records.length} บิล):</b>`;
-            resultDiv.appendChild(table);
-            window.lastReportText = textLines.join('\n');
-            lineBox.style.display = 'block';
-            return;
+            if (type === 'all') thead.appendChild(document.createElement('th'));
+            table.appendChild(thead);
+
+            data.tableRows.forEach((row, idx) => {
+                const tr = document.createElement('tr');
+                row.forEach((cell, i) => {
+                    const td = document.createElement('td');
+                    td.textContent = cell;
+                    if (i === 2) { td.className = 'text-right'; td.style.fontWeight = '700'; }
+                    tr.appendChild(td);
+                });
+                // ปุ่มจัดการ เฉพาะรายงาน "รายการทั้งหมด"
+                if (type === 'all' && data.rawRecords && data.rawRecords[idx]) {
+                    const r = data.rawRecords[idx];
+                    const tdAction = document.createElement('td');
+                    tdAction.style.whiteSpace = 'nowrap';
+
+                    const reprintBtn = document.createElement('button');
+                    reprintBtn.textContent = '🖨️';
+                    reprintBtn.title = 'พิมพ์ซ้ำ';
+                    reprintBtn.style.cssText = 'background:none;border:none;cursor:pointer;font-size:15px;';
+                    reprintBtn.addEventListener('click', () => {
+                        if (confirm('พิมพ์ใบรับสินค้าซ้ำ เลขที่ ' + (r.ticketNo || '-') + ' ?')) {
+                            printReceipt(r.items || [], r.total || 0, r.ticketNo || '-', { sellerName: r.sellerName, staffName: r.staffName });
+                        }
+                    });
+                    tdAction.appendChild(reprintBtn);
+
+                    const voidBtn = document.createElement('button');
+                    voidBtn.textContent = '🚫';
+                    voidBtn.title = 'ยกเลิกบิล';
+                    voidBtn.style.cssText = 'background:none;border:none;cursor:pointer;font-size:15px;margin-left:6px;';
+                    voidBtn.addEventListener('click', () => voidBill(r.ticketNo));
+                    tdAction.appendChild(voidBtn);
+
+                    tr.appendChild(tdAction);
+                }
+                table.appendChild(tr);
+            });
+
+            const scroll = document.createElement('div');
+            scroll.style.cssText = 'max-height:300px; overflow-y:auto; -webkit-overflow-scrolling:touch;';
+            scroll.appendChild(table);
+            resultDiv.appendChild(scroll);
         }
-        resultDiv.innerHTML = html;
-        window.lastReportText = reportText;
-        lineBox.style.display = 'block';
+
+        lineBox.style.display = 'flex';
     }
 
-    // ส่งรายงานที่กำลังแสดงอยู่ในหน้าจอ (window.lastReportText) ไปที่ LINE ผ่าน webhook
+    // ส่งรายงานที่กำลังแสดงอยู่ไปที่ LINE (ข้อความ)
     async function sendCurrentReportToLine() {
         const config = window.posConfig || {};
         if (!config.webhookUrl) {
             alert('⚠️ ยังไม่ได้ตั้งค่า LINE Webhook URL กรุณาไปที่ "⚙️ ตั้งค่าอื่นๆ" เพื่อกรอกก่อน');
             return;
         }
-        if (!window.lastReportText) {
+        if (!window.lastReportData) {
             alert('⚠️ ไม่มีรายงานให้ส่ง กรุณากดเลือกเมนูรายงานก่อน');
             return;
         }
@@ -1053,14 +1568,97 @@
         const originalText = btn.innerText;
         btn.disabled = true;
         btn.innerText = '⏳ กำลังส่ง...';
-        const ok = await sendLineNotification(config.webhookUrl, window.lastReportText);
+        const ok = await sendLineNotification(config.webhookUrl, reportToLineText(window.lastReportData));
         btn.disabled = false;
         btn.innerText = originalText;
         alert(ok ? '✅ ส่งรายงานไปที่ LINE เรียบร้อยแล้ว' : '❌ ส่งรายงานไม่สำเร็จ ลองใหม่อีกครั้ง');
     }
+
+    // บันทึก/แชร์รายงานเป็นไฟล์ PDF
+    async function downloadReportPdf() {
+        if (!window.lastReportData) {
+            alert('⚠️ ไม่มีรายงานให้บันทึก กรุณากดเลือกเมนูรายงานก่อน');
+            return;
+        }
+        const btn = document.getElementById('btnDownloadPdf');
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = '⏳ กำลังสร้าง PDF...';
+        try {
+            const data = window.lastReportData;
+            const pdf = await buildReportPdf(data);
+            const filename = `รายงาน_${data.title}_${data.period}.pdf`.replace(/[\/\\:*?"<>|]/g, '-');
+
+            // บนมือถือ ถ้ารองรับ Web Share API ให้เปิดหน้าแชร์ (ส่งเข้า LINE ได้โดยตรง)
+            const blob = pdf.output('blob');
+            const file = new File([blob], filename, { type: 'application/pdf' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({ files: [file], title: data.title });
+            } else {
+                pdf.save(filename);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('❌ สร้าง PDF ไม่สำเร็จ: ' + (e && e.message ? e.message : 'ไม่ทราบสาเหตุ'));
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    }
+
+    // ส่ง PDF ไปที่ Make.com เป็น base64 (ต้องตั้งค่าใน Make ให้แปลง base64 เป็นไฟล์ก่อนส่งเข้า LINE)
+    async function sendReportPdfToLine() {
+        const config = window.posConfig || {};
+        if (!config.webhookUrl) {
+            alert('⚠️ ยังไม่ได้ตั้งค่า LINE Webhook URL กรุณาไปที่ "⚙️ ตั้งค่าอื่นๆ" เพื่อกรอกก่อน');
+            return;
+        }
+        if (!window.lastReportData) {
+            alert('⚠️ ไม่มีรายงานให้ส่ง กรุณากดเลือกเมนูรายงานก่อน');
+            return;
+        }
+        const btn = document.getElementById('btnSendPdfLine');
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = '⏳ กำลังสร้าง & ส่ง...';
+        try {
+            const data = window.lastReportData;
+            const pdf = await buildReportPdf(data);
+            const base64 = pdf.output('datauristring').split(',')[1];
+            const filename = `report_${data.period}.pdf`;
+
+            const payload = {
+                type: 'report_pdf',
+                message: reportToLineText(data),
+                value: reportToLineText(data),
+                filename: filename,
+                mimeType: 'application/pdf',
+                pdfBase64: base64
+            };
+            const res = await fetch(config.webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            alert(res.ok
+                ? '✅ ส่ง PDF ไปที่ Make แล้ว\n\nหมายเหตุ: ต้องตั้งค่าใน Make ให้แปลงฟิลด์ pdfBase64 เป็นไฟล์ก่อนส่งเข้า LINE'
+                : '❌ ส่งไม่สำเร็จ (สถานะ ' + res.status + ')');
+        } catch (e) {
+            console.error(e);
+            alert('❌ ส่ง PDF ไม่สำเร็จ: ' + (e && e.message ? e.message : 'ไม่ทราบสาเหตุ') + '\n\nถ้าไฟล์ใหญ่เกินไป ลองใช้ปุ่ม "บันทึก/แชร์ PDF" แทน');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
-        const btn = document.getElementById('btnSendReportLine');
-        if (btn) btn.addEventListener('click', sendCurrentReportToLine);
+        const btnLine = document.getElementById('btnSendReportLine');
+        if (btnLine) btnLine.addEventListener('click', sendCurrentReportToLine);
+        const btnPdf = document.getElementById('btnDownloadPdf');
+        if (btnPdf) btnPdf.addEventListener('click', downloadReportPdf);
+        const btnPdfLine = document.getElementById('btnSendPdfLine');
+        if (btnPdfLine) btnPdfLine.addEventListener('click', sendReportPdfToLine);
 
         // แตะพื้นหลังนอกกล่องเพื่อปิดโมดัล (สะดวกกว่าต้องกดปุ่มยกเลิกอย่างเดียวบนมือถือ)
         ['configModal', 'denomModal', 'productModal'].forEach(id => {
@@ -1070,7 +1668,349 @@
                 if (e.target === modal) modal.style.display = 'none';
             });
         });
+
+        // ---- ผูกปุ่มบนแป้นตัวเลข ----
+        document.querySelectorAll('#numpadModal .numpad-key').forEach(btn => {
+            btn.addEventListener('click', () => numpadPress(btn.dataset.k));
+        });
+        // แตะพื้นหลังแป้นตัวเลขเพื่อปิด (ยกเลิกโดยไม่บันทึกค่า)
+        document.getElementById('numpadModal').addEventListener('click', (e) => {
+            if (e.target.id === 'numpadModal') closeNumpad();
+        });
+
+        // ---- ผูกช่องกรอกตัวเลขให้ใช้แป้นป๊อบอัพ ----
+        attachNumpad('grossWeight', {
+            label: '⚖️ น้ำหนักชั่งรวม (กก.)',
+            quickValues: [
+                { label: '+1', value: 1, mode: 'add' },
+                { label: '+5', value: 5, mode: 'add' },
+                { label: '+10', value: 10, mode: 'add' },
+                { label: '+50', value: 50, mode: 'add' },
+                { label: '+100', value: 100, mode: 'add' }
+            ]
+        });
+        attachNumpad('deductWeight', { label: '➖ หักสิ่งปนเปื้อน (กก.)' });
+        attachNumpad('newProdPrice', { label: '💰 ราคาซื้อ/กก. (บาท)' });
+        attachNumpad('cfgCash', { label: '💵 ปรับยอดเงินสดปัจจุบัน (บาท)' });
+        attachNumpad('cfgLow', { label: '⚠️ เตือนเงินในเก๊ะต่ำกว่า (บาท)' });
+        attachNumpad('cfgLarge', { label: '🚨 เตือนบิลใหญ่เกินกว่า (บาท)' });
+        attachNumpad('closeoutCounted', {
+            label: '💵 นับเงินในเก๊ะได้จริง (บาท)',
+            onDone: updateCloseoutDiff
+        });
+
+        // ปิดโมดัลปิดยอดด้วยการแตะพื้นหลัง
+        const co = document.getElementById('closeoutModal');
+        if (co) co.addEventListener('click', (e) => { if (e.target === co) closeCloseoutModal(); });
+
+        renderStaffBadge();
+        renderPrinterBadge('idle');
+        tryAutoReconnectPrinter();
     });
+
+    // ---------- ระบบยกเลิกบิล ----------
+    // บิลที่จ่ายเงินไปแล้วอาจผิดพลาดได้ (ชั่งผิด กดซ้ำ เลือกสินค้าผิด) ต้องแก้ไขได้
+    // แต่ไม่ลบทิ้ง — บันทึกเป็นสถานะ "ยกเลิก" พร้อมเหตุผล เวลา และผู้ยกเลิก เพื่อตรวจสอบย้อนหลังได้
+    // และคืนเงินกลับเข้าเก๊ะให้ยอดตรงกับความเป็นจริง
+    function voidBill(ticketNo) {
+        const records = loadSalesHistory();
+        const idx = records.findIndex(r => r.ticketNo === ticketNo);
+        if (idx === -1) { alert('❌ ไม่พบบิลเลขที่ ' + ticketNo); return; }
+
+        const rec = records[idx];
+        if (rec.voided) { alert('⚠️ บิลนี้ถูกยกเลิกไปแล้วเมื่อ ' + new Date(rec.voidedAt).toLocaleString('th-TH')); return; }
+
+        const money = n => n.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+        if (!confirm(`⚠️ ยกเลิกบิลเลขที่ ${ticketNo}?\n\nยอดเงิน: ${money(rec.total)} บาท\nเงิน ${money(rec.total)} บาท จะถูกคืนเข้าเก๊ะ\n\nบิลจะไม่ถูกลบ แต่จะถูกทำเครื่องหมายว่ายกเลิก`)) return;
+
+        const reason = prompt('📝 เหตุผลที่ยกเลิก (เช่น ชั่งผิด, กดซ้ำ, ลูกค้าเปลี่ยนใจ):', '');
+        if (reason === null) return; // กดยกเลิกตอนถามเหตุผล = ไม่ยกเลิกบิล
+
+        // ทำเครื่องหมายยกเลิก (ไม่ลบข้อมูล)
+        rec.voided = true;
+        rec.voidedAt = Date.now();
+        rec.voidReason = reason.trim() || '(ไม่ระบุเหตุผล)';
+        rec.voidedBy = getStaffName() || '(ไม่ระบุ)';
+        saveSalesHistory(records);
+
+        // คืนเงินกลับเข้าเก๊ะ
+        const cfg = window.posConfig || {};
+        cfg.currentCash = (parseFloat(cfg.currentCash) || 0) + (rec.total || 0);
+        window.posConfig = cfg;
+        localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
+        document.getElementById('cashInDrawer').innerText = cfg.currentCash.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        // แจ้งเตือนเข้า LINE เพราะการยกเลิกบิลเป็นเรื่องที่เจ้าของร้านควรรู้ทันที
+        if (cfg.webhookUrl) {
+            const msg = `🚫 **ยกเลิกบิล #${ticketNo}**\nยอดเงินที่คืนเข้าเก๊ะ: ${money(rec.total)} บาท\nเหตุผล: ${rec.voidReason}\nผู้ยกเลิก: ${rec.voidedBy}\n⏰ ${new Date().toLocaleString('th-TH')}`;
+            sendLineNotification(cfg.webhookUrl, msg);
+        }
+
+        alert(`✅ ยกเลิกบิล ${ticketNo} แล้ว\nคืนเงิน ${money(rec.total)} บาท เข้าเก๊ะเรียบร้อย`);
+
+        // รีเฟรชหน้าจอที่กำลังแสดงอยู่
+        const searchVal = document.getElementById('searchTicket').value;
+        if (searchVal) searchBills(searchVal);
+        else loadReport('all');
+    }
+
+    // ---------- ระบบค้นหาบิล ----------
+    // ลูกค้าถือใบเสร็จมาถาม ต้องหาเจอทันที ค้นได้ทั้งเลขที่ตั๋ว ชื่อผู้ขาย และชื่อสินค้า
+    function searchBills(query) {
+        const resultDiv = document.getElementById('reportResult');
+        const lineBox = document.getElementById('reportSendLineBox');
+        const q = (query || '').trim().toLowerCase();
+
+        if (!q) {
+            resultDiv.innerHTML = "<p style='text-align: center; color: var(--apple-subtext);'>กดเลือกเมนูด้านบนเพื่อเรียกดูรายงานสรุปยอด</p>";
+            lineBox.style.display = 'none';
+            return;
+        }
+
+        const records = purgeOldSales();
+        const matched = records.filter(r => {
+            if ((r.ticketNo || '').toLowerCase().includes(q)) return true;
+            if ((r.sellerName || '').toLowerCase().includes(q)) return true;
+            if ((r.staffName || '').toLowerCase().includes(q)) return true;
+            return (r.items || []).some(i => (i.name || '').toLowerCase().includes(q));
+        }).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, 50);
+
+        lineBox.style.display = 'none';
+        resultDiv.innerHTML = '';
+
+        const head = document.createElement('div');
+        head.innerHTML = `<div style="font-size:13px; color:var(--apple-subtext); font-weight:600; margin-bottom:8px;">🔍 ผลการค้นหา "${escapeHtml(query)}" — พบ ${matched.length} บิล</div>`;
+        resultDiv.appendChild(head);
+
+        if (matched.length === 0) {
+            resultDiv.innerHTML += "<p style='text-align:center; color:var(--apple-subtext);'>ไม่พบบิลที่ตรงกับคำค้นหา</p>";
+            return;
+        }
+
+        const money = n => n.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+        matched.forEach(r => {
+            const card = document.createElement('div');
+            card.style.cssText = `background:#fff; border-radius:14px; padding:12px; margin-bottom:8px; border:0.5px solid rgba(0,0,0,0.08);${r.voided ? ' opacity:0.65;' : ''}`;
+
+            const itemsText = (r.items || []).map(i => `${i.name} ${i.net.toFixed(2)}กก. × ${i.price.toFixed(2)} = ${i.subtotal.toFixed(2)}`).join('<br>');
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                    <div style="flex:1;">
+                        <div style="font-weight:700; font-size:15px;">${escapeHtml(r.ticketNo || '-')} ${r.voided ? '<span style="color:var(--apple-red); font-size:12px;">· ยกเลิกแล้ว</span>' : ''}</div>
+                        <div style="font-size:12px; color:var(--apple-subtext);">${new Date(r.timestamp || 0).toLocaleString('th-TH')}</div>
+                    </div>
+                    <div style="font-weight:800; font-size:17px; color:${r.voided ? 'var(--apple-subtext)' : 'var(--apple-blue)'};${r.voided ? ' text-decoration:line-through;' : ''}">${money(r.total || 0)} ฿</div>
+                </div>
+                <div style="font-size:13px; margin-top:8px; line-height:1.6;">${itemsText}</div>
+                ${(r.sellerName || r.staffName) ? `<div style="font-size:12px; color:var(--apple-subtext); margin-top:6px;">${r.sellerName ? '👤 ผู้ขาย: ' + escapeHtml(r.sellerName) : ''}${(r.sellerName && r.staffName) ? ' · ' : ''}${r.staffName ? '🧑‍💼 พนักงาน: ' + escapeHtml(r.staffName) : ''}</div>` : ''}
+                ${r.voided ? `<div style="font-size:12px; color:var(--apple-red); margin-top:6px;">🚫 ยกเลิกเมื่อ ${new Date(r.voidedAt).toLocaleString('th-TH')} · เหตุผล: ${escapeHtml(r.voidReason || '-')} · โดย ${escapeHtml(r.voidedBy || '-')}</div>` : ''}
+            `;
+
+            const btnRow = document.createElement('div');
+            btnRow.style.cssText = 'display:flex; gap:6px; margin-top:10px;';
+
+            const reprintBtn = document.createElement('button');
+            reprintBtn.className = 'btn-tab';
+            reprintBtn.style.flex = '1';
+            reprintBtn.textContent = '🖨️ พิมพ์ซ้ำ';
+            reprintBtn.addEventListener('click', () => {
+                printReceipt(r.items || [], r.total || 0, r.ticketNo || '-', { sellerName: r.sellerName, staffName: r.staffName });
+            });
+            btnRow.appendChild(reprintBtn);
+
+            if (!r.voided) {
+                const voidBtn = document.createElement('button');
+                voidBtn.className = 'btn-tab';
+                voidBtn.style.cssText = 'flex:1; background:#ffe5e2; color:var(--apple-red);';
+                voidBtn.textContent = '🚫 ยกเลิกบิล';
+                voidBtn.addEventListener('click', () => voidBill(r.ticketNo));
+                btnRow.appendChild(voidBtn);
+            }
+
+            card.appendChild(btnRow);
+            resultDiv.appendChild(card);
+        });
+    }
+
+    // ---------- ระบบปิดยอดประจำวัน ----------
+    // เทียบเงินที่ระบบคำนวณไว้ กับเงินที่นับได้จริงในเก๊ะ เพื่อรู้ทันทีว่าขาด/เกินเท่าไหร่
+    function computeExpectedCash() {
+        const cfg = window.posConfig || {};
+        return parseFloat(cfg.currentCash) || 0;
+    }
+
+    function openCloseoutModal() {
+        const today = getLocalDateString();
+        const records = purgeOldSales().filter(r => r.date === today);
+        const active = records.filter(r => !r.voided);
+        const voided = records.filter(r => r.voided);
+        const sumActive = active.reduce((s, r) => s + (r.total || 0), 0);
+        const sumVoided = voided.reduce((s, r) => s + (r.total || 0), 0);
+        const cfg = window.posConfig || {};
+        const opening = parseFloat(cfg.openingFloat) || 0;
+        const expected = computeExpectedCash();
+        const money = n => n.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+        document.getElementById('closeoutSummary').innerHTML = `
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="color:var(--apple-subtext);">วันที่</span><b>${today}</b></div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="color:var(--apple-subtext);">เงินตั้งต้นในเก๊ะ</span><b>${money(opening)} ฿</b></div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="color:var(--apple-subtext);">จ่ายซื้อวันนี้ (${active.length} บิล)</span><b style="color:var(--apple-red);">−${money(sumActive)} ฿</b></div>
+            ${voided.length ? `<div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="color:var(--apple-subtext);">บิลที่ยกเลิก (${voided.length} บิล)</span><b>${money(sumVoided)} ฿</b></div>` : ''}
+            <div style="border-top:1px solid #ddd; margin:8px 0;"></div>
+            <div style="display:flex; justify-content:space-between; font-size:16px;"><span><b>ระบบคำนวณว่าควรมี</b></span><b style="color:var(--apple-blue);">${money(expected)} ฿</b></div>
+        `;
+
+        document.getElementById('closeoutCounted').value = '';
+        document.getElementById('closeoutDiff').style.display = 'none';
+        document.getElementById('closeoutModal').style.display = 'flex';
+    }
+
+    function closeCloseoutModal() {
+        document.getElementById('closeoutModal').style.display = 'none';
+    }
+
+    function updateCloseoutDiff() {
+        const counted = parseFloat(document.getElementById('closeoutCounted').value);
+        const box = document.getElementById('closeoutDiff');
+        if (isNaN(counted)) { box.style.display = 'none'; return; }
+
+        const expected = computeExpectedCash();
+        const diff = counted - expected;
+        const money = n => Math.abs(n).toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+        box.style.display = 'block';
+        if (Math.abs(diff) < 0.005) {
+            box.style.background = '#e8f8ec';
+            box.style.color = '#1d7a3a';
+            box.innerHTML = '✅ ยอดตรงพอดี ไม่ขาดไม่เกิน';
+        } else if (diff < 0) {
+            box.style.background = '#ffe5e2';
+            box.style.color = 'var(--apple-red)';
+            box.innerHTML = `⚠️ เงินขาด ${money(diff)} บาท<br><span style="font-weight:500; font-size:13px;">นับได้น้อยกว่าที่ระบบคำนวณ</span>`;
+        } else {
+            box.style.background = '#fff8e5';
+            box.style.color = '#8a6d1f';
+            box.innerHTML = `⚠️ เงินเกิน ${money(diff)} บาท<br><span style="font-weight:500; font-size:13px;">นับได้มากกว่าที่ระบบคำนวณ</span>`;
+        }
+    }
+
+    function confirmCloseout() {
+        const counted = parseFloat(document.getElementById('closeoutCounted').value);
+        if (isNaN(counted)) { alert('⚠️ กรุณากรอกยอดเงินที่นับได้จริงก่อน'); return; }
+
+        const today = getLocalDateString();
+        const records = purgeOldSales().filter(r => r.date === today && !r.voided);
+        const sumActive = records.reduce((s, r) => s + (r.total || 0), 0);
+        const cfg = window.posConfig || {};
+        const expected = computeExpectedCash();
+        const diff = counted - expected;
+        const money = n => n.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+        // บันทึกประวัติการปิดยอด (เก็บย้อนหลัง 90 รายการ)
+        let closeouts = [];
+        try { closeouts = JSON.parse(localStorage.getItem(STORAGE_KEYS.closeouts)) || []; } catch (e) {}
+        closeouts.push({
+            date: today, timestamp: Date.now(),
+            openingFloat: parseFloat(cfg.openingFloat) || 0,
+            totalPurchased: sumActive, billCount: records.length,
+            expectedCash: expected, countedCash: counted, difference: diff,
+            staffName: getStaffName() || '(ไม่ระบุ)'
+        });
+        if (closeouts.length > 90) closeouts = closeouts.slice(closeouts.length - 90);
+        localStorage.setItem(STORAGE_KEYS.closeouts, JSON.stringify(closeouts));
+
+        // ปรับยอดเงินในระบบให้ตรงกับที่นับได้จริง (ยึดเงินจริงเป็นหลัก)
+        cfg.currentCash = counted;
+        window.posConfig = cfg;
+        localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
+        document.getElementById('cashInDrawer').innerText = money(counted);
+
+        // ส่งสรุปปิดยอดเข้า LINE
+        if (cfg.webhookUrl) {
+            let diffLine;
+            if (Math.abs(diff) < 0.005) diffLine = '✅ ยอดตรงพอดี';
+            else if (diff < 0) diffLine = `⚠️ เงินขาด ${money(Math.abs(diff))} บาท`;
+            else diffLine = `⚠️ เงินเกิน ${money(diff)} บาท`;
+
+            const msg = `🔒 **ปิดยอดประจำวัน ${today}**\n━━━━━━━━━━━━━━\n`
+                + `เงินตั้งต้น: ${money(parseFloat(cfg.openingFloat) || 0)} บาท\n`
+                + `จ่ายซื้อ: ${money(sumActive)} บาท (${records.length} บิล)\n`
+                + `━━━━━━━━━━━━━━\n`
+                + `ระบบคำนวณ: ${money(expected)} บาท\n`
+                + `นับได้จริง: ${money(counted)} บาท\n`
+                + `${diffLine}\n`
+                + `━━━━━━━━━━━━━━\n`
+                + `🧑‍💼 ผู้ปิดยอด: ${getStaffName() || '(ไม่ระบุ)'}\n`
+                + `⏰ ${new Date().toLocaleString('th-TH')}`;
+            sendLineNotification(cfg.webhookUrl, msg);
+        }
+
+        alert(`✅ ปิดยอดประจำวันเรียบร้อยแล้ว\n\nระบบคำนวณ: ${money(expected)} บาท\nนับได้จริง: ${money(counted)} บาท\n${Math.abs(diff) < 0.005 ? 'ยอดตรงพอดี' : (diff < 0 ? 'ขาด ' : 'เกิน ') + money(Math.abs(diff)) + ' บาท'}`);
+        closeCloseoutModal();
+    }
+
+    // ---------- สำรอง / กู้คืนข้อมูล ----------
+    // ข้อมูลทั้งหมดเก็บใน localStorage ของเบราว์เซอร์ ถ้าเคลียร์ข้อมูลเบราว์เซอร์หรือเปลี่ยนเครื่อง
+    // ข้อมูลจะหายทั้งหมดโดยไม่มีที่สำรอง จึงควรกดสำรองเก็บไฟล์ไว้เป็นระยะ
+    function exportBackup() {
+        const backup = {
+            version: 9,
+            exportedAt: new Date().toISOString(),
+            products: localStorage.getItem(STORAGE_KEYS.products),
+            drawerConfig: localStorage.getItem(STORAGE_KEYS.drawerConfig),
+            salesHistory: localStorage.getItem(STORAGE_KEYS.salesHistory),
+            ticketCounter: localStorage.getItem(STORAGE_KEYS.ticketCounter),
+            closeouts: localStorage.getItem(STORAGE_KEYS.closeouts),
+            drawerLog: localStorage.getItem('rungnapa_drawer_log')
+        };
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+        const filename = `สำรองข้อมูล_POS_${getLocalDateString()}.json`;
+
+        // บนมือถือถ้าแชร์ไฟล์ได้ ให้เปิดหน้าแชร์ (ส่งเข้า LINE/ไดรฟ์เก็บไว้ได้เลย)
+        const file = new File([blob], filename, { type: 'application/json' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({ files: [file], title: 'สำรองข้อมูล POS' }).catch(() => {});
+            return;
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+
+    function importBackup(fileInput) {
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const backup = JSON.parse(e.target.result);
+                if (!backup || !backup.version) throw new Error('ไฟล์ไม่ใช่ไฟล์สำรองของระบบนี้');
+
+                const count = backup.salesHistory ? (JSON.parse(backup.salesHistory) || []).length : 0;
+                if (!confirm(`⚠️ กู้คืนข้อมูลจากไฟล์นี้?\n\nวันที่สำรอง: ${new Date(backup.exportedAt).toLocaleString('th-TH')}\nประวัติการซื้อ: ${count} บิล\n\nข้อมูลปัจจุบันทั้งหมดจะถูกแทนที่!`)) {
+                    fileInput.value = '';
+                    return;
+                }
+
+                if (backup.products) localStorage.setItem(STORAGE_KEYS.products, backup.products);
+                if (backup.drawerConfig) localStorage.setItem(STORAGE_KEYS.drawerConfig, backup.drawerConfig);
+                if (backup.salesHistory) localStorage.setItem(STORAGE_KEYS.salesHistory, backup.salesHistory);
+                if (backup.ticketCounter) localStorage.setItem(STORAGE_KEYS.ticketCounter, backup.ticketCounter);
+                if (backup.closeouts) localStorage.setItem(STORAGE_KEYS.closeouts, backup.closeouts);
+                if (backup.drawerLog) localStorage.setItem('rungnapa_drawer_log', backup.drawerLog);
+
+                alert('✅ กู้คืนข้อมูลเรียบร้อยแล้ว ระบบจะโหลดหน้าใหม่');
+                location.reload();
+            } catch (err) {
+                alert('❌ กู้คืนไม่สำเร็จ: ' + (err.message || 'ไฟล์เสียหายหรือรูปแบบไม่ถูกต้อง'));
+                fileInput.value = '';
+            }
+        };
+        reader.readAsText(file);
+    }
 
     function renderManagerProducts() {
         const tbody = document.getElementById('managerProductTable');
@@ -1225,6 +2165,19 @@
             wrap.appendChild(label);
             wrap.appendChild(input);
             container.appendChild(wrap);
+
+            // ใช้แป้นตัวเลขป๊อบอัพ (นับเป็นใบ/เหรียญ จึงไม่ให้ใส่ทศนิยม)
+            attachNumpad('denom_' + d, {
+                label: '🧮 จำนวนใบ/เหรียญ ของ ' + d.toLocaleString('th-TH') + ' บาท',
+                allowDecimal: false,
+                quickValues: [
+                    { label: '+1', value: 1, mode: 'add' },
+                    { label: '+5', value: 5, mode: 'add' },
+                    { label: '+10', value: 10, mode: 'add' },
+                    { label: '+20', value: 20, mode: 'add' }
+                ],
+                onDone: updateDenomTotal
+            });
         });
     }
 
@@ -1283,6 +2236,7 @@
         document.getElementById('cfgLarge').value = cfg.largeBillThreshold || 10000;
         document.getElementById('cfgWebhook').value = cfg.webhookUrl || "";
         document.getElementById('cfgNotifyEverySale').checked = !!cfg.notifyEverySale;
+        document.getElementById('cfgSmallFont').checked = cfg.useSmallFont !== false;
         document.getElementById('configModal').style.display = 'flex';
     }
     function closeModal() { document.getElementById('configModal').style.display = 'none'; }
@@ -1294,7 +2248,8 @@
             lowCashThreshold: parseFloat(document.getElementById('cfgLow').value) || 5000,
             largeBillThreshold: parseFloat(document.getElementById('cfgLarge').value) || 10000,
             webhookUrl: document.getElementById('cfgWebhook').value.trim(),
-            notifyEverySale: document.getElementById('cfgNotifyEverySale').checked
+            notifyEverySale: document.getElementById('cfgNotifyEverySale').checked,
+            useSmallFont: document.getElementById('cfgSmallFont').checked
         });
         window.posConfig = cfg;
         localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
