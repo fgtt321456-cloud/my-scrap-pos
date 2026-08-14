@@ -264,9 +264,9 @@
     <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
         <thead>
             <tr>
-                <th style="text-align: left;">รายการ</th>
-                <th style="text-align: right;">กก. x บาท</th>
-                <th style="text-align: right;">จำนวนเงิน</th>
+                <th style="text-align: left;">น้ำหนัก</th>
+                <th style="text-align: center;">ราคา</th>
+                <th style="text-align: right;">ยอดรวม</th>
             </tr>
         </thead>
         <tbody id="receiptTableBody"></tbody>
@@ -288,7 +288,11 @@
         <div class="field" style="margin-bottom:8px;"><label>งบเงินสดเริ่มต้นในเก๊ะ (บาท)</label><input type="number" id="cfgCash" step="any" inputmode="decimal"></div>
         <div class="field" style="margin-bottom:8px;"><label>เตือนเงินในเก๊ะต่ำกว่า (บาท)</label><input type="number" id="cfgLow" step="any" inputmode="decimal"></div>
         <div class="field" style="margin-bottom:8px;"><label>เตือนบิลใหญ่เกินกว่า (บาท)</label><input type="number" id="cfgLarge" step="any" inputmode="decimal"></div>
-        <div class="field" style="margin-bottom:15px;"><label>LINE Webhook URL (Make.com)</label><input type="text" id="cfgWebhook"></div>
+        <div class="field" style="margin-bottom:8px;"><label>LINE Webhook URL (Make.com)</label><input type="text" id="cfgWebhook"></div>
+        <div class="print-option-box" style="margin-top:0; margin-bottom:15px;">
+            <input type="checkbox" id="cfgNotifyEverySale">
+            <label for="cfgNotifyEverySale">🔔 แจ้งเตือนทุกบิลที่ขาย (ไม่ใช่แค่บิลใหญ่/เงินใกล้หมด)</label>
+        </div>
         <button class="btn btn-add" onclick="saveConfig()">บันทึกการตั้งค่า</button>
         <button class="btn" style="background:#e5e5ea; color:#3a3a3c; margin-top:6px;" onclick="closeModal()">ยกเลิก</button>
     </div>
@@ -496,6 +500,29 @@
         document.getElementById('grandTotal').innerText = total.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " ฿";
     }
 
+    // ส่งข้อความแจ้งเตือนไปยัง LINE ผ่าน webhook (เช่น Make.com scenario ที่ต่อกับ LINE Notify/Messaging API)
+    // ลองส่งซ้ำ 1 ครั้งถ้าพลาดในครั้งแรก (เช่น เน็ตสะดุดชั่วคราว) ก่อนจะปล่อยผ่านแบบเงียบๆ
+    // เพื่อไม่ให้การแจ้งเตือนที่ล้มเหลวไปบล็อกการขาย/พิมพ์ใบเสร็จซึ่งสำคัญกว่า
+    async function sendLineNotification(webhookUrl, message) {
+        const payload = JSON.stringify({ value: message, message: message });
+        for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+                const res = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    keepalive: true,
+                    body: payload
+                });
+                if (res.ok) return true;
+                console.error('LINE webhook ตอบกลับผิดปกติ:', res.status);
+            } catch (e) {
+                console.error('ส่งแจ้งเตือน LINE ไม่สำเร็จ (ครั้งที่ ' + (attempt + 1) + '):', e);
+            }
+            if (attempt === 0) await new Promise(r => setTimeout(r, 1500)); // เว้นจังหวะก่อนลองซ้ำ
+        }
+        return false;
+    }
+
     async function processPayment() {
         if (cart.length === 0) return alert('ยังไม่มีรายการในบิล');
         const total = cart.reduce((s, i) => s + i.subtotal, 0);
@@ -521,18 +548,26 @@
             saveSalesHistory(salesRecords);
             purgeOldSales();
 
+            // สรุปรายการสินค้าในบิล ใช้ประกอบข้อความแจ้งเตือนไลน์
+            const itemSummary = printItems.map(i =>
+                `• ${i.name} ${i.net.toFixed(2)}กก. x ${i.price.toFixed(2)} = ${i.subtotal.toFixed(2)}฿`
+            ).join('\n');
+            const timeLabel = now.toLocaleString('th-TH');
+
             let alerts = [];
-            if (total >= (parseFloat(config.largeBillThreshold) || 10000)) alerts.push(`🚨 **แจ้งเตือนบิลจ่ายใหญ่!**\nยอดจ่ายรับซื้อ: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
-            if (currentCash <= (parseFloat(config.lowCashThreshold) || 5000)) alerts.push(`⚠️ **เตือนเงินสดในลิ้นชักใกล้หมด!**\nเงินคงเหลือในเก๊ะ: ${currentCash.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
+            if (config.notifyEverySale) {
+                alerts.push(`🧾 **บิลใหม่**\n${itemSummary}\nยอดรวม: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
+            }
+            if (total >= (parseFloat(config.largeBillThreshold) || 10000)) {
+                alerts.push(`🚨 **แจ้งเตือนบิลจ่ายใหญ่!**\n${itemSummary}\nยอดจ่ายรับซื้อ: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
+            }
+            if (currentCash <= (parseFloat(config.lowCashThreshold) || 5000)) {
+                alerts.push(`⚠️ **เตือนเงินสดในลิ้นชักใกล้หมด!**\nเงินคงเหลือในเก๊ะ: ${currentCash.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
+            }
 
             if (alerts.length > 0 && config.webhookUrl) {
-                const msg = alerts.join("\n\n") + `\n⏰ เวลา: ${now.toLocaleTimeString('th-TH')}`;
-                fetch(config.webhookUrl, {
-                    method:'POST',
-                    headers:{'Content-Type':'application/json'},
-                    keepalive: true,
-                    body:JSON.stringify({value:msg, message:msg})
-                }).catch(e => console.error(e));
+                const msg = alerts.join("\n\n") + `\n⏰ ${timeLabel}`;
+                sendLineNotification(config.webhookUrl, msg);
             }
 
             const includeHeader = document.getElementById('includeHeaderToggle').checked;
@@ -544,110 +579,98 @@
     }
 
     // ==========================================================================
-    // ระบบพิมพ์ผ่าน Web Bluetooth — โหมด "พิมพ์เป็นรูปภาพ" (Raster Bit Image)
+    // ระบบพิมพ์ผ่าน Web Bluetooth — โหมด "ข้อความ" เข้ารหัส CP874 (ตามค่าเริ่มต้นเครื่องพิมพ์)
     // ==========================================================================
-    // เดิมโค้ดพิมพ์เป็น "ข้อความ" แล้วสั่งเลือก code page ไทย (ESC t 30) และปิดโหมด
-    // Kanji (FS .) แต่เลขตาราง code page เป็นค่าเฉพาะของแต่ละยี่ห้อเครื่องพิมพ์ เครื่องรุ่นนี้
-    // ตีความเลข 30 เป็นตารางอักษรอื่น ทำให้ไบต์ภาษาไทยกลายเป็นตัวอักษรเพี้ยน และคำสั่ง FS .
-    // ที่เครื่องไม่รองรับทำให้เฟิร์มแวร์ค้าง ต้องปิด-เปิดเครื่องใหม่ทุกครั้ง
+    // จากใบทดสอบตัวเครื่อง (self-test) ของเครื่องพิมพ์ยืนยันว่า:
+    //   Default FontType: 12X24, Default Codepage: Cp874
+    // แปลว่าเครื่องพิมพ์รุ่นนี้ตั้งค่าภาษาไทย (CP874) เป็นค่าเริ่มต้นอยู่แล้วโดยไม่ต้องสั่งอะไรเพิ่ม
     //
-    // วิธีแก้: วาดใบเสร็จเป็น "ภาพ" ในเบราว์เซอร์ก่อน (เบราว์เซอร์วาดฟอนต์ไทยถูกต้องอยู่แล้ว)
-    // แล้วแปลงเป็นจุดพิกเซลขาว-ดำส่งไปแบบคำสั่งมาตรฐาน GS v 0 (Print Raster Bit Image)
-    // เครื่องพิมพ์แค่พิมพ์ตามภาพที่ได้รับ ไม่ต้องตีความตัวอักษรหรือ code page ใดๆ เลย
-    // จึงไม่มีทางเพี้ยนหรือทำให้เฟิร์มแวร์ค้างจากปัญหานี้อีก
+    // ปัญหาเดิมที่พิมพ์เพี้ยนเป็น "ภาษาเอเลี่ยน" เกิดจากโค้ดรุ่นก่อนหน้าสั่ง ESC t 30 (เลือก code
+    // page หมายเลข 30) ไปทับค่าเริ่มต้นที่ถูกอยู่แล้ว กลายเป็นตารางอักษรอื่นที่ผิด และคำสั่ง FS .
+    // (ปิดโหมด Kanji) ที่เครื่องไม่รองรับก็ทำให้เฟิร์มแวร์ค้างต้องปิด-เปิดเครื่องใหม่
+    //
+    // จึงกลับมาใช้การพิมพ์แบบข้อความ (เร็วกว่าพิมพ์รูปภาพมาก เพราะข้อมูลเล็กกว่าเป็นสิบเท่า จึงไม่เสี่ยง
+    // ปัญหาส่งข้อมูลไม่ครบ/timeout ที่เจอตอนพิมพ์แบบรูปภาพ) แต่ตัดคำสั่งเปลี่ยน code page และ FS .
+    // ออกทั้งหมด ปล่อยให้เครื่องใช้ Cp874 เริ่มต้นของมันเอง
 
-    async function buildReceiptCanvas(items, total, includeHeader) {
-        // รอให้ฟอนต์ Prompt โหลดเสร็จก่อนวาด ป้องกันกรณีพิมพ์ทันทีหลังเปิดเว็บแล้วฟอนต์ยังโหลดไม่เสร็จ
-        try { await document.fonts.ready; } catch(e) {}
-
-        const WIDTH = 384; // ความกว้างมาตรฐานกระดาษ 58mm ที่ 203dpi
-        const PADDING = 8;
-        const now = new Date();
-
-        const lines = [];
-        if (includeHeader) {
-            lines.push({ text: 'หจก.รุ่งนภา รีไซเคิล', size: 24, bold: true, align: 'center' });
-            lines.push({ text: 'RUNGNAPA RECYCLE Part.,Ltd.', size: 13, align: 'center' });
-            lines.push({ text: 'ใบเสร็จรับซื้อขยะรีไซเคิล', size: 14, align: 'center' });
-            lines.push({ divider: true });
+    // แปลงข้อความไทย (Unicode) เป็นไบต์ตารางรหัส CP874 ตรงกับที่เครื่องพิมพ์ตั้งไว้เป็นค่าเริ่มต้น
+    // ตัวอักษรไทย Unicode ช่วง U+0E01–U+0E5B ตรงกับ CP874 ช่วง 0xA1–0xFB (byte = unicode - 0x0E00 + 0xA0)
+    function encodeThaiCP874(str) {
+        const bytes = [];
+        for (let i = 0; i < str.length; i++) {
+            const code = str.charCodeAt(i);
+            if (code >= 0x0E01 && code <= 0x0E5B) {
+                bytes.push(code - 0x0E00 + 0xA0);
+            } else if (code < 0x80) {
+                bytes.push(code);
+            } else {
+                bytes.push(0x20); // อักขระอื่นที่ไม่รู้จัก ให้แทนด้วยช่องว่างแทนการพิมพ์เพี้ยน
+            }
         }
-        lines.push({ text: 'วันที่: ' + now.toLocaleString('th-TH'), size: 15, align: 'left' });
-        lines.push({ divider: true });
-        items.forEach(i => {
-            lines.push({ text: i.name, size: 17, bold: true, align: 'left' });
-            lines.push({ text: `  ${i.net.toFixed(2)} กก. x ${i.price.toFixed(2)} บาท = ${i.subtotal.toFixed(2)} บาท`, size: 15, align: 'left' });
-        });
-        lines.push({ divider: true });
-        lines.push({ text: 'รวมทั้งสิ้น: ' + total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' บาท', size: 20, bold: true, align: 'left' });
-        lines.push({ divider: true });
-        lines.push({ text: 'ขอบคุณที่ใช้บริการ', size: 15, align: 'center' });
-        lines.push({ text: '', size: 6 });
-
-        let height = PADDING * 2;
-        lines.forEach(l => { height += l.divider ? 14 : (l.size + 10); });
-
-        const canvas = document.createElement('canvas');
-        canvas.width = WIDTH;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(0, 0, WIDTH, height);
-        ctx.fillStyle = '#000';
-        ctx.textBaseline = 'top';
-
-        let y = PADDING;
-        lines.forEach(l => {
-            if (l.divider) {
-                ctx.beginPath();
-                ctx.setLineDash([4, 3]);
-                ctx.moveTo(PADDING, y + 6);
-                ctx.lineTo(WIDTH - PADDING, y + 6);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                y += 14;
-                return;
-            }
-            if (!l.text) { y += l.size + 10; return; }
-            ctx.font = (l.bold ? 'bold ' : '') + l.size + "px 'Prompt', 'Noto Sans Thai', sans-serif";
-            let x = PADDING;
-            if (l.align === 'center') {
-                const w = ctx.measureText(l.text).width;
-                x = Math.max(PADDING, (WIDTH - w) / 2);
-            }
-            ctx.fillText(l.text, x, y);
-            y += l.size + 10;
-        });
-
-        return canvas;
+        return new Uint8Array(bytes);
     }
 
-    // แปลง canvas เป็นคำสั่ง ESC/POS raster bit image (GS v 0) — เป็นคำสั่งมาตรฐานที่เครื่องพิมพ์
-    // ESC/POS แทบทุกยี่ห้อรองรับเหมือนกันหมด ต่างจากคำสั่งเลือก code page ที่แต่ละยี่ห้อไม่เหมือนกัน
-    function canvasToEscPosRaster(canvas) {
-        const ctx = canvas.getContext('2d');
-        const w = canvas.width, h = canvas.height;
-        const imgData = ctx.getImageData(0, 0, w, h).data;
+    function buildReceiptText(items, total, includeHeader) {
+        const LINE_WIDTH = 32; // เครื่องพิมพ์ 58mm ฟอนต์ default 12x24 พิมพ์ได้ประมาณ 32 ตัวอักษร/บรรทัด
+        let t = "";
+        t += "\x1B\x40"; // ESC @ รีเซ็ตเครื่องพิมพ์เท่านั้น — ไม่สั่งเปลี่ยน code page/Kanji
 
-        const widthBytes = Math.ceil(w / 8);
-        const raster = new Uint8Array(widthBytes * h);
-
-        for (let y = 0; y < h; y++) {
-            for (let x = 0; x < w; x++) {
-                const idx = (y * w + x) * 4;
-                const r = imgData[idx], g = imgData[idx+1], b = imgData[idx+2], a = imgData[idx+3];
-                const gray = r * 0.3 + g * 0.59 + b * 0.11;
-                const isBlack = a > 128 && gray < 200; // threshold: ปรับเลข 200 ได้ถ้าพิมพ์ออกมาจางไป/เข้มไป
-                if (isBlack) raster[y * widthBytes + (x >> 3)] |= (0x80 >> (x % 8));
-            }
+        if (includeHeader) {
+            t += "\x1B\x61\x01"; // จัดกึ่งกลาง
+            t += "หจก.รุ่งนภา รีไซเคิล\n";
+            t += "RUNGNAPA RECYCLE Part.,Ltd.\n";
+            t += "ใบเสร็จรับซื้อขยะรีไซเคิล\n";
+            t += "\x1B\x61\x00"; // กลับมาชิดซ้าย
         }
 
-        const xL = widthBytes & 0xFF, xH = (widthBytes >> 8) & 0xFF;
-        const yL = h & 0xFF, yH = (h >> 8) & 0xFF;
-        const header = new Uint8Array([0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH]); // GS v 0 m xL xH yL yH
-        const out = new Uint8Array(header.length + raster.length);
-        out.set(header, 0);
-        out.set(raster, header.length);
-        return out;
+        t += "-".repeat(LINE_WIDTH) + "\n";
+        t += "วันที่: " + new Date().toLocaleString('th-TH') + "\n";
+        t += "-".repeat(LINE_WIDTH) + "\n";
+
+        // แถวหัวคอลัมน์: น้ำหนัก(ซ้าย) ราคา(กลาง) ยอดรวม(ขวา)
+        const colWidth = Math.floor(LINE_WIDTH / 3); // ~10 ตัวอักษรต่อคอลัมน์
+        t += padColLeft('น้ำหนัก', colWidth) + padColCenter('ราคา', colWidth) + padColRight('ยอดรวม', LINE_WIDTH - colWidth * 2) + "\n";
+        t += "-".repeat(LINE_WIDTH) + "\n";
+
+        items.forEach(i => {
+            t += i.name + "\n";
+            // น้ำหนักอยู่ซ้ายสุด / ราคาอยู่ตรงกลาง (ไม่มีคำว่าบาท) / ยอดรวมอยู่ขวาสุด (ไม่มีคำว่าบาท)
+            const weightStr = i.net.toFixed(2);
+            const priceStr = i.price.toFixed(2);
+            const subStr = i.subtotal.toFixed(2);
+            t += padColLeft(weightStr, colWidth) + padColCenter(priceStr, colWidth) + padColRight(subStr, LINE_WIDTH - colWidth * 2) + "\n";
+        });
+
+        t += "-".repeat(LINE_WIDTH) + "\n";
+        // ยอดรวมทั้งสิ้น: ชิดขวา มีคำว่า "บาท"
+        const totalLabel = "รวมทั้งสิ้น:";
+        const totalValue = total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2}) + " บาท";
+        const totalSpaces = Math.max(1, LINE_WIDTH - totalLabel.length - totalValue.length);
+        t += totalLabel + ' '.repeat(totalSpaces) + totalValue + "\n";
+        t += "-".repeat(LINE_WIDTH) + "\n";
+        t += "\x1B\x61\x01"; // จัดกึ่งกลาง
+        t += "ขอบคุณที่ใช้บริการ\n";
+        t += "\x1B\x61\x00";
+        t += "\n\n\n"; // เว้นบรรทัดท้ายก่อนตัดกระดาษ
+
+        return t;
+    }
+
+    // จัดคอลัมน์ข้อความให้ชิดซ้าย/กลาง/ขวา ภายในความกว้างที่กำหนด (ตัดถ้ายาวเกิน)
+    function padColLeft(str, width) {
+        if (str.length >= width) return str.substring(0, width);
+        return str + ' '.repeat(width - str.length);
+    }
+    function padColRight(str, width) {
+        if (str.length >= width) return str.substring(0, width);
+        return ' '.repeat(width - str.length) + str;
+    }
+    function padColCenter(str, width) {
+        if (str.length >= width) return str.substring(0, width);
+        const totalPad = width - str.length;
+        const left = Math.floor(totalPad / 2);
+        const right = totalPad - left;
+        return ' '.repeat(left) + str + ' '.repeat(right);
     }
 
     // เบราว์เซอร์บางตัว (เช่น Bluefy บน iOS) reject Promise ด้วยค่าที่ไม่ใช่ Error object ปกติ
@@ -672,18 +695,8 @@
         if (navigator.bluetooth) {
             let device = null;
             try {
-                const canvas = await buildReceiptCanvas(items, total, includeHeader);
-                const rasterData = canvasToEscPosRaster(canvas);
-
-                const init = new Uint8Array([0x1B, 0x40]); // ESC @ : รีเซ็ตเครื่องพิมพ์เท่านั้น ไม่ส่งคำสั่งเลือก code page/Kanji ที่เคยทำให้ค้าง
-                const feed = new Uint8Array([0x0A, 0x0A, 0x0A]);
-                const cut = new Uint8Array([0x1D, 0x56, 0x00]); // ตัดกระดาษ (ถ้าเครื่องไม่มี auto-cutter จะไม่มีผลอะไร ไม่ error)
-
-                const fullBuffer = new Uint8Array(init.length + rasterData.length + feed.length + cut.length);
-                fullBuffer.set(init, 0);
-                fullBuffer.set(rasterData, init.length);
-                fullBuffer.set(feed, init.length + rasterData.length);
-                fullBuffer.set(cut, init.length + rasterData.length + feed.length);
+                const receiptText = buildReceiptText(items, total, includeHeader);
+                const fullBuffer = encodeThaiCP874(receiptText);
 
                 device = await navigator.bluetooth.requestDevice({
                     filters: [
@@ -711,7 +724,8 @@
 
                 // รอให้การเชื่อมต่อ BLE นิ่งก่อนเริ่มเขียนข้อมูล — เครื่องพิมพ์บางรุ่น/เบราว์เซอร์บางตัว
                 // (เช่น Bluefy) เขียนข้อมูลทันทีหลัง connect แล้วพลาดเพราะฝั่งเครื่องพิมพ์ยังไม่พร้อมรับ
-                await new Promise(r => setTimeout(r, 300));
+                // (ลดจาก 300ms เหลือ 150ms เพื่อความเร็ว ยังเผื่อเวลาความเสถียรไว้พอสมควร)
+                await new Promise(r => setTimeout(r, 150));
 
                 let services;
                 try {
@@ -737,12 +751,12 @@
                 if (targetCharacteristic) {
                     window.btLastCharacteristic = targetCharacteristic; // เก็บไว้ใช้รีเซ็ตเครื่องพิมพ์ถ้าพิมพ์พลาดกลางคัน
 
-                    // ขนาดก้อนข้อมูลต่อการเขียนหนึ่งครั้ง — ใช้ 16 ไบต์เป็นค่าปลอดภัยสุดสำหรับ BLE
-                    // ที่ไม่ได้เจรจาขยาย MTU ก่อน (ATT MTU เริ่มต้นคือ 23 ไบต์ = ใช้ได้จริง 20 ไบต์
-                    // แต่บางเบราว์เซอร์/เครื่องพิมพ์ต้องการเผื่อขอบเพิ่มอีกนิด จึงลดเหลือ 16)
-                    const chunkSize = 16;
-                    const useWithoutResponse = !!targetCharacteristic.properties.writeWithoutResponse
-                        && !targetCharacteristic.properties.write; // ใช้ writeValue (มี response ยืนยัน) ก่อนถ้าเครื่องรองรับ เพราะให้ error ที่เชื่อถือได้กว่า
+                    // ข้อความ CP874 มีขนาดเล็กกว่ารูปภาพมาก (ไม่กี่ร้อยไบต์ เทียบกับหลายหมื่นไบต์)
+                    // จึงใช้ก้อนข้อมูลใหญ่ขึ้นได้โดยไม่เสี่ยง timeout — เพิ่มจาก 50 เป็น 90 ไบต์ เพื่อลดจำนวนรอบส่ง
+                    const chunkSize = 90;
+                    // writeWithoutResponse เร็วกว่า writeValue เพราะไม่ต้องรอ ack กลับจากเครื่องพิมพ์ก่อนส่งก้อนถัดไป
+                    // ใช้ก่อนถ้าเครื่องรองรับ เพื่อความเร็ว ถ้าไม่รองรับค่อย fallback ไป writeValue
+                    const useWithoutResponse = !!targetCharacteristic.properties.writeWithoutResponse;
 
                     for (let i = 0; i < fullBuffer.length; i += chunkSize) {
                         const chunk = fullBuffer.slice(i, i + chunkSize);
@@ -759,25 +773,25 @@
                                 sent = true;
                             } catch (chunkErr) {
                                 lastErr = chunkErr;
-                                await new Promise(r => setTimeout(r, 120)); // เว้นจังหวะก่อนลองใหม่
+                                await new Promise(r => setTimeout(r, 80)); // เว้นจังหวะก่อนลองใหม่
                             }
                         }
                         if (!sent) {
                             throw new Error('เขียนข้อมูลไปเครื่องพิมพ์ไม่สำเร็จที่ก้อนที่ ' + (i / chunkSize + 1) + ' จาก ' + Math.ceil(fullBuffer.length / chunkSize) + ': ' + describeError(lastErr));
                         }
-                        await new Promise(r => setTimeout(r, 30));
+                        await new Promise(r => setTimeout(r, 6));
                     }
 
-                    // หน่วงเวลาให้เครื่องพิมพ์พิมพ์ภาพให้เสร็จก่อนตัดสาย (ภาพข้อมูลเยอะกว่าข้อความ ใช้เวลานานกว่าเดิมเล็กน้อย)
-                    await new Promise(r => setTimeout(r, 900));
+                    // หน่วงเวลาให้เครื่องพิมพ์พิมพ์ข้อความให้เสร็จก่อนตัดสาย (ลดจาก 500ms เหลือ 250ms)
+                    await new Promise(r => setTimeout(r, 250));
                     alert("✅ พิมพ์ใบเสร็จเรียบร้อยแล้ว!");
                 } else {
                     alert("⚠️ เชื่อมต่อได้ แต่หาช่องสั่งพิมพ์ไม่พบ ให้ลองสั่งใหม่อีกครั้งครับ");
                 }
             } catch (err) {
                 console.log("Bluetooth Print Error/Fallback:", err);
-                // ถ้าพิมพ์พลาดกลางคันขณะกำลังส่งข้อมูลภาพ เครื่องพิมพ์อาจค้างอยู่กลางคำสั่งพิมพ์รูปภาพ
-                // ส่งคำสั่งรีเซ็ต (ESC @) ซ้ำแบบ best-effort เพื่อล้างสถานะไม่ให้พิมพ์มั่วในบิลถัดไป
+                // ถ้าพิมพ์พลาดกลางคัน เครื่องพิมพ์อาจค้างอยู่กลางคำสั่ง ส่งคำสั่งรีเซ็ต (ESC @) ซ้ำ
+                // แบบ best-effort เพื่อล้างสถานะไม่ให้พิมพ์มั่วในบิลถัดไป
                 if (window.btLastCharacteristic && device && device.gatt && device.gatt.connected) {
                     try {
                         const reset = new Uint8Array([0x1B, 0x40, 0x0A, 0x0A, 0x0A]);
@@ -807,14 +821,23 @@
             tbody.innerHTML = "";
 
             items.forEach(i => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="text-align:left;"></td>
-                    <td style="text-align:right;">${i.net.toFixed(2)} x ${i.price.toFixed(2)}</td>
+                const nameRow = document.createElement('tr');
+                const nameTd = document.createElement('td');
+                nameTd.colSpan = 3;
+                nameTd.style.textAlign = 'left';
+                nameTd.style.fontWeight = 'bold';
+                nameTd.style.paddingTop = '4px';
+                nameTd.textContent = i.name;
+                nameRow.appendChild(nameTd);
+                tbody.appendChild(nameRow);
+
+                const dataRow = document.createElement('tr');
+                dataRow.innerHTML = `
+                    <td style="text-align:left;">${i.net.toFixed(2)}</td>
+                    <td style="text-align:center;">${i.price.toFixed(2)}</td>
                     <td style="text-align:right; font-weight:bold;">${i.subtotal.toFixed(2)}</td>
                 `;
-                tr.children[0].textContent = i.name;
-                tbody.appendChild(tr);
+                tbody.appendChild(dataRow);
             });
 
             document.getElementById('receiptTotal').innerText = total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2}) + " บาท";
@@ -1016,6 +1039,7 @@
         document.getElementById('cfgLow').value = cfg.lowCashThreshold || 5000;
         document.getElementById('cfgLarge').value = cfg.largeBillThreshold || 10000;
         document.getElementById('cfgWebhook').value = cfg.webhookUrl || "";
+        document.getElementById('cfgNotifyEverySale').checked = !!cfg.notifyEverySale;
         document.getElementById('configModal').style.display = 'flex';
     }
     function closeModal() { document.getElementById('configModal').style.display = 'none'; }
@@ -1024,7 +1048,8 @@
             currentCash: parseFloat(document.getElementById('cfgCash').value) || 0,
             lowCashThreshold: parseFloat(document.getElementById('cfgLow').value) || 5000,
             largeBillThreshold: parseFloat(document.getElementById('cfgLarge').value) || 10000,
-            webhookUrl: document.getElementById('cfgWebhook').value.trim()
+            webhookUrl: document.getElementById('cfgWebhook').value.trim(),
+            notifyEverySale: document.getElementById('cfgNotifyEverySale').checked
         };
         window.posConfig = cfg;
         localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
