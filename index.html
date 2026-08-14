@@ -116,13 +116,13 @@
         .modal-box { background: white; padding: 22px; border-radius: 24px; width: 90%; max-width: 420px; }
 
         @media print {
-            @page { margin: 0; size: auto; }
+            @page { margin: 0; size: 58mm auto; }
             body * { visibility: hidden; }
             #receiptArea, #receiptArea * { visibility: visible; }
             #receiptArea {
-                position: absolute; left: 0; top: 0; width: 100%; max-width: 80mm;
-                padding: 10px; font-family: 'Prompt', monospace, sans-serif !important;
-                color: #000 !important; display: block !important;
+                position: absolute; left: 0; top: 0; width: 58mm; max-width: 58mm;
+                padding: 4px 6px; font-family: 'Prompt', monospace, sans-serif !important;
+                color: #000 !important; display: block !important; font-size: 10px;
             }
         }
     </style>
@@ -135,6 +135,7 @@
         <div class="cash-badge">💵 เก๊ะ: <span id="cashInDrawer">0.00</span> ฿</div>
         <div class="nav-actions">
             <button class="btn-tab active" id="btnTabPos" onclick="switchTab('pos')">🛒 หน้าขาย/รับซื้อ</button>
+            <button class="btn-tab" onclick="openAddProductModal()">➕ เพิ่มสินค้า</button>
             <button class="btn-tab" id="btnTabManager" onclick="authManager()">🔐 หลังบ้านผู้จัดการ</button>
         </div>
     </div>
@@ -150,22 +151,13 @@
                 <div class="product-grid" id="productGrid"></div>
             </div>
 
-            <!-- ส่วนเพิ่ม/ตั้งราคาสินค้า -->
+            <!-- ส่วนจัดการสินค้า (แก้ไข/ลบได้จากหน้านี้เลย ไม่ต้องผ่าน PIN ผู้จัดการ) -->
             <div class="panel">
                 <div class="panel-title">
-                    <span id="formTitleText">🏷️ เพิ่มรายการสินค้าใหม่</span>
-                    <div>
-                        <button id="cancelEditBtn" style="display:none; background:none; border:none; color:var(--apple-red); cursor:pointer; font-size:12px; font-weight:600;" onclick="clearProductForm()">✕ ยกเลิกแก้ไข</button>
-                    </div>
+                    <span>📋 จัดการสินค้า</span>
+                    <button class="btn-tab" style="padding:6px 12px;" onclick="openAddProductModal()">➕ เพิ่มสินค้าใหม่</button>
                 </div>
-                <input type="hidden" id="editingProdId" value="">
-                <div style="display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 6px; margin-bottom: 10px;">
-                    <input type="text" id="newProdName" placeholder="ชื่อสินค้า เช่น กระดาษลัง">
-                    <input type="number" id="newProdPrice" placeholder="ราคา/กก." step="any" inputmode="decimal">
-                    <input type="text" id="newProdImg" placeholder="URL รูปภาพ (เว้นว่างได้)">
-                    <button class="btn btn-add" style="padding:8px 14px;" id="saveProdBtn" type="button" onclick="saveProduct()">บันทึก</button>
-                </div>
-                <div style="max-height: 150px; overflow-y: auto;">
+                <div style="max-height: 220px; overflow-y: auto;">
                     <table class="cart-table">
                         <thead><tr><th>รูป</th><th>ชื่อสินค้า</th><th>ราคา/กก.</th><th>จัดการ</th></tr></thead>
                         <tbody id="managerProductTable"></tbody>
@@ -218,11 +210,6 @@
                 </table>
             </div>
 
-            <div class="print-option-box">
-                <input type="checkbox" id="includeHeaderToggle" checked>
-                <label for="includeHeaderToggle">🖨️ พิมพ์หัวใบเสร็จ (หจก.รุ่งนภา รีไซเคิล)</label>
-            </div>
-
             <div style="display:flex; justify-content:space-between; margin-top:14px; padding:12px; background:#f2f8ff; border-radius:14px; border:1px solid #cce5ff;">
                 <span style="font-weight:700; font-size:16px;">ยอดรวมทั้งสิ้น:</span>
                 <span id="grandTotal" style="color:var(--apple-blue); font-weight:800; font-size:20px;">0.00 ฿</span>
@@ -236,26 +223,32 @@
     <div id="managerSection" style="display: none;" class="panel">
         <div class="panel-title">
             <span>⚙️ สรุปรายงาน & ตั้งค่างบเก๊ะ (เฉพาะผู้จัดการ)</span>
-            <button class="btn-tab" onclick="openConfigModal()">ตั้งงบเก๊ะ & LINE Webhook</button>
+            <div style="display:flex; gap:6px;">
+                <button class="btn-tab" onclick="openDenomModal()">🧮 นับเงินตั้งแก๊ะ</button>
+                <button class="btn-tab" onclick="openConfigModal()">⚙️ ตั้งค่าอื่นๆ</button>
+            </div>
         </div>
 
         <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
             <button class="btn-tab active" id="btnRepDaily" onclick="loadReport('daily')">📅 สรุปรายวัน</button>
             <button class="btn-tab" id="btnRepMonthly" onclick="loadReport('monthly')">📅 สรุปรายเดือน</button>
             <button class="btn-tab" id="btnRepProduct" onclick="loadReport('product')">📦 สรุปแยกสินค้า</button>
+            <button class="btn-tab" id="btnRepAll" onclick="loadReport('all')">📋 รายการทั้งหมด</button>
         </div>
         <div id="reportResult" style="background:#f2f2f7; padding:14px; border-radius:14px; min-height:100px;">
             <p style="text-align: center; color: var(--apple-subtext);">กดเลือกเมนูด้านบนเพื่อเรียกดูรายงานสรุปยอด</p>
+        </div>
+        <div id="reportSendLineBox" style="display:none; margin-top:10px;">
+            <button class="btn btn-add" id="btnSendReportLine" type="button">📤 ส่งรายงานนี้ไปที่ LINE</button>
         </div>
     </div>
 </div>
 
 <!-- โครงสร้างใบเสร็จพิมพ์เบราว์เซอร์ปกติ (ใช้เมื่อไม่มี Web Bluetooth เช่น iOS) -->
 <div id="receiptArea" style="display:none;">
-    <div id="receiptHeaderBlock" style="text-align: center;">
-        <h3 style="margin: 0; font-size: 16px; font-weight: bold;">หจก.รุ่งนภา รีไซเคิล</h3>
-        <p style="margin: 2px 0 0 0; font-size: 10px; font-weight: bold;">RUNGNAPA RECYCLE Part.,Ltd.</p>
-        <p style="margin: 2px 0 10px 0; font-size: 11px;">ใบเสร็จรับซื้อขยะรีไซเคิล</p>
+    <div style="text-align: center;">
+        <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: bold;">ใบรับสินค้า</h3>
+        <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: bold;" id="receiptTicketNo"></p>
     </div>
 
     <div style="font-size: 11px; margin-bottom: 5px;" id="receiptDate"></div>
@@ -284,8 +277,8 @@
 <!-- Modal ตั้งค่า -->
 <div class="modal" id="configModal">
     <div class="modal-box">
-        <h3 style="margin-top:0;">⚙️ ตั้งค่างบเก๊ะเงินสด & เตือน LINE</h3>
-        <div class="field" style="margin-bottom:8px;"><label>งบเงินสดเริ่มต้นในเก๊ะ (บาท)</label><input type="number" id="cfgCash" step="any" inputmode="decimal"></div>
+        <h3 style="margin-top:0;">⚙️ ตั้งค่าแจ้งเตือน & เกณฑ์</h3>
+        <div class="field" style="margin-bottom:8px;"><label>ปรับยอดเงินสดปัจจุบันด้วยมือ (บาท)</label><input type="number" id="cfgCash" step="any" inputmode="decimal"></div>
         <div class="field" style="margin-bottom:8px;"><label>เตือนเงินในเก๊ะต่ำกว่า (บาท)</label><input type="number" id="cfgLow" step="any" inputmode="decimal"></div>
         <div class="field" style="margin-bottom:8px;"><label>เตือนบิลใหญ่เกินกว่า (บาท)</label><input type="number" id="cfgLarge" step="any" inputmode="decimal"></div>
         <div class="field" style="margin-bottom:8px;"><label>LINE Webhook URL (Make.com)</label><input type="text" id="cfgWebhook"></div>
@@ -298,13 +291,44 @@
     </div>
 </div>
 
+<!-- Modal นับเงินตั้งแก๊ะ แยกตามชนิดธนบัตร/เหรียญ -->
+<div class="modal" id="denomModal">
+    <div class="modal-box" style="max-width:380px;">
+        <h3 style="margin-top:0;">🧮 นับเงินตั้งแก๊ะ</h3>
+        <p style="font-size:12px; color:var(--apple-subtext); margin-top:-8px;">กรอกจำนวน "ใบ/เหรียญ" ของแต่ละชนิด ระบบคำนวณยอดรวมให้อัตโนมัติ ยอดนี้จะใช้เป็นเงินตั้งแก๊ะของวันถัดไปด้วย</p>
+        <div id="denomInputs" style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:12px;"></div>
+        <div class="subtotal-box">
+            <span style="font-weight:600; color:var(--apple-subtext);">ยอดรวมทั้งหมด</span>
+            <span class="subtotal-val" id="denomTotalText">0.00 ฿</span>
+        </div>
+        <button class="btn btn-add" onclick="saveDenomCount()">บันทึกเป็นยอดเงินตั้งแก๊ะ</button>
+        <button class="btn" style="background:#e5e5ea; color:#3a3a3c; margin-top:6px;" onclick="closeDenomModal()">ยกเลิก</button>
+    </div>
+</div>
+
+<!-- Modal เพิ่ม/แก้ไขสินค้า -->
+<div class="modal" id="productModal">
+    <div class="modal-box">
+        <h3 style="margin-top:0;" id="productModalTitle">🏷️ เพิ่มสินค้าใหม่</h3>
+        <input type="hidden" id="editingProdId" value="">
+        <div class="field" style="margin-bottom:8px;"><label>ชื่อสินค้า</label><input type="text" id="newProdName" placeholder="เช่น กระดาษลัง"></div>
+        <div class="field" style="margin-bottom:8px;"><label>ราคาซื้อ/กก. (บาท)</label><input type="number" id="newProdPrice" placeholder="0.00" step="any" inputmode="decimal"></div>
+        <div class="field" style="margin-bottom:15px;"><label>ลิงก์รูปภาพ (เว้นว่างได้)</label><input type="text" id="newProdImg" placeholder="https://..."></div>
+        <button class="btn btn-add" id="saveProdBtn" type="button" onclick="saveProduct()">บันทึก</button>
+        <button class="btn" style="background:#e5e5ea; color:#3a3a3c; margin-top:6px;" onclick="closeProductModal()">ยกเลิก</button>
+    </div>
+</div>
+
 <script>
     const STORAGE_KEYS = {
         products: 'rungnapa_products',
         drawerConfig: 'rungnapa_drawer_config',
-        salesHistory: 'rungnapa_sales_history'
+        salesHistory: 'rungnapa_sales_history',
+        ticketCounter: 'rungnapa_ticket_counter'
     };
-    const SALES_RETENTION_DAYS = 30;
+    // เก็บข้อมูลการขายไว้ "เดือนปัจจุบัน + เดือนก่อนหน้า" เท่านั้น พอครบเดือนก่อนหน้าจะถูกลบทิ้งอัตโนมัติ
+    // (เปลี่ยนจากเดิมที่นับเป็นจำนวนวันคงที่ มาเป็นตามรอบเดือนปฏิทินจริง ตามที่ขอ)
+    const RETENTION_MONTHS_BACK = 1;
 
     let currentProduct = null;
     let cart = [];
@@ -364,14 +388,30 @@
         localStorage.setItem(STORAGE_KEYS.salesHistory, JSON.stringify(records));
     }
 
+    // ลบข้อมูลการขายของเดือนที่ผ่านไปแล้วเกิน RETENTION_MONTHS_BACK เดือนทิ้งอัตโนมัติ
+    // เช่น ตอนนี้เดือน 8 จะเก็บของเดือน 7 กับ 8 ไว้ พอขึ้นเดือน 9 ข้อมูลเดือน 7 จะถูกลบทิ้ง
     function purgeOldSales() {
         const records = loadSalesHistory();
-        const cutoff = Date.now() - (SALES_RETENTION_DAYS * 24 * 60 * 60 * 1000);
-        const kept = records.filter(r => (r.timestamp || 0) >= cutoff);
+        const now = new Date();
+        const keepMonths = new Set();
+        for (let i = 0; i <= RETENTION_MONTHS_BACK; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            keepMonths.add(getLocalMonthString(d));
+        }
+        const kept = records.filter(r => keepMonths.has(r.month));
         if (kept.length !== records.length) {
             saveSalesHistory(kept);
         }
         return kept;
+    }
+
+    // ออกเลขที่ตั๋วใหม่แบบเรียงลำดับ ไม่ซ้ำ ใช้จับคู่ใบเสร็จกระดาษกับข้อมูลในระบบ
+    function getNextTicketNumber() {
+        let counter = parseInt(localStorage.getItem(STORAGE_KEYS.ticketCounter), 10);
+        if (isNaN(counter)) counter = 0;
+        counter += 1;
+        localStorage.setItem(STORAGE_KEYS.ticketCounter, String(counter));
+        return 'RN' + String(counter).padStart(6, '0');
     }
 
     function triggerHaptic() {
@@ -384,9 +424,51 @@
         window.scrollTo(0, 0);
     }
 
+    // ---------- ระบบรีเซ็ตเงินตั้งแก๊ะอัตโนมัติเวลา 23:55 ทุกวัน ----------
+    // ข้อจำกัด: เว็บนี้ไม่มีเซิร์ฟเวอร์เบื้องหลัง จึงรีเซ็ตได้ก็ต่อเมื่อเปิดแท็บนี้ค้างไว้ตอน 23:55 เท่านั้น
+    // ถ้าปิดแอปอยู่ตอนนั้น ระบบจะ "รีเซ็ตย้อนหลัง" ให้ทันทีที่เปิดแอปใหม่ในวันถัดไปแทน (catch-up)
+    function doCashReset(todayStr) {
+        const cfg = window.posConfig || {};
+        const opening = parseFloat(cfg.openingFloat) || 0;
+
+        // เก็บ log ยอดเงินก่อนรีเซ็ต ไว้ตรวจสอบย้อนหลังได้ (เก็บสูงสุด 60 รายการ ~ 2 เดือน)
+        try {
+            const logKey = 'rungnapa_drawer_log';
+            const raw = localStorage.getItem(logKey);
+            let log = [];
+            if (raw) { try { log = JSON.parse(raw) || []; } catch(e) { log = []; } }
+            log.push({ date: cfg.lastResetDate || todayStr, closingCash: parseFloat(cfg.currentCash) || 0, resetTo: opening, timestamp: Date.now() });
+            if (log.length > 60) log = log.slice(log.length - 60);
+            localStorage.setItem(logKey, JSON.stringify(log));
+        } catch(e) {}
+
+        cfg.currentCash = opening;
+        cfg.lastResetDate = todayStr;
+        window.posConfig = cfg;
+        localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
+        document.getElementById('cashInDrawer').innerText = opening.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    function checkDailyCashReset() {
+        const cfg = window.posConfig || {};
+        const now = new Date();
+        const todayStr = getLocalDateString(now);
+        if (cfg.lastResetDate === todayStr) return; // รีเซ็ตของวันนี้ไปแล้ว
+
+        const isResetTimeTonight = (now.getHours() === 23 && now.getMinutes() >= 55);
+        const missedPreviousReset = !!cfg.lastResetDate && cfg.lastResetDate !== todayStr && cfg.lastResetDate < todayStr;
+
+        // รีเซ็ตถ้า: (1) ตอนนี้คือ 23:55 เป็นต้นไปของวันนี้ หรือ (2) เปิดแอปมาแล้วพบว่าข้ามวันมาแล้วยังไม่เคยรีเซ็ต (catch-up)
+        if (isResetTimeTonight || missedPreviousReset) {
+            doCashReset(todayStr);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         loadDrawerConfig();
         purgeOldSales();
+        checkDailyCashReset();
+        setInterval(checkDailyCashReset, 60 * 1000); // เช็คทุก 1 นาที เผื่อแท็บเปิดค้างจนถึง 23:55
         renderProducts();
         renderManagerProducts();
     });
@@ -536,6 +618,7 @@
             const now = new Date();
             const today = getLocalDateString(now);
             const month = getLocalMonthString(now);
+            const ticketNo = getNextTicketNumber(); // เลขที่ตั๋ว ตรงกันทั้งบนกระดาษและในระบบ ใช้ตรวจสอบย้อนหลังได้
 
             window.posConfig.currentCash = currentCash;
             localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(window.posConfig));
@@ -543,7 +626,7 @@
 
             const salesRecords = loadSalesHistory();
             salesRecords.push({
-                timestamp: Date.now(), date: today, month: month, total, items: printItems
+                ticketNo, timestamp: Date.now(), date: today, month: month, total, items: printItems
             });
             saveSalesHistory(salesRecords);
             purgeOldSales();
@@ -556,10 +639,10 @@
 
             let alerts = [];
             if (config.notifyEverySale) {
-                alerts.push(`🧾 **บิลใหม่**\n${itemSummary}\nยอดรวม: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
+                alerts.push(`🧾 **บิลใหม่ #${ticketNo}**\n${itemSummary}\nยอดรวม: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
             }
             if (total >= (parseFloat(config.largeBillThreshold) || 10000)) {
-                alerts.push(`🚨 **แจ้งเตือนบิลจ่ายใหญ่!**\n${itemSummary}\nยอดจ่ายรับซื้อ: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
+                alerts.push(`🚨 **แจ้งเตือนบิลจ่ายใหญ่! #${ticketNo}**\n${itemSummary}\nยอดจ่ายรับซื้อ: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
             }
             if (currentCash <= (parseFloat(config.lowCashThreshold) || 5000)) {
                 alerts.push(`⚠️ **เตือนเงินสดในลิ้นชักใกล้หมด!**\nเงินคงเหลือในเก๊ะ: ${currentCash.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
@@ -570,8 +653,7 @@
                 sendLineNotification(config.webhookUrl, msg);
             }
 
-            const includeHeader = document.getElementById('includeHeaderToggle').checked;
-            await printReceipt(printItems, total, includeHeader);
+            await printReceipt(printItems, total, ticketNo);
 
             cart = [];
             renderCart();
@@ -610,18 +692,16 @@
         return new Uint8Array(bytes);
     }
 
-    function buildReceiptText(items, total, includeHeader) {
+    function buildReceiptText(items, total, ticketNo) {
         const LINE_WIDTH = 32; // เครื่องพิมพ์ 58mm ฟอนต์ default 12x24 พิมพ์ได้ประมาณ 32 ตัวอักษร/บรรทัด
         let t = "";
         t += "\x1B\x40"; // ESC @ รีเซ็ตเครื่องพิมพ์เท่านั้น — ไม่สั่งเปลี่ยน code page/Kanji
 
-        if (includeHeader) {
-            t += "\x1B\x61\x01"; // จัดกึ่งกลาง
-            t += "หจก.รุ่งนภา รีไซเคิล\n";
-            t += "RUNGNAPA RECYCLE Part.,Ltd.\n";
-            t += "ใบเสร็จรับซื้อขยะรีไซเคิล\n";
-            t += "\x1B\x61\x00"; // กลับมาชิดซ้าย
-        }
+        // หัวกระดาษย่อให้เหลือแค่ชื่อเอกสาร + เลขที่ตั๋ว ประหยัดกระดาษกว่าหัวกระดาษเดิมที่มีชื่อร้าน 3 บรรทัด
+        t += "\x1B\x61\x01"; // จัดกึ่งกลาง
+        t += "ใบรับสินค้า\n";
+        t += "เลขที่: " + ticketNo + "\n";
+        t += "\x1B\x61\x00"; // กลับมาชิดซ้าย
 
         t += "-".repeat(LINE_WIDTH) + "\n";
         t += "วันที่: " + new Date().toLocaleString('th-TH') + "\n";
@@ -648,10 +728,7 @@
         const totalSpaces = Math.max(1, LINE_WIDTH - totalLabel.length - totalValue.length);
         t += totalLabel + ' '.repeat(totalSpaces) + totalValue + "\n";
         t += "-".repeat(LINE_WIDTH) + "\n";
-        t += "\x1B\x61\x01"; // จัดกึ่งกลาง
-        t += "ขอบคุณที่ใช้บริการ\n";
-        t += "\x1B\x61\x00";
-        t += "\n\n\n"; // เว้นบรรทัดท้ายก่อนตัดกระดาษ
+        t += "\n\n"; // เว้นบรรทัดท้ายก่อนตัดกระดาษ (ลดจาก 3 บรรทัดเหลือ 2 บรรทัด ประหยัดกระดาษ)
 
         return t;
     }
@@ -691,11 +768,11 @@
         return 'ไม่ทราบสาเหตุ (เบราว์เซอร์ไม่ได้ส่งรายละเอียด error กลับมา)';
     }
 
-    async function printReceipt(items, total, includeHeader) {
+    async function printReceipt(items, total, ticketNo) {
         if (navigator.bluetooth) {
             let device = null;
             try {
-                const receiptText = buildReceiptText(items, total, includeHeader);
+                const receiptText = buildReceiptText(items, total, ticketNo);
                 const fullBuffer = encodeThaiCP874(receiptText);
 
                 device = await navigator.bluetooth.requestDevice({
@@ -813,9 +890,7 @@
             }
         } else {
             // ระบบพิมพ์สำรองกรณีเบราว์เซอร์ไม่รองรับ Web Bluetooth (เช่น Safari/iOS)
-            const headerBlock = document.getElementById('receiptHeaderBlock');
-            headerBlock.style.display = includeHeader ? "block" : "none";
-
+            document.getElementById('receiptTicketNo').innerText = "เลขที่: " + ticketNo;
             document.getElementById('receiptDate').innerText = "วันที่: " + new Date().toLocaleString('th-TH');
             const tbody = document.getElementById('receiptTableBody');
             tbody.innerHTML = "";
@@ -849,21 +924,27 @@
         document.getElementById('btnRepDaily').classList.remove('active');
         document.getElementById('btnRepMonthly').classList.remove('active');
         document.getElementById('btnRepProduct').classList.remove('active');
+        document.getElementById('btnRepAll').classList.remove('active');
 
         if(type==='daily') document.getElementById('btnRepDaily').classList.add('active');
         if(type==='monthly') document.getElementById('btnRepMonthly').classList.add('active');
         if(type==='product') document.getElementById('btnRepProduct').classList.add('active');
+        if(type==='all') document.getElementById('btnRepAll').classList.add('active');
 
         const resultDiv = document.getElementById('reportResult');
+        const lineBox = document.getElementById('reportSendLineBox');
         const records = purgeOldSales();
+        window.lastReportText = null; // เคลียร์ก่อนทุกครั้ง กันส่งรายงานเก่าซ้ำ
+        lineBox.style.display = 'none';
 
         if (records.length === 0) {
-            resultDiv.innerHTML = "<p style='text-align:center;'>ยังไม่มีประวัติการรับซื้อ (เก็บย้อนหลังได้ไม่เกิน " + SALES_RETENTION_DAYS + " วัน)</p>";
+            resultDiv.innerHTML = "<p style='text-align:center;'>ยังไม่มีประวัติการรับซื้อ (เก็บย้อนหลังไว้ " + (RETENTION_MONTHS_BACK + 1) + " เดือนล่าสุด)</p>";
             return;
         }
 
         const today = getLocalDateString();
         let html = "";
+        let reportText = "";
 
         if (type === 'daily') {
             const todayRecords = records.filter(r => r.date === today);
@@ -871,6 +952,7 @@
             html = `<b>📅 สรุปยอดจ่ายซื้อประจำวันนี้ (${today}):</b>
                     <h2 style="color:var(--apple-green); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</h2>
                     <p style="margin:0; font-size:13px; color:var(--apple-subtext);">จำนวนบิลทั้งหมด: ${todayRecords.length} บิล</p>`;
+            reportText = `📅 สรุปยอดจ่ายซื้อประจำวันนี้ (${today})\nยอดรวม: ${sum.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท\nจำนวนบิล: ${todayRecords.length} บิล`;
         } else if (type === 'monthly') {
             const month = getLocalMonthString();
             const monthRecords = records.filter(r => r.month === month);
@@ -878,7 +960,8 @@
             html = `<b>📅 สรุปยอดจ่ายซื้อประจำเดือนนี้ (${month}):</b>
                     <h2 style="color:var(--apple-blue); margin:8px 0;">${sum.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} ฿</h2>
                     <p style="margin:0; font-size:13px; color:var(--apple-subtext);">จำนวนบิลทั้งหมด: ${monthRecords.length} บิล</p>
-                    <p style="margin:6px 0 0 0; font-size:12px; color:var(--apple-subtext);">⚠️ เก็บประวัติย้อนหลังได้สูงสุด ${SALES_RETENTION_DAYS} วัน บิลเก่ากว่านี้จะถูกลบอัตโนมัติ</p>`;
+                    <p style="margin:6px 0 0 0; font-size:12px; color:var(--apple-subtext);">⚠️ เก็บประวัติย้อนหลังไว้ ${RETENTION_MONTHS_BACK + 1} เดือนล่าสุด เดือนเก่ากว่านี้จะถูกลบอัตโนมัติ</p>`;
+            reportText = `📅 สรุปยอดจ่ายซื้อประจำเดือนนี้ (${month})\nยอดรวม: ${sum.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท\nจำนวนบิล: ${monthRecords.length} บิล`;
         } else if (type === 'product') {
             let prodSummary = {};
             records.forEach(r => {
@@ -893,6 +976,7 @@
             table.className = 'cart-table';
             table.style.marginTop = '8px';
             table.innerHTML = `<tr><th>สินค้า</th><th>น้ำหนักรวม (กก.)</th><th>ยอดเงินรวม (บาท)</th></tr>`;
+            const textLines = ['📦 สรุปยอดรับซื้อสะสม แยกตามประเภทสินค้า:'];
             for (let p in prodSummary) {
                 const tr = document.createElement('tr');
                 const tdName = document.createElement('td');
@@ -903,13 +987,90 @@
                 tdTotal.textContent = prodSummary[p].total.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 tr.appendChild(tdName); tr.appendChild(tdWeight); tr.appendChild(tdTotal);
                 table.appendChild(tr);
+                textLines.push(`• ${p}: ${prodSummary[p].weight.toFixed(2)}กก. = ${prodSummary[p].total.toFixed(2)}฿`);
             }
-            resultDiv.innerHTML = `<b>📦 สรุปยอดรับซื้อสะสม แยกตามประเภทสินค้า (ย้อนหลัง ${SALES_RETENTION_DAYS} วัน):</b>`;
+            resultDiv.innerHTML = `<b>📦 สรุปยอดรับซื้อสะสม แยกตามประเภทสินค้า (ย้อนหลัง ${RETENTION_MONTHS_BACK + 1} เดือน):</b>`;
             resultDiv.appendChild(table);
+            window.lastReportText = textLines.join('\n');
+            lineBox.style.display = 'block';
+            return;
+        } else if (type === 'all') {
+            const sorted = [...records].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, 100);
+            const table = document.createElement('table');
+            table.className = 'cart-table';
+            table.style.marginTop = '8px';
+            table.innerHTML = `<tr><th>เลขที่</th><th>วันที่</th><th>ยอดรวม</th><th></th></tr>`;
+            const textLines = ['📋 รายการซื้อทั้งหมด (ล่าสุด ' + sorted.length + ' บิล):'];
+            sorted.forEach(r => {
+                const tr = document.createElement('tr');
+                const tdTicket = document.createElement('td');
+                tdTicket.textContent = r.ticketNo || '-';
+                const tdDate = document.createElement('td');
+                tdDate.textContent = new Date(r.timestamp || 0).toLocaleString('th-TH');
+                const tdTotal = document.createElement('td');
+                tdTotal.textContent = (r.total || 0).toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+                // ปุ่มพิมพ์ซ้ำ ใช้ออกใบเสร็จย้อนหลังตามเลขที่ตั๋วเดิม (ไม่ออกเลขใหม่)
+                const tdAction = document.createElement('td');
+                const reprintBtn = document.createElement('button');
+                reprintBtn.textContent = '🖨️';
+                reprintBtn.title = 'พิมพ์ซ้ำ';
+                reprintBtn.style.cssText = 'background:none;border:none;cursor:pointer;font-size:15px;';
+                reprintBtn.addEventListener('click', () => {
+                    if (confirm('พิมพ์ใบรับสินค้าซ้ำ เลขที่ ' + (r.ticketNo || '-') + ' ?')) {
+                        printReceipt(r.items || [], r.total || 0, r.ticketNo || '-');
+                    }
+                });
+                tdAction.appendChild(reprintBtn);
+
+                tr.appendChild(tdTicket); tr.appendChild(tdDate); tr.appendChild(tdTotal); tr.appendChild(tdAction);
+                table.appendChild(tr);
+                textLines.push(`#${r.ticketNo || '-'} ${new Date(r.timestamp || 0).toLocaleString('th-TH')} — ${(r.total || 0).toFixed(2)}฿`);
+            });
+            resultDiv.innerHTML = `<b>📋 รายการซื้อทั้งหมด (แสดงล่าสุด ${sorted.length} บิล จากทั้งหมด ${records.length} บิล):</b>`;
+            resultDiv.appendChild(table);
+            window.lastReportText = textLines.join('\n');
+            lineBox.style.display = 'block';
             return;
         }
         resultDiv.innerHTML = html;
+        window.lastReportText = reportText;
+        lineBox.style.display = 'block';
     }
+
+    // ส่งรายงานที่กำลังแสดงอยู่ในหน้าจอ (window.lastReportText) ไปที่ LINE ผ่าน webhook
+    async function sendCurrentReportToLine() {
+        const config = window.posConfig || {};
+        if (!config.webhookUrl) {
+            alert('⚠️ ยังไม่ได้ตั้งค่า LINE Webhook URL กรุณาไปที่ "⚙️ ตั้งค่าอื่นๆ" เพื่อกรอกก่อน');
+            return;
+        }
+        if (!window.lastReportText) {
+            alert('⚠️ ไม่มีรายงานให้ส่ง กรุณากดเลือกเมนูรายงานก่อน');
+            return;
+        }
+        const btn = document.getElementById('btnSendReportLine');
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = '⏳ กำลังส่ง...';
+        const ok = await sendLineNotification(config.webhookUrl, window.lastReportText);
+        btn.disabled = false;
+        btn.innerText = originalText;
+        alert(ok ? '✅ ส่งรายงานไปที่ LINE เรียบร้อยแล้ว' : '❌ ส่งรายงานไม่สำเร็จ ลองใหม่อีกครั้ง');
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('btnSendReportLine');
+        if (btn) btn.addEventListener('click', sendCurrentReportToLine);
+
+        // แตะพื้นหลังนอกกล่องเพื่อปิดโมดัล (สะดวกกว่าต้องกดปุ่มยกเลิกอย่างเดียวบนมือถือ)
+        ['configModal', 'denomModal', 'productModal'].forEach(id => {
+            const modal = document.getElementById(id);
+            if (!modal) return;
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.style.display = 'none';
+            });
+        });
+    });
 
     function renderManagerProducts() {
         const tbody = document.getElementById('managerProductTable');
@@ -951,17 +1112,26 @@
         });
     }
 
+    function openAddProductModal() {
+        clearProductForm();
+        document.getElementById('productModal').style.display = 'flex';
+    }
+
+    function closeProductModal() {
+        document.getElementById('productModal').style.display = 'none';
+    }
+
     function editProd(id, name, price, img) {
         document.getElementById('editingProdId').value = id;
         document.getElementById('newProdName').value = name;
         document.getElementById('newProdPrice').value = price;
         document.getElementById('newProdImg').value = img;
 
-        document.getElementById('formTitleText').innerText = "✏️ แก้ไขรายการสินค้า";
+        document.getElementById('productModalTitle').innerText = "✏️ แก้ไขรายการสินค้า";
         const saveBtn = document.getElementById('saveProdBtn');
         saveBtn.innerText = "อัปเดต";
         saveBtn.className = "btn btn-update";
-        document.getElementById('cancelEditBtn').style.display = "inline-block";
+        document.getElementById('productModal').style.display = 'flex';
     }
 
     function clearProductForm() {
@@ -970,11 +1140,10 @@
         document.getElementById('newProdPrice').value = "";
         document.getElementById('newProdImg').value = "";
 
-        document.getElementById('formTitleText').innerText = "🏷️ เพิ่มรายการสินค้าใหม่";
+        document.getElementById('productModalTitle').innerText = "🏷️ เพิ่มสินค้าใหม่";
         const saveBtn = document.getElementById('saveProdBtn');
         saveBtn.innerText = "บันทึก";
         saveBtn.className = "btn btn-add";
-        document.getElementById('cancelEditBtn').style.display = "none";
     }
 
     function saveProduct() {
@@ -1013,6 +1182,7 @@
         renderManagerProducts();
 
         clearProductForm();
+        closeProductModal();
         alert('✅ บันทึกรายการสินค้าเรียบร้อยแล้ว!');
     }
 
@@ -1033,6 +1203,79 @@
         }
     }
 
+    // ---------- นับเงินตั้งแก๊ะแยกตามชนิดธนบัตร/เหรียญ ----------
+    const DENOMINATIONS = [1, 2, 5, 10, 20, 50, 100, 500, 1000];
+
+    function generateDenomInputs() {
+        const container = document.getElementById('denomInputs');
+        if (!container || container.childElementCount > 0) return; // สร้างครั้งเดียวพอ
+        DENOMINATIONS.forEach(d => {
+            const wrap = document.createElement('div');
+            wrap.className = 'field';
+            const label = document.createElement('label');
+            label.textContent = d.toLocaleString('th-TH') + ' บาท';
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = '0';
+            input.step = '1';
+            input.inputMode = 'numeric';
+            input.placeholder = '0';
+            input.id = 'denom_' + d;
+            input.addEventListener('input', updateDenomTotal);
+            wrap.appendChild(label);
+            wrap.appendChild(input);
+            container.appendChild(wrap);
+        });
+    }
+
+    function updateDenomTotal() {
+        let total = 0;
+        DENOMINATIONS.forEach(d => {
+            const el = document.getElementById('denom_' + d);
+            const count = parseInt(el.value, 10) || 0;
+            total += count * d;
+        });
+        document.getElementById('denomTotalText').innerText = total.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ฿';
+        return total;
+    }
+
+    function openDenomModal() {
+        generateDenomInputs();
+        // โหลดค่านับเงินที่บันทึกไว้ล่าสุด (ถ้ามี) มาแสดงในช่องกรอก
+        const cfg = window.posConfig || {};
+        const savedCounts = cfg.denomCounts || {};
+        DENOMINATIONS.forEach(d => {
+            const el = document.getElementById('denom_' + d);
+            if (el) el.value = savedCounts[d] || '';
+        });
+        updateDenomTotal();
+        document.getElementById('denomModal').style.display = 'flex';
+    }
+
+    function closeDenomModal() {
+        document.getElementById('denomModal').style.display = 'none';
+    }
+
+    function saveDenomCount() {
+        const total = updateDenomTotal();
+        const counts = {};
+        DENOMINATIONS.forEach(d => {
+            const el = document.getElementById('denom_' + d);
+            counts[d] = parseInt(el.value, 10) || 0;
+        });
+
+        const cfg = window.posConfig || {};
+        cfg.currentCash = total;   // ปรับยอดเงินสดปัจจุบันทันที
+        cfg.openingFloat = total;  // ใช้เป็นยอดเริ่มต้นสำหรับรีเซ็ตประจำวันถัดไปด้วย
+        cfg.denomCounts = counts;
+        window.posConfig = cfg;
+        localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
+        document.getElementById('cashInDrawer').innerText = total.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        alert('✅ บันทึกยอดนับเงินตั้งแก๊ะเรียบร้อยแล้ว: ' + total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ฿');
+        closeDenomModal();
+    }
+
     function openConfigModal() {
         const cfg = window.posConfig || {};
         document.getElementById('cfgCash').value = cfg.currentCash || 0;
@@ -1044,13 +1287,15 @@
     }
     function closeModal() { document.getElementById('configModal').style.display = 'none'; }
     function saveConfig() {
-        const cfg = {
+        // รวมกับค่าที่มีอยู่เดิม (openingFloat/denomCounts/lastResetDate ที่มาจากโมดัลนับเงินตั้งแก๊ะ)
+        // ไม่ใช่เขียนทับทั้งก้อน ไม่งั้นค่าที่บันทึกไว้จากที่อื่นจะหายไป
+        const cfg = Object.assign({}, window.posConfig || {}, {
             currentCash: parseFloat(document.getElementById('cfgCash').value) || 0,
             lowCashThreshold: parseFloat(document.getElementById('cfgLow').value) || 5000,
             largeBillThreshold: parseFloat(document.getElementById('cfgLarge').value) || 10000,
             webhookUrl: document.getElementById('cfgWebhook').value.trim(),
             notifyEverySale: document.getElementById('cfgNotifyEverySale').checked
-        };
+        });
         window.posConfig = cfg;
         localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
         document.getElementById('cashInDrawer').innerText = cfg.currentCash.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
