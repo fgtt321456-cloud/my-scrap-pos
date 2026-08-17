@@ -48,7 +48,7 @@
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            padding: 12px 18px; border-radius: 18px;
+            padding: 10px 14px; border-radius: 18px; flex-wrap: wrap; gap: 8px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 0.5px solid rgba(0,0,0,0.1); margin-bottom: 12px;
         }
         .brand { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
@@ -58,7 +58,7 @@
         .btn-tab { border: none; padding: 8px 14px; border-radius: 12px; font-weight: 600; cursor: pointer; background: #e5e5ea; color: #3a3a3c; font-size: 13px; transition: all 0.2s; }
         .btn-tab.active { background: var(--apple-blue); color: white; }
 
-        .pos-layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 12px; }
+        .pos-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
         @media (max-width: 850px) { .pos-layout { grid-template-columns: 1fr; } }
 
         .panel {
@@ -69,8 +69,8 @@
         .panel-title { font-size: 14px; font-weight: 600; color: var(--apple-subtext); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 
         .product-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px;
-            max-height: 520px; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 2px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 10px;
+            max-height: 62vh; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 2px;
         }
         .prod-card {
             background: #fff; border: 1.5px solid #e5e5ea; border-radius: 16px; padding: 10px;
@@ -78,9 +78,9 @@
         }
         .prod-card:active { transform: scale(0.96); }
         .prod-card.selected { border-color: var(--apple-blue); background: #f2f8ff; box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15); }
-        .prod-img { width: 100%; height: 70px; object-fit: cover; border-radius: 10px; margin-bottom: 4px; pointer-events: none; }
-        .prod-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
-        .prod-price { font-size: 13px; font-weight: 700; color: var(--apple-blue); pointer-events: none; }
+        .prod-img { width: 100%; height: 82px; object-fit: cover; border-radius: 10px; margin-bottom: 6px; pointer-events: none; }
+        .prod-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+        .prod-price { font-size: 15px; font-weight: 800; color: var(--apple-blue); pointer-events: none; margin-top: 2px; }
 
         .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
         .field { display: flex; flex-direction: column; gap: 3px; }
@@ -102,7 +102,7 @@
         .btn:active { opacity: 0.7; }
         .btn-add { background: var(--apple-blue); color: white; }
         .btn-update { background: var(--apple-orange); color: white; }
-        .btn-pay { background: var(--apple-green); color: white; font-size: 16px; padding: 14px; margin-top: 10px; }
+        .btn-pay { background: var(--apple-green); color: white; font-size: 18px; padding: 16px; margin-top: 10px; box-shadow: 0 4px 14px rgba(52,199,89,0.3); }
 
         .cart-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
         .cart-table th { text-align: left; padding: 6px 8px; color: var(--apple-subtext); border-bottom: 0.5px solid var(--apple-border); }
@@ -173,35 +173,21 @@
         <div class="cash-badge" id="staffBadge" style="background:#f0f0f5; color:#3a3a3c; cursor:pointer;" onclick="promptStaffName()">👤 <span id="staffNameText">ยังไม่ระบุ</span></div>
         <div class="cash-badge" id="printerBadge" style="background:#f0f0f5; color:#8e8e93; cursor:pointer;" onclick="connectPrinterPersistent()">🖨️ <span id="printerStatusText">ยังไม่เชื่อม</span></div>
         <div class="nav-actions">
-            <button class="btn-tab active" id="btnTabPos" onclick="switchTab('pos')">🛒 หน้าขาย/รับซื้อ</button>
-            <button class="btn-tab" onclick="openAddProductModal()">➕ เพิ่มสินค้า</button>
-            <button class="btn-tab" id="btnTabManager" onclick="authManager()">🔐 หลังบ้านผู้จัดการ</button>
+            <button class="btn-tab active" id="btnTabPos" onclick="switchTab('pos')">🛒 หน้าขาย</button>
+            <button class="btn-tab" id="btnTabProducts" onclick="switchTab('products')">📋 จัดการสินค้า</button>
+            <button class="btn-tab" id="btnTabManager" onclick="authManager()">🔐 หลังบ้าน</button>
         </div>
     </div>
 
-    <!-- Layout หน้าหลัก (POS) -->
+    <!-- Layout หน้าหลัก (POS) — เหลือแค่ 2 ส่วน: เลือกสินค้า + คำนวณน้ำหนัก -->
     <div id="posSection" class="pos-layout">
         <div>
             <div class="panel">
                 <div class="panel-title">
-                    <span>📦 เลือกสินค้า (ด้านซ้าย)</span>
+                    <span>📦 เลือกสินค้า</span>
                     <span style="font-size: 12px; color: var(--apple-blue); font-weight: 700;" id="selectedProdNameText">กรุณาเลือกสินค้า</span>
                 </div>
                 <div class="product-grid" id="productGrid"></div>
-            </div>
-
-            <!-- ส่วนจัดการสินค้า (แก้ไข/ลบได้จากหน้านี้เลย ไม่ต้องผ่าน PIN ผู้จัดการ) -->
-            <div class="panel">
-                <div class="panel-title">
-                    <span>📋 จัดการสินค้า</span>
-                    <button class="btn-tab" style="padding:6px 12px;" onclick="openAddProductModal()">➕ เพิ่มสินค้าใหม่</button>
-                </div>
-                <div style="max-height: 220px; overflow-y: auto;">
-                    <table class="cart-table">
-                        <thead><tr><th>รูป</th><th>ชื่อสินค้า</th><th>ราคา/กก.</th><th>จัดการ</th></tr></thead>
-                        <tbody id="managerProductTable"></tbody>
-                    </table>
-                </div>
             </div>
         </div>
 
@@ -260,6 +246,21 @@
             </div>
 
             <button class="btn btn-pay" type="button" onclick="triggerHaptic(); processPayment();">💵 จ่ายเงิน & พิมพ์ใบเสร็จ</button>
+        </div>
+    </div>
+
+    <!-- Layout จัดการสินค้า (แท็บแยก ไม่รกหน้าขาย) -->
+    <div id="productsSection" style="display: none;" class="panel">
+        <div class="panel-title">
+            <span>📋 จัดการรายการสินค้า</span>
+            <button class="btn-tab" style="background:var(--apple-blue); color:#fff;" onclick="openAddProductModal()">➕ เพิ่มสินค้าใหม่</button>
+        </div>
+        <p style="font-size:12px; color:var(--apple-subtext); margin-top:-4px;">แตะ "แก้ไข" เพื่อเปลี่ยนชื่อ ราคา หรือรูปภาพ · ราคาที่แก้จะมีผลกับบิลถัดไปทันที</p>
+        <div style="max-height: 60vh; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+            <table class="cart-table">
+                <thead><tr><th>รูป</th><th>ชื่อสินค้า</th><th class="text-right">ราคา/กก.</th><th></th></tr></thead>
+                <tbody id="managerProductTable"></tbody>
+            </table>
         </div>
     </div>
 
@@ -389,8 +390,8 @@
             <label for="cfgNotifyEverySale">🔔 แจ้งเตือนทุกบิลที่ขาย (ไม่ใช่แค่บิลใหญ่/เงินใกล้หมด)</label>
         </div>
         <div class="print-option-box" style="margin-top:0; margin-bottom:15px;">
-            <input type="checkbox" id="cfgSmallFont" checked>
-            <label for="cfgSmallFont">🖨️ ใช้ตัวอักษรเล็ก (ประหยัดกระดาษ) — ปิดถ้าอ่านยาก</label>
+            <input type="checkbox" id="cfgTightLines" checked>
+            <label for="cfgTightLines">🖨️ บีบบรรทัดให้ชิด (ประหยัดกระดาษ ~20%)</label>
         </div>
         <button class="btn btn-add" onclick="saveConfig()">บันทึกการตั้งค่า</button>
         <button class="btn" style="background:#e5e5ea; color:#3a3a3c; margin-top:6px;" onclick="closeModal()">ยกเลิก</button>
@@ -806,17 +807,25 @@
     }
 
     function switchTab(tab) {
-        document.getElementById('btnTabPos').classList.remove('active');
-        document.getElementById('btnTabManager').classList.remove('active');
+        // ปิดทุกแท็บก่อน แล้วค่อยเปิดเฉพาะแท็บที่เลือก
+        ['btnTabPos', 'btnTabProducts', 'btnTabManager'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('active');
+        });
+        document.getElementById('posSection').style.display = 'none';
+        document.getElementById('productsSection').style.display = 'none';
+        document.getElementById('managerSection').style.display = 'none';
 
-        if (tab === 'pos') {
+        if (tab === 'products') {
+            document.getElementById('btnTabProducts').classList.add('active');
+            document.getElementById('productsSection').style.display = 'block';
+            renderManagerProducts(); // โหลดรายการล่าสุดทุกครั้งที่เข้าแท็บ
+        } else if (tab === 'manager') {
+            document.getElementById('btnTabManager').classList.add('active');
+            document.getElementById('managerSection').style.display = 'block';
+        } else {
             document.getElementById('btnTabPos').classList.add('active');
             document.getElementById('posSection').style.display = 'grid';
-            document.getElementById('managerSection').style.display = 'none';
-        } else {
-            document.getElementById('btnTabManager').classList.add('active');
-            document.getElementById('posSection').style.display = 'none';
-            document.getElementById('managerSection').style.display = 'block';
         }
     }
 
@@ -1028,15 +1037,18 @@
 
     function buildReceiptText(items, total, ticketNo, extra) {
         const cfg = window.posConfig || {};
-        // ฟอนต์ B (9x17) เล็กกว่าฟอนต์ A (12x24) ราวครึ่งหนึ่ง ทำให้ใบเสร็จสั้นลงมาก ประหยัดกระดาษ
-        // และพิมพ์ได้ 42 ตัวอักษร/บรรทัด แทน 32 ตัว จึงจัดคอลัมน์ได้สวยขึ้นด้วย
-        // ถ้าเครื่องพิมพ์แสดงภาษาไทยในฟอนต์ B ไม่สวย สามารถปิดได้ที่ตั้งค่า (useSmallFont = false)
-        const useSmallFont = cfg.useSmallFont !== false; // ค่าเริ่มต้นคือเปิด
-        const LINE_WIDTH = useSmallFont ? 42 : 32;
+        // ⚠️ สำคัญ: ต้องใช้ฟอนต์ A (12x24) เท่านั้น
+        // ฟอนต์ B (9x17) ที่เคยใช้เพื่อประหยัดกระดาษ ไม่รองรับการวางสระบน/ล่างและวรรณยุกต์ไทย
+        // ทำให้ "ใบรับสินค้า" พิมพ์ออกมาเป็น "ไ หร,นล,พค,า" — สระหายหมด
+        // จึงประหยัดกระดาษด้วยการ "บีบระยะห่างระหว่างบรรทัด" (ESC 3 n) แทน ซึ่งไม่กระทบตัวอักษร
+        const LINE_WIDTH = 32; // ฟอนต์ A พิมพ์ได้ 32 ตัวอักษร/บรรทัดบนกระดาษ 58mm
+        const tightLines = cfg.tightLineSpacing !== false; // ค่าเริ่มต้นคือเปิด (บีบบรรทัด)
 
         let t = "";
         t += "\x1B\x40"; // ESC @ รีเซ็ตเครื่องพิมพ์เท่านั้น — ไม่สั่งเปลี่ยน code page/Kanji
-        t += useSmallFont ? "\x1B\x4D\x01" : "\x1B\x4D\x00"; // ESC M n : เลือกฟอนต์ B (เล็ก) หรือ A (ปกติ)
+        t += "\x1B\x4D\x00"; // ESC M 0 : ใช้ฟอนต์ A เสมอ (รองรับสระ/วรรณยุกต์ไทยถูกต้อง)
+        // ESC 3 n : ตั้งระยะห่างบรรทัดเป็น n จุด (ค่าปกติคือ 30-34) ลดเหลือ 26 ประหยัดกระดาษราว 20%
+        if (tightLines) t += "\x1B\x33\x1A";
 
         // หัวกระดาษย่อให้เหลือแค่ชื่อเอกสาร + เลขที่ตั๋ว ประหยัดกระดาษกว่าหัวกระดาษเดิมที่มีชื่อร้าน 3 บรรทัด
         t += "\x1B\x61\x01"; // จัดกึ่งกลาง
@@ -2016,33 +2028,47 @@
         const tbody = document.getElementById('managerProductTable');
         if(!tbody) return;
         tbody.innerHTML = "";
+
+        if (!window.productList.length) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = '<td colspan="4" style="text-align:center; color:var(--apple-subtext); padding:24px 8px;">ยังไม่มีรายการสินค้า<br>กดปุ่ม "➕ เพิ่มสินค้าใหม่" ด้านบนเพื่อเริ่มต้น</td>';
+            tbody.appendChild(tr);
+            return;
+        }
+
         window.productList.forEach(p => {
             const price = parseFloat(p.price) || 0;
             const tr = document.createElement('tr');
 
             const tdImg = document.createElement('td');
             const img = document.createElement('img');
-            img.src = p.img; img.width = 30; img.height = 30;
-            img.style.objectFit = 'cover'; img.style.borderRadius = '6px';
-            img.onerror = function(){ this.onerror = null; this.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2230%22 height=%2230%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23e5e5ea%22/%3E%3C/svg%3E'; };
+            img.src = p.img; img.width = 44; img.height = 44;
+            img.style.cssText = 'object-fit:cover; border-radius:10px; display:block;';
+            img.onerror = function(){ this.onerror = null; this.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2244%22 height=%2244%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23e5e5ea%22/%3E%3C/svg%3E'; };
             tdImg.appendChild(img);
 
             const tdName = document.createElement('td');
             tdName.textContent = p.name;
+            tdName.style.cssText = 'font-weight:600; font-size:14px;';
 
             const tdPrice = document.createElement('td');
             tdPrice.textContent = price.toFixed(2);
+            tdPrice.className = 'text-right';
+            tdPrice.style.cssText = 'font-weight:700; color:var(--apple-blue); font-size:15px;';
 
             const tdActions = document.createElement('td');
+            tdActions.style.whiteSpace = 'nowrap';
+
             const editBtn = document.createElement('button');
-            editBtn.textContent = 'แก้ไข';
-            editBtn.style.cssText = 'color:var(--apple-blue);border:none;background:none;cursor:pointer;font-weight:bold;margin-right:6px;';
-            editBtn.addEventListener('click', () => editProd(p.id, p.name, price, p.img));
+            editBtn.textContent = '✏️ แก้ไข';
+            editBtn.style.cssText = 'background:#e5f1ff; color:var(--apple-blue); border:none; border-radius:10px; padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer; margin-right:6px;';
+            editBtn.addEventListener('click', () => { triggerHaptic(); editProd(p.id, p.name, price, p.img); });
 
             const delBtn = document.createElement('button');
-            delBtn.textContent = 'ลบ';
-            delBtn.style.cssText = 'color:var(--apple-red);border:none;background:none;cursor:pointer;font-weight:bold;';
-            delBtn.addEventListener('click', () => deleteProd(p.id));
+            delBtn.textContent = '🗑️';
+            delBtn.title = 'ลบสินค้า';
+            delBtn.style.cssText = 'background:#ffe5e2; color:var(--apple-red); border:none; border-radius:10px; padding:8px 10px; font-size:14px; cursor:pointer;';
+            delBtn.addEventListener('click', () => { triggerHaptic(); deleteProd(p.id); });
 
             tdActions.appendChild(editBtn);
             tdActions.appendChild(delBtn);
@@ -2236,7 +2262,7 @@
         document.getElementById('cfgLarge').value = cfg.largeBillThreshold || 10000;
         document.getElementById('cfgWebhook').value = cfg.webhookUrl || "";
         document.getElementById('cfgNotifyEverySale').checked = !!cfg.notifyEverySale;
-        document.getElementById('cfgSmallFont').checked = cfg.useSmallFont !== false;
+        document.getElementById('cfgTightLines').checked = cfg.tightLineSpacing !== false;
         document.getElementById('configModal').style.display = 'flex';
     }
     function closeModal() { document.getElementById('configModal').style.display = 'none'; }
@@ -2249,7 +2275,7 @@
             largeBillThreshold: parseFloat(document.getElementById('cfgLarge').value) || 10000,
             webhookUrl: document.getElementById('cfgWebhook').value.trim(),
             notifyEverySale: document.getElementById('cfgNotifyEverySale').checked,
-            useSmallFont: document.getElementById('cfgSmallFont').checked
+            tightLineSpacing: document.getElementById('cfgTightLines').checked
         });
         window.posConfig = cfg;
         localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
