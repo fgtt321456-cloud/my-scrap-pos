@@ -253,7 +253,10 @@
     <div id="productsSection" style="display: none;" class="panel">
         <div class="panel-title">
             <span>📋 จัดการรายการสินค้า</span>
-            <button class="btn-tab" style="background:var(--apple-blue); color:#fff;" onclick="openAddProductModal()">➕ เพิ่มสินค้าใหม่</button>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button class="btn-tab" onclick="importPriceList()">📥 นำเข้ารายการราคา (17 รายการ)</button>
+                <button class="btn-tab" style="background:var(--apple-blue); color:#fff;" onclick="openAddProductModal()">➕ เพิ่มสินค้าใหม่</button>
+            </div>
         </div>
         <p style="font-size:12px; color:var(--apple-subtext); margin-top:-4px;">แตะ "แก้ไข" เพื่อเปลี่ยนชื่อ ราคา หรือรูปภาพ · ราคาที่แก้จะมีผลกับบิลถัดไปทันที</p>
         <div style="max-height: 60vh; overflow-y: auto; -webkit-overflow-scrolling: touch;">
@@ -462,16 +465,41 @@
         return getLocalDateString(d).substring(0, 7);
     }
 
+    // ---------- รายการราคาซื้อจากสมุดหน้าร้าน (17-8-69) ----------
+    // ราคาที่ใช้คือช่อง "หน้าร้าน" = ราคาที่ร้านรับซื้อ
+    // ทุกรายการแก้ไขได้จากแท็บจัดการสินค้า (แตะปุ่ม ✏️ แก้ไข)
+    const PRICE_LIST_2569 = [
+        { name: 'ขวดใส',                  price: 6 },
+        { name: 'ขวดรวมสี',                price: 3 },
+        { name: 'ขวดน้ำถั่ว',              price: 0.50 },
+        { name: 'กระดาษกล่อง',             price: 3 },
+        { name: 'จับจั๊ว',                 price: 2 },
+        { name: 'แกน',                     price: 0.50 },
+        { name: 'สังกะสี',                 price: 5 },
+        { name: 'ขวดลีโอ',                 price: 6 },
+        { name: 'ขวดช้าง',                 price: 12 },
+        { name: 'เหล้าขวดใหญ่',            price: 10 },
+        { name: 'ขวดขาวเล็ก (รวงข้าว)',    price: 20 },
+        { name: 'ถุงสะอาด',                price: 5 },
+        { name: 'เหล็กบาง',                price: 6 },
+        { name: 'เหล็กหนา',                price: 7 },
+        { name: 'กระป๋องกาแฟ',             price: 3 },
+        { name: 'กระป๋องเบียร์อลูมิเนียม', price: 50 },
+        { name: 'ปี๊บ',                    price: 0 }      // ⚠️ ราคาในสมุดอ่านไม่ออก กรุณากรอกเอง
+    ];
+
     const localSavedProds = localStorage.getItem(STORAGE_KEYS.products);
     if (localSavedProds) {
         try { window.productList = JSON.parse(localSavedProds); } catch(e){}
     } else {
-        window.productList = [
-            { id: "p1", name: "กระดาษลัง (A)", price: 8.50, img: "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=200" },
-            { id: "p2", name: "กระดาษเล่ม", price: 4.00, img: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=200" },
-            { id: "p3", name: "ขวด PET", price: 12.00, img: "https://images.unsplash.com/photo-1528323273322-d81458248d40?w=200" },
-            { id: "p4", name: "กระป๋องอลูมิเนียม", price: 45.00, img: "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=200" }
-        ];
+        // เครื่องใหม่ที่ยังไม่เคยใช้ ให้เริ่มด้วยรายการราคาซื้อจากสมุดหน้าร้านเลย
+        const defaultImg = "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=200";
+        window.productList = PRICE_LIST_2569.map((item, i) => ({
+            id: "p" + (i + 1),
+            name: item.name,
+            price: item.price,
+            img: defaultImg
+        }));
         localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(window.productList));
     }
 
@@ -2022,6 +2050,42 @@
             }
         };
         reader.readAsText(file);
+    }
+
+
+    // นำเข้ารายการราคา — ถ้ามีชื่อซ้ำจะอัปเดตราคาให้ ถ้ายังไม่มีจะเพิ่มใหม่
+    // ไม่ลบสินค้าเดิมที่ไม่อยู่ในรายการนี้ทิ้ง
+    function importPriceList() {
+        const existingNames = window.productList.map(p => p.name);
+        const toAdd = PRICE_LIST_2569.filter(x => !existingNames.includes(x.name));
+        const toUpdate = PRICE_LIST_2569.filter(x => existingNames.includes(x.name));
+
+        let msg = '📥 นำเข้ารายการราคาซื้อ (ช่อง "หน้าร้าน")\n\n';
+        if (toAdd.length) msg += `• เพิ่มใหม่ ${toAdd.length} รายการ\n`;
+        if (toUpdate.length) msg += `• อัปเดตราคา ${toUpdate.length} รายการที่มีชื่อซ้ำ\n`;
+        msg += '\nสินค้าเดิมที่ไม่อยู่ในรายการนี้จะไม่ถูกลบ\n\nยืนยันนำเข้า?';
+        if (!confirm(msg)) return;
+
+        const defaultImg = 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=200';
+        PRICE_LIST_2569.forEach(item => {
+            const idx = window.productList.findIndex(p => p.name === item.name);
+            if (idx !== -1) {
+                window.productList[idx].price = item.price; // อัปเดตราคา คงรูปเดิมไว้
+            } else {
+                window.productList.push({
+                    id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+                    name: item.name,
+                    price: item.price,
+                    img: defaultImg
+                });
+            }
+        });
+
+        localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(window.productList));
+        renderProducts();
+        renderManagerProducts();
+
+        alert(`✅ นำเข้าเรียบร้อยแล้ว (รวม ${window.productList.length} รายการในระบบ)\n\n⚠️ "ปี๊บ" ราคายังเป็น 0 กรุณาแก้ไขราคาก่อนใช้งาน`);
     }
 
     function renderManagerProducts() {
