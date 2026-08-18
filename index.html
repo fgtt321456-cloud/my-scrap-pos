@@ -115,7 +115,7 @@
         }
         .print-option-box input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--apple-blue); cursor: pointer; }
 
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
+        .modal { display: none; position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
         .modal-box { background: white; padding: 22px; border-radius: 24px; width: 90%; max-width: 420px; }
 
         /* ---- แป้นตัวเลขแบบป๊อบอัพ ---- */
@@ -168,6 +168,31 @@
                 padding: 4px 6px; font-family: 'Prompt', monospace, sans-serif !important;
                 color: #000 !important; display: block !important; font-size: 10px;
             }
+        }
+
+        /* ============================================================
+           ชุดความเข้ากันได้สำหรับ iOS 12 / Safari 12 (เช่น iPad Air 1)
+           Safari 12 รองรับ gap เฉพาะใน grid ไม่รองรับใน flexbox
+           จึงใช้ margin แทนเมื่อตรวจพบว่าไม่รองรับ (คลาส no-flex-gap ใส่โดย JS)
+           ============================================================ */
+        .no-flex-gap .brand > * { margin-right: 6px; }
+        .no-flex-gap .brand > *:last-child { margin-right: 0; }
+        .no-flex-gap .nav-actions > * { margin-right: 6px; }
+        .no-flex-gap .nav-actions > *:last-child { margin-right: 0; }
+        .no-flex-gap .field > * { margin-bottom: 3px; }
+        .no-flex-gap .field > *:last-child { margin-bottom: 0; }
+        .no-flex-gap .print-option-box > * { margin-right: 8px; }
+        .no-flex-gap .print-option-box > *:last-child { margin-right: 0; }
+        .no-flex-gap .numpad-quick > * { margin-right: 8px; margin-bottom: 8px; }
+        .no-flex-gap .numpad-quick > *:last-child { margin-right: 0; }
+        .no-flex-gap .flexgap6 > * { margin-right: 6px; margin-bottom: 6px; }
+        .no-flex-gap .flexgap8 > * { margin-right: 8px; margin-bottom: 8px; }
+        .no-flex-gap .top-bar > * { margin-right: 8px; margin-bottom: 4px; }
+        .no-flex-gap .top-bar > *:last-child { margin-right: 0; }
+        /* iOS 12 ไม่รองรับ backdrop-filter บางเวอร์ชัน ใช้พื้นหลังทึบขึ้นแทนเพื่อให้ยังอ่านออก */
+        @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+            .modal { background: rgba(0, 0, 0, 0.45); }
+            .top-bar { background: rgba(255, 255, 255, 0.97); }
         }
     </style>
 </head>
@@ -260,7 +285,7 @@
     <div id="productsSection" style="display: none;" class="panel">
         <div class="panel-title">
             <span>📋 จัดการรายการสินค้า</span>
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <div class="flexgap6" style="display:flex; gap:6px; flex-wrap:wrap;">
                 <button class="btn-tab" onclick="importPriceList()">📥 นำเข้ารายการราคา (17 รายการ)</button>
                 <button class="btn-tab" style="background:var(--apple-blue); color:#fff;" onclick="openAddProductModal()">➕ เพิ่มสินค้าใหม่</button>
             </div>
@@ -278,7 +303,7 @@
     <div id="managerSection" style="display: none;" class="panel">
         <div class="panel-title">
             <span>⚙️ สรุปรายงาน & ตั้งค่างบเก๊ะ (เฉพาะผู้จัดการ)</span>
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <div class="flexgap6" style="display:flex; gap:6px; flex-wrap:wrap;">
                 <button class="btn-tab" style="background:var(--apple-green); color:#fff;" onclick="openCloseoutModal()">🔒 ปิดยอดประจำวัน</button>
                 <button class="btn-tab" onclick="openDenomModal()">🧮 นับเงินตั้งแก๊ะ</button>
                 <button class="btn-tab" onclick="exportBackup()">💾 สำรองข้อมูล</button>
@@ -289,14 +314,14 @@
         </div>
 
         <!-- ค้นหาบิลด้วยเลขที่ตั๋ว ใช้ตอนลูกค้าถือใบเสร็จมาถาม -->
-        <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <div class="flexgap8" style="display:flex; gap:8px; margin-bottom:12px;">
             <input type="text" id="searchTicket" placeholder="🔍 ค้นหาเลขที่ตั๋ว / ชื่อผู้ขาย / ชื่อสินค้า"
                    style="flex:1; padding:10px 14px; border:1px solid #d1d1d6; border-radius:12px; font-size:15px; outline:none; background:#fafafa;"
                    oninput="searchBills(this.value)">
             <button class="btn-tab" onclick="document.getElementById('searchTicket').value=''; searchBills('');">✕ ล้าง</button>
         </div>
 
-        <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+        <div class="flexgap6" style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
             <button class="btn-tab active" id="btnRepDaily" onclick="loadReport('daily')">📅 สรุปรายวัน</button>
             <button class="btn-tab" id="btnRepMonthly" onclick="loadReport('monthly')">📅 สรุปรายเดือน</button>
             <button class="btn-tab" id="btnRepProduct" onclick="loadReport('product')">📦 สรุปแยกสินค้า</button>
@@ -305,7 +330,7 @@
         <div id="reportResult" style="background:#f2f2f7; padding:14px; border-radius:14px; min-height:100px;">
             <p style="text-align: center; color: var(--apple-subtext);">กดเลือกเมนูด้านบนเพื่อเรียกดูรายงานสรุปยอด</p>
         </div>
-        <div id="reportSendLineBox" style="display:none; margin-top:10px; gap:8px; flex-wrap:wrap;">
+        <div id="reportSendLineBox" class="flexgap8" style="display:none; margin-top:10px; gap:8px; flex-wrap:wrap;">
             <button class="btn btn-add" id="btnSendReportLine" type="button" style="flex:1; min-width:160px;">📤 ส่งข้อความไป LINE</button>
             <button class="btn" id="btnDownloadPdf" type="button" style="flex:1; min-width:160px; background:var(--apple-orange); color:#fff;">📄 บันทึก/แชร์ PDF</button>
             <button class="btn" id="btnSendPdfLine" type="button" style="flex:1; min-width:160px; background:#5856d6; color:#fff;">📎 ส่ง PDF ไป LINE</button>
@@ -567,6 +592,34 @@
         window.scrollTo(0, 0);
     }
 
+    // ---------- ตรวจความเข้ากันได้ของเบราว์เซอร์ (รองรับ iOS 12 / iPad Air 1) ----------
+    // Safari 12 รองรับ gap เฉพาะใน grid ไม่รองรับใน flexbox
+    // ตรวจแล้วใส่คลาส no-flex-gap ที่ <html> เพื่อให้ CSS ใช้ margin แทน
+    function detectFlexGapSupport() {
+        try {
+            var f = document.createElement('div');
+            f.style.display = 'flex';
+            f.style.flexDirection = 'column';
+            f.style.rowGap = '1px';
+            f.style.position = 'absolute';
+            f.style.visibility = 'hidden';
+            f.appendChild(document.createElement('div'));
+            f.appendChild(document.createElement('div'));
+            document.body.appendChild(f);
+            var supported = f.scrollHeight === 1;
+            f.parentNode.removeChild(f);
+            return supported;
+        } catch (e) {
+            return false; // ตรวจไม่ได้ ให้ถือว่าไม่รองรับไว้ก่อน (ปลอดภัยกว่า)
+        }
+    }
+
+    function applyCompatibilityMode() {
+        if (!detectFlexGapSupport()) {
+            document.documentElement.className += ' no-flex-gap';
+        }
+    }
+
     // ---------- ระบบชื่อพนักงานผู้ปฏิบัติงาน ----------
     // บันทึกว่าบิลไหนใครเป็นคนออก ช่วยเรื่องความรับผิดชอบและตรวจสอบย้อนหลัง
     function getStaffName() {
@@ -602,6 +655,13 @@
         const el = document.getElementById('printerStatusText');
         const badge = document.getElementById('printerBadge');
         if (!el) return;
+        // iOS/Safari ไม่รองรับ Web Bluetooth เลย (รวม iPad Air 1 / iOS 12) — บอกให้ชัดเพื่อไม่ให้สับสน
+        if (!navigator.bluetooth) {
+            el.textContent = 'พิมพ์ผ่านระบบ';
+            badge.style.background = '#f0f0f5';
+            badge.style.color = '#8e8e93';
+            return;
+        }
         if (state === 'connected') {
             el.textContent = 'พร้อมพิมพ์';
             badge.style.background = '#e8f8ec';
@@ -651,7 +711,12 @@
     // เชื่อมต่อเครื่องพิมพ์แบบค้างไว้ (กดครั้งเดียว ใช้ได้ทั้งวัน)
     async function connectPrinterPersistent() {
         if (!navigator.bluetooth) {
-            alert('⚠️ เบราว์เซอร์นี้ไม่รองรับการพิมพ์ผ่าน Bluetooth\n\nAndroid: ใช้ Chrome หรือ Edge\niPhone: ใช้แอป Bluefy');
+            alert('ℹ️ อุปกรณ์นี้พิมพ์ผ่านระบบของเครื่องแทน Bluetooth โดยตรง\n\n'
+                + 'เมื่อกด "จ่ายเงิน & พิมพ์ใบเสร็จ" จะเปิดหน้าพิมพ์ของ iOS ขึ้นมา\n'
+                + 'ให้เลือกแชร์ไปยังแอปเครื่องพิมพ์ที่ติดตั้งไว้\n\n'
+                + 'หากต้องการพิมพ์ตรงผ่าน Bluetooth:\n'
+                + '• Android — ใช้ Chrome หรือ Edge\n'
+                + '• iPhone/iPad — ต้องใช้แอป Bluefy (รองรับ iOS 14 ขึ้นไป)');
             return;
         }
         renderPrinterBadge('connecting');
@@ -849,6 +914,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        applyCompatibilityMode(); // ต้องเรียกก่อนอย่างอื่น เพื่อจัด layout ให้ถูกต้องตั้งแต่แรก
         loadDrawerConfig();
         purgeOldSales();
         checkDailyCashReset();
@@ -1433,7 +1499,9 @@
     // (jsPDF ไม่รองรับฟอนต์ไทยในตัว การวาดผ่าน canvas ทำให้ภาษาไทยแสดงถูกต้องเสมอ)
     async function buildReportPdf(data) {
         if (!window.jspdf || !window.jspdf.jsPDF) {
-            throw new Error('ไลบรารี PDF ยังโหลดไม่เสร็จ กรุณาลองใหม่อีกครั้ง (ต้องต่ออินเทอร์เน็ตครั้งแรก)');
+            throw new Error('ไลบรารีสร้าง PDF ใช้งานไม่ได้บนอุปกรณ์นี้\n\n'
+                + 'สาเหตุที่พบบ่อย: ยังไม่ได้ต่ออินเทอร์เน็ต หรือเบราว์เซอร์เก่าเกินไป (iOS 12 อาจไม่รองรับ)\n\n'
+                + 'กรุณาใช้ปุ่ม "ส่งข้อความไป LINE" แทน ซึ่งใช้งานได้ทุกอุปกรณ์');
         }
         try { await document.fonts.ready; } catch (e) {}
 
@@ -1555,6 +1623,7 @@
 
         const statsWrap = document.createElement('div');
         statsWrap.style.cssText = 'display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;';
+        statsWrap.className = 'flexgap8';
         data.stats.forEach(([k, v]) => {
             const chip = document.createElement('div');
             chip.style.cssText = 'background:#fff; border-radius:10px; padding:8px 12px; font-size:12px; border:0.5px solid rgba(0,0,0,0.08);';
@@ -1659,11 +1728,20 @@
             const filename = `รายงาน_${data.title}_${data.period}.pdf`.replace(/[\/\\:*?"<>|]/g, '-');
 
             // บนมือถือ ถ้ารองรับ Web Share API ให้เปิดหน้าแชร์ (ส่งเข้า LINE ได้โดยตรง)
-            const blob = pdf.output('blob');
-            const file = new File([blob], filename, { type: 'application/pdf' });
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({ files: [file], title: data.title });
-            } else {
+            // iOS 12 / Safari เก่าไม่รองรับการแชร์ไฟล์ ให้ดาวน์โหลดแทน
+            var canShareFile = false;
+            try {
+                if (navigator.canShare && typeof File === 'function') {
+                    var testFile = new File([pdf.output('blob')], filename, { type: 'application/pdf' });
+                    canShareFile = navigator.canShare({ files: [testFile] });
+                    if (canShareFile) {
+                        await navigator.share({ files: [testFile], title: data.title });
+                    }
+                }
+            } catch (shareErr) {
+                canShareFile = false;
+            }
+            if (!canShareFile) {
                 pdf.save(filename);
             }
         } catch (e) {
@@ -1863,7 +1941,7 @@
 
             const itemsText = (r.items || []).map(i => `${i.name} ${i.net.toFixed(2)}กก. × ${i.price.toFixed(2)} = ${i.subtotal.toFixed(2)}`).join('<br>');
             card.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                <div class="flexgap8" style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
                     <div style="flex:1;">
                         <div style="font-weight:700; font-size:15px;">${escapeHtml(r.ticketNo || '-')} ${r.voided ? '<span style="color:var(--apple-red); font-size:12px;">· ยกเลิกแล้ว</span>' : ''}</div>
                         <div style="font-size:12px; color:var(--apple-subtext);">${new Date(r.timestamp || 0).toLocaleString('th-TH')}</div>
@@ -1877,6 +1955,7 @@
 
             const btnRow = document.createElement('div');
             btnRow.style.cssText = 'display:flex; gap:6px; margin-top:10px;';
+            btnRow.className = 'flexgap6';
 
             const reprintBtn = document.createElement('button');
             reprintBtn.className = 'btn-tab';
@@ -2036,11 +2115,16 @@
         const filename = `สำรองข้อมูล_POS_${getLocalDateString()}.json`;
 
         // บนมือถือถ้าแชร์ไฟล์ได้ ให้เปิดหน้าแชร์ (ส่งเข้า LINE/ไดรฟ์เก็บไว้ได้เลย)
-        const file = new File([blob], filename, { type: 'application/json' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            navigator.share({ files: [file], title: 'สำรองข้อมูล POS' }).catch(() => {});
-            return;
-        }
+        // iOS 12 / Safari เก่าไม่รองรับการแชร์ไฟล์ ให้ดาวน์โหลดแทน
+        try {
+            if (navigator.canShare && typeof File === 'function') {
+                var shareFile = new File([blob], filename, { type: 'application/json' });
+                if (navigator.canShare({ files: [shareFile] })) {
+                    navigator.share({ files: [shareFile], title: 'สำรองข้อมูล POS' }).catch(function(){});
+                    return;
+                }
+            }
+        } catch (shareErr) { /* ไม่รองรับ ใช้วิธีดาวน์โหลดด้านล่างแทน */ }
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
