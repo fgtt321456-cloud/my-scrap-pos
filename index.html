@@ -148,9 +148,16 @@
         }
         .numpad-quick button:active { opacity: 0.6; }
 
-        /* ช่องกรอกที่เปิดแป้นตัวเลข ให้ดูกดได้ชัดเจน */
-        .tap-num { cursor: pointer; }
-        .tap-num:read-only:not([data-locked]) { background: #fafafa !important; color: var(--apple-text) !important; }
+        /* ช่องกรอกที่มีปุ่มเรียกแป้นตัวเลขอยู่ด้านขวา */
+        .numpad-wrap { position: relative; display: block; width: 100%; }
+        .numpad-wrap input { width: 100%; padding-right: 46px !important; }
+        .numpad-open-btn {
+            position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+            border: none; background: #e5f1ff; border-radius: 10px;
+            width: 36px; height: 34px; font-size: 17px; cursor: pointer; line-height: 1;
+            display: flex; align-items: center; justify-content: center; padding: 0;
+        }
+        .numpad-open-btn:active { background: #cce0ff; transform: translateY(-50%) scale(0.93); }
 
         @media print {
             @page { margin: 0; size: 58mm auto; }
@@ -770,13 +777,35 @@
     }
 
     // ผูกช่องกรอกให้เปิดแป้นตัวเลขแทนคีย์บอร์ดระบบ
+    // ผูกช่องกรอกให้มีปุ่มเรียกแป้นตัวเลข
+    // ⚠️ สำคัญ: ไม่ตั้ง readonly อีกต่อไป — เดิมตั้งไว้เพื่อกันคีย์บอร์ดระบบเด้ง
+    // แต่ถ้าแป้นตัวเลขไม่เปิดด้วยเหตุใดก็ตาม จะกลายเป็นกรอกอะไรไม่ได้เลย (บั๊กร้ายแรง)
+    // ตอนนี้จึงให้กรอกได้ 2 ทาง: พิมพ์ด้วยคีย์บอร์ดปกติ หรือกดปุ่ม 🔢 เรียกแป้นตัวเลข
     function attachNumpad(inputId, options) {
         const input = document.getElementById(inputId);
         if (!input) return;
+        input.removeAttribute('readonly'); // เผื่อกรณีมี readonly ค้างจากเวอร์ชันก่อน
         input.classList.add('tap-num');
-        input.setAttribute('readonly', 'readonly'); // กันคีย์บอร์ดระบบเด้งขึ้นมาทับ
-        input.addEventListener('click', () => openNumpad(inputId, options));
-        input.addEventListener('focus', (e) => { e.target.blur(); openNumpad(inputId, options); });
+
+        // ห่อ input ไว้ในกล่อง แล้ววางปุ่มแป้นตัวเลขไว้ด้านขวาในช่อง
+        if (input.parentElement && input.parentElement.classList.contains('numpad-wrap')) return; // ผูกไปแล้ว
+        const wrap = document.createElement('div');
+        wrap.className = 'numpad-wrap';
+        input.parentNode.insertBefore(wrap, input);
+        wrap.appendChild(input);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'numpad-open-btn';
+        btn.textContent = '🔢';
+        btn.title = 'เปิดแป้นตัวเลข';
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            input.blur(); // ปิดคีย์บอร์ดระบบถ้าเปิดอยู่
+            openNumpad(inputId, options);
+        });
+        wrap.appendChild(btn);
     }
 
     // ---------- ระบบรีเซ็ตเงินตั้งแก๊ะอัตโนมัติเวลา 23:55 ทุกวัน ----------
