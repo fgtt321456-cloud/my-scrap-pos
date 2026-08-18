@@ -7,11 +7,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>POS หจก.รุ่งนภา รีไซเคิล (Full Production & Fix Connection)</title>
 
-    <!-- jsPDF ใช้สร้างไฟล์ PDF รายงาน (วาดข้อความไทยลง canvas ก่อนฝังเป็นภาพ ภาษาไทยจึงไม่เพี้ยน) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- jsPDF โหลดแบบ on-demand ตอนกดปุ่ม PDF เท่านั้น (ไม่ถ่วงเวลาเปิดหน้าแรก) -->
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap');
 
         :root {
             --apple-blue: #007aff;
@@ -528,7 +527,19 @@
         <input type="hidden" id="editingProdId" value="">
         <div class="field" style="margin-bottom:8px;"><label>ชื่อสินค้า</label><input type="text" id="newProdName" placeholder="เช่น กระดาษลัง"></div>
         <div class="field" style="margin-bottom:8px;"><label>ราคาซื้อ/กก. (บาท)</label><input type="number" id="newProdPrice" placeholder="0.00" step="any" inputmode="decimal"></div>
-        <div class="field" style="margin-bottom:15px;"><label>ลิงก์รูปภาพ (เว้นว่างได้)</label><input type="text" id="newProdImg" placeholder="https://..."></div>
+        <div class="field" style="margin-bottom:15px;">
+            <label>รูปสินค้า</label>
+            <div style="display:flex; align-items:center; margin-top:4px;" class="flexgap8">
+                <img id="prodImgPreview" style="width:64px; height:64px; object-fit:cover; border-radius:12px; border:1px solid #d1d1d6; background:#f2f2f7; flex-shrink:0;">
+                <div style="flex:1;">
+                    <button type="button" class="btn-tab" style="width:100%; margin-bottom:6px;" onclick="document.getElementById('prodPhotoInput').click()">📷 ถ่ายรูป / เลือกจากเครื่อง</button>
+                    <button type="button" class="btn-tab" style="width:100%;" onclick="toggleIconPicker()">🎨 เลือกไอคอนสำเร็จรูป</button>
+                </div>
+            </div>
+            <input type="file" id="prodPhotoInput" accept="image/*" style="display:none;" onchange="handleProductPhoto(this)">
+            <div id="iconPicker" style="display:none; margin-top:8px; padding:8px; background:#f2f2f7; border-radius:12px; max-height:150px; overflow-y:auto;"></div>
+            <input type="hidden" id="newProdImg">
+        </div>
         <button class="btn btn-add" id="saveProdBtn" type="button" onclick="saveProduct()">บันทึก</button>
         <button class="btn" style="background:#e5e5ea; color:#3a3a3c; margin-top:6px;" onclick="closeProductModal()">ยกเลิก</button>
     </div>
@@ -570,6 +581,33 @@
         return getLocalDateString(d).substring(0, 7);
     }
 
+    function makeIcon(bg, emoji) {
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">'
+            + '<rect width="120" height="120" rx="16" fill="' + bg + '"/>'
+            + '<text x="60" y="60" font-size="62" text-anchor="middle" dominant-baseline="central">' + emoji + '</text>'
+            + '</svg>';
+        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+    }
+
+    // เดาไอคอนที่เหมาะกับสินค้าจากชื่อ เพื่อให้แต่ละรายการดูต่างกันตั้งแต่แรก
+    // (ผู้ใช้เปลี่ยนเป็นรูปถ่ายจริงได้ทีหลังจากหน้าจัดการสินค้า)
+    function iconForProduct(name) {
+        var n = name || '';
+        if (n.indexOf('ขวดใส') >= 0) return makeIcon('#d6f0ff', '🫙');
+        if (n.indexOf('ลีโอ') >= 0 || n.indexOf('ช้าง') >= 0 || n.indexOf('เบียร์') >= 0) return makeIcon('#f3e2c7', '🍺');
+        if (n.indexOf('เหล้า') >= 0 || n.indexOf('รวงข้าว') >= 0) return makeIcon('#e8dcc8', '🍾');
+        if (n.indexOf('ขวด') >= 0) return makeIcon('#cdebd6', '🍾');
+        if (n.indexOf('กระดาษ') >= 0 || n.indexOf('กล่อง') >= 0) return makeIcon('#fdf0d5', '📦');
+        if (n.indexOf('อลูมิเนียม') >= 0) return makeIcon('#e8eef5', '🥤');
+        if (n.indexOf('กระป๋อง') >= 0) return makeIcon('#e6e6ea', '🥫');
+        if (n.indexOf('เหล็ก') >= 0 || n.indexOf('ปี๊บ') >= 0) return makeIcon('#dfe3e6', '🔩');
+        if (n.indexOf('สังกะสี') >= 0) return makeIcon('#dde5ea', '🪟');
+        if (n.indexOf('ถุง') >= 0) return makeIcon('#e2f5e2', '🛍️');
+        if (n.indexOf('ทองแดง') >= 0) return makeIcon('#f7d9c4', '🟠');
+        if (n.indexOf('แกน') >= 0 || n.indexOf('จับจั๊ว') >= 0) return makeIcon('#efe6d9', '🧻');
+        return makeIcon('#e5e5ea', '♻️');
+    }
+
     // ---------- รายการราคาซื้อจากสมุดหน้าร้าน (17-8-69) ----------
     // ราคาที่ใช้คือช่อง "หน้าร้าน" = ราคาที่ร้านรับซื้อ
     // ทุกรายการแก้ไขได้จากแท็บจัดการสินค้า (แตะปุ่ม ✏️ แก้ไข)
@@ -598,14 +636,15 @@
         try { window.productList = JSON.parse(localSavedProds); } catch(e){}
     } else {
         // เครื่องใหม่ที่ยังไม่เคยใช้ ให้เริ่มด้วยรายการราคาซื้อจากสมุดหน้าร้านเลย
-        const defaultImg = "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=200";
-        window.productList = PRICE_LIST_2569.map((item, i) => ({
-            id: "p" + (i + 1),
-            name: item.name,
-            price: item.price,
-            img: defaultImg
-        }));
-        localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(window.productList));
+        window.productList = PRICE_LIST_2569.map(function (item, i) {
+            return {
+                id: "p" + (i + 1),
+                name: item.name,
+                price: item.price,
+                img: iconForProduct(item.name)
+            };
+        });
+        safeSetItem(STORAGE_KEYS.products, JSON.stringify(window.productList));
     }
 
     function loadDrawerConfig() {
@@ -626,7 +665,7 @@
     }
 
     function saveSalesHistory(records) {
-        localStorage.setItem(STORAGE_KEYS.salesHistory, JSON.stringify(records));
+        safeSetItem(STORAGE_KEYS.salesHistory, JSON.stringify(records));
     }
 
     // ลบข้อมูลการขายของเดือนที่ผ่านไปแล้วเกิน RETENTION_MONTHS_BACK เดือนทิ้งอัตโนมัติ
@@ -651,7 +690,7 @@
         let counter = parseInt(localStorage.getItem(STORAGE_KEYS.ticketCounter), 10);
         if (isNaN(counter)) counter = 0;
         counter += 1;
-        localStorage.setItem(STORAGE_KEYS.ticketCounter, String(counter));
+        safeSetItem(STORAGE_KEYS.ticketCounter, String(counter));
         return 'RN' + String(counter).padStart(6, '0');
     }
 
@@ -739,6 +778,148 @@
         document.getElementById('bandSettings').style.display = on ? 'block' : 'none';
     }
 
+    // ---------- ระบบรูปสินค้า ----------
+    // เดิมรับได้แค่ลิงก์รูป ซึ่งต้องไปอัปโหลดขึ้นเว็บอื่นก่อน ยุ่งยากเกินไปในการใช้งานจริง
+    // ตอนนี้จึงรองรับ: ถ่ายรูป/เลือกจากเครื่อง (ย่อขนาดแล้วเก็บในเครื่อง) และไอคอนสำเร็จรูป
+    // ข้อดีอีกอย่างคือไม่ต้องโหลดรูปจากอินเทอร์เน็ต หน้าเว็บจึงเปิดเร็วขึ้นมาก
+
+    // ไอคอนสำเร็จรูป วาดด้วย SVG ฝังในไฟล์ ไม่ต้องต่อเน็ต ขนาดเล็กมาก
+    var BUILTIN_ICONS = [
+        { label: 'ขวดใส',      img: makeIcon('#d6f0ff', '🫙') },
+        { label: 'ขวดแก้ว',    img: makeIcon('#cdebd6', '🍾') },
+        { label: 'ขวดเบียร์',  img: makeIcon('#f3e2c7', '🍺') },
+        { label: 'ขวดพลาสติก', img: makeIcon('#dbeafe', '🧴') },
+        { label: 'กระดาษ',     img: makeIcon('#fdf0d5', '📄') },
+        { label: 'กล่อง',      img: makeIcon('#f0e0c8', '📦') },
+        { label: 'กระป๋อง',    img: makeIcon('#e6e6ea', '🥫') },
+        { label: 'อลูมิเนียม', img: makeIcon('#e8eef5', '🥤') },
+        { label: 'เหล็ก',      img: makeIcon('#dfe3e6', '🔩') },
+        { label: 'ทองแดง',     img: makeIcon('#f7d9c4', '🟠') },
+        { label: 'สายไฟ',      img: makeIcon('#e5dff5', '🔌') },
+        { label: 'ถุง/พลาสติก', img: makeIcon('#e2f5e2', '🛍️') },
+        { label: 'เครื่องใช้ไฟฟ้า', img: makeIcon('#e0e7ff', '📺') },
+        { label: 'แบตเตอรี่',  img: makeIcon('#ffe0e0', '🔋') },
+        { label: 'ยาง',        img: makeIcon('#dcdcdc', '🛞') },
+        { label: 'ทั่วไป',     img: makeIcon('#e5e5ea', '♻️') }
+    ];
+
+    var DEFAULT_PROD_ICON = makeIcon('#e5e5ea', '♻️');
+
+    function setProductImage(dataUrl) {
+        document.getElementById('newProdImg').value = dataUrl;
+        var prev = document.getElementById('prodImgPreview');
+        if (prev) prev.src = dataUrl || DEFAULT_PROD_ICON;
+    }
+
+    function toggleIconPicker() {
+        var picker = document.getElementById('iconPicker');
+        if (picker.style.display === 'grid') { picker.style.display = 'none'; return; }
+
+        if (!picker.childElementCount) {
+            picker.style.gridTemplateColumns = 'repeat(auto-fill, minmax(56px, 1fr))';
+            picker.style.gap = '6px';
+            BUILTIN_ICONS.forEach(function (ic) {
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.title = ic.label;
+                b.style.cssText = 'border:2px solid transparent; background:#fff; border-radius:10px; padding:4px; cursor:pointer;';
+                var im = document.createElement('img');
+                im.src = ic.img;
+                im.style.cssText = 'width:100%; aspect-ratio:1; display:block; border-radius:6px;';
+                im.width = 48; im.height = 48; // เผื่อเบราว์เซอร์เก่าที่ไม่รองรับ aspect-ratio
+                b.appendChild(im);
+                b.addEventListener('click', function () {
+                    triggerHaptic();
+                    setProductImage(ic.img);
+                    picker.style.display = 'none';
+                });
+                picker.appendChild(b);
+            });
+        }
+        picker.style.display = 'grid';
+    }
+
+    // ถ่ายรูป/เลือกรูปจากเครื่อง แล้วย่อขนาดก่อนเก็บ
+    // ย่อเหลือ 200x200 และบีบเป็น JPEG คุณภาพ 0.7 → ได้ไฟล์ราว 8-15KB ต่อรูป
+    // ถ้าเก็บรูปต้นฉบับจากกล้อง (2-5MB) จะทำให้พื้นที่เก็บข้อมูลเต็มอย่างรวดเร็ว
+    function handleProductPhoto(input) {
+        var file = input.files && input.files[0];
+        if (!file) return;
+
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            var img = new Image();
+            img.onload = function () {
+                try {
+                    var SIZE = 200;
+                    var canvas = document.createElement('canvas');
+                    canvas.width = SIZE; canvas.height = SIZE;
+                    var ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(0, 0, SIZE, SIZE);
+
+                    // ครอปตรงกลางแบบสี่เหลี่ยมจัตุรัส ไม่ให้ภาพยืด
+                    var side = Math.min(img.width, img.height);
+                    var sx = (img.width - side) / 2;
+                    var sy = (img.height - side) / 2;
+                    ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
+
+                    setProductImage(canvas.toDataURL('image/jpeg', 0.7));
+                } catch (err) {
+                    alert('❌ ประมวลผลรูปไม่สำเร็จ: ' + (err.message || 'ไม่ทราบสาเหตุ'));
+                }
+                input.value = ''; // ล้างค่า เพื่อให้เลือกไฟล์เดิมซ้ำได้
+            };
+            img.onerror = function () {
+                alert('❌ อ่านไฟล์รูปไม่ได้ กรุณาลองรูปอื่น');
+                input.value = '';
+            };
+            img.src = e.target.result;
+        };
+        reader.onerror = function () {
+            alert('❌ อ่านไฟล์ไม่สำเร็จ');
+            input.value = '';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // ---------- เขียน localStorage แบบปลอดภัย ----------
+    // localStorage มีขีดจำกัดราว 5MB ถ้าเต็มแล้วเขียนต่อจะ throw error
+    // ถ้าไม่ดักไว้ ข้อมูลการขายอาจหายทั้งที่หักเงินในเก๊ะไปแล้ว — ต้องแจ้งให้รู้ทันที
+    function safeSetItem(key, value) {
+        try {
+            localStorage.setItem(key, value);
+            return true;
+        } catch (e) {
+            console.error('บันทึกข้อมูลไม่สำเร็จ:', key, e);
+            var isQuota = e && (e.name === 'QuotaExceededError'
+                || e.name === 'NS_ERROR_DOM_QUOTA_REACHED'
+                || e.code === 22 || e.code === 1014);
+            alert(isQuota
+                ? '🚨 พื้นที่เก็บข้อมูลเต็ม!\n\nบันทึกข้อมูลไม่สำเร็จ กรุณาแจ้งผู้จัดการทันที\n\nวิธีแก้เร่งด่วน:\n1. ไปที่หลังบ้าน → 💾 สำรองข้อมูล (เก็บไฟล์ไว้)\n2. ลบรูปสินค้าที่เป็นรูปถ่ายออกบางส่วน'
+                : '🚨 บันทึกข้อมูลไม่สำเร็จ!\n\n' + (e.message || 'ไม่ทราบสาเหตุ') + '\n\nกรุณาแจ้งผู้จัดการ อย่าเพิ่งปิดหน้าเว็บ');
+            return false;
+        }
+    }
+
+    // ตรวจพื้นที่ที่ใช้ไป เตือนเมื่อใกล้เต็ม
+    function checkStorageUsage() {
+        try {
+            var total = 0;
+            for (var k in localStorage) {
+                if (localStorage.hasOwnProperty(k) && k.indexOf('rungnapa') === 0) {
+                    total += (localStorage[k] || '').length;
+                }
+            }
+            var mb = total / 1024 / 1024;
+            if (mb > 3.5) {
+                alert('⚠️ พื้นที่เก็บข้อมูลใกล้เต็มแล้ว (' + mb.toFixed(1) + ' MB จากประมาณ 5 MB)\n\n'
+                    + 'แนะนำให้สำรองข้อมูลไว้ และลดจำนวนรูปถ่ายสินค้าลง');
+            }
+            return mb;
+        } catch (e) { return 0; }
+    }
+
     // ---------- ระบบชื่อพนักงานผู้ปฏิบัติงาน ----------
     // บันทึกว่าบิลไหนใครเป็นคนออก ช่วยเรื่องความรับผิดชอบและตรวจสอบย้อนหลัง
     function getStaffName() {
@@ -760,7 +941,7 @@
         const cfg = window.posConfig || {};
         cfg.staffName = name.trim();
         window.posConfig = cfg;
-        localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
+        safeSetItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
         renderStaffBadge();
     }
 
@@ -997,7 +1178,18 @@
     // ถ้าปิดแอปอยู่ตอนนั้น ระบบจะ "รีเซ็ตย้อนหลัง" ให้ทันทีที่เปิดแอปใหม่ในวันถัดไปแทน (catch-up)
     function doCashReset(todayStr) {
         const cfg = window.posConfig || {};
-        const opening = parseFloat(cfg.openingFloat) || 0;
+
+        // 🛡️ ป้องกันเงินหาย: ถ้ายังไม่เคยตั้ง "เงินตั้งต้น" (ไม่เคยใช้เครื่องนับเงิน)
+        // ห้ามรีเซ็ต เพราะจะทำให้ยอดเงินในเก๊ะกลายเป็น 0 ทั้งที่มีเงินจริงอยู่
+        if (cfg.openingFloat === undefined || cfg.openingFloat === null || isNaN(parseFloat(cfg.openingFloat))) {
+            cfg.lastResetDate = todayStr; // บันทึกว่าผ่านวันนี้แล้ว จะได้ไม่เตือนซ้ำ
+            window.posConfig = cfg;
+            safeSetItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
+            console.warn('ข้ามการรีเซ็ตเงินตั้งแก๊ะ เพราะยังไม่ได้ตั้งค่าเงินตั้งต้น');
+            return;
+        }
+
+        const opening = parseFloat(cfg.openingFloat);
 
         // เก็บ log ยอดเงินก่อนรีเซ็ต ไว้ตรวจสอบย้อนหลังได้ (เก็บสูงสุด 60 รายการ ~ 2 เดือน)
         try {
@@ -1013,7 +1205,7 @@
         cfg.currentCash = opening;
         cfg.lastResetDate = todayStr;
         window.posConfig = cfg;
-        localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
+        safeSetItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
         document.getElementById('cashInDrawer').innerText = opening.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     }
 
@@ -1185,6 +1377,18 @@
 
     async function processPayment() {
         if (cart.length === 0) return alert('ยังไม่มีรายการในบิล');
+
+        // 🛡️ กันกดปุ่มจ่ายเงินรัวหรือกดซ้ำระหว่างที่ระบบกำลังทำงาน (เสี่ยงบิลซ้ำ/หักเงินซ้ำ)
+        if (window._paymentInProgress) return;
+        window._paymentInProgress = true;
+        try {
+            await doProcessPayment();
+        } finally {
+            window._paymentInProgress = false;
+        }
+    }
+
+    async function doProcessPayment() {
         const total = cart.reduce((s, i) => s + i.subtotal, 0);
         const config = window.posConfig || {};
         let currentCash = parseFloat(config.currentCash) || 0;
@@ -1201,7 +1405,7 @@
             const staffName = getStaffName();
 
             window.posConfig.currentCash = currentCash;
-            localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(window.posConfig));
+            safeSetItem(STORAGE_KEYS.drawerConfig, JSON.stringify(window.posConfig));
             document.getElementById('cashInDrawer').innerText = currentCash.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
             const salesRecords = loadSalesHistory();
@@ -1238,7 +1442,17 @@
                 sendLineNotification(config.webhookUrl, msg);
             }
 
-            await printReceipt(printItems, total, ticketNo, { sellerName, staffName });
+            // 🛡️ บันทึกการขายสำเร็จแล้ว ณ จุดนี้ (หักเงิน+บันทึกบิลเรียบร้อย)
+            // ถ้าการพิมพ์ล้มเหลว ต้อง "ล้างตะกร้าอยู่ดี" ไม่งั้นพนักงานอาจกดจ่ายซ้ำ
+            // แล้วเงินถูกหักสองรอบ / เกิดบิลซ้ำในระบบ
+            try {
+                await printReceipt(printItems, total, ticketNo, { sellerName, staffName });
+            } catch (printErr) {
+                console.error('พิมพ์ใบเสร็จไม่สำเร็จ:', printErr);
+                alert('⚠️ บันทึกการขายเรียบร้อยแล้ว (เลขที่ ' + ticketNo + ')\n'
+                    + 'แต่พิมพ์ใบเสร็จไม่สำเร็จ\n\n'
+                    + 'ไม่ต้องกดจ่ายเงินซ้ำ — ให้ไปที่หลังบ้าน → ค้นหาเลขที่ ' + ticketNo + ' แล้วกดพิมพ์ซ้ำ');
+            }
 
             cart = [];
             document.getElementById('sellerName').value = ''; // ล้างชื่อผู้ขาย เตรียมรับลูกค้าคนถัดไป
@@ -1617,7 +1831,25 @@
 
     // สร้าง PDF โดยวาดข้อความไทยลง canvas ก่อน แล้วฝังเป็นภาพใน PDF
     // (jsPDF ไม่รองรับฟอนต์ไทยในตัว การวาดผ่าน canvas ทำให้ภาษาไทยแสดงถูกต้องเสมอ)
+    // โหลดไลบรารี jsPDF เมื่อต้องใช้จริงเท่านั้น แล้วจำไว้ไม่โหลดซ้ำ
+    function loadJsPdf() {
+        if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve();
+        if (window._jsPdfLoading) return window._jsPdfLoading;
+        window._jsPdfLoading = new Promise(function (resolve, reject) {
+            var sc = document.createElement('script');
+            sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+            sc.onload = function () { resolve(); };
+            sc.onerror = function () {
+                window._jsPdfLoading = null;
+                reject(new Error('โหลดไลบรารี PDF ไม่สำเร็จ — ต้องต่ออินเทอร์เน็ตในการสร้าง PDF ครั้งแรก'));
+            };
+            document.head.appendChild(sc);
+        });
+        return window._jsPdfLoading;
+    }
+
     async function buildReportPdf(data) {
+        await loadJsPdf();
         if (!window.jspdf || !window.jspdf.jsPDF) {
             throw new Error('ไลบรารีสร้าง PDF ใช้งานไม่ได้บนอุปกรณ์นี้\n\n'
                 + 'สาเหตุที่พบบ่อย: ยังไม่ได้ต่ออินเทอร์เน็ต หรือเบราว์เซอร์เก่าเกินไป (iOS 12 อาจไม่รองรับ)\n\n'
@@ -2018,7 +2250,7 @@
         const cfg = window.posConfig || {};
         cfg.currentCash = (parseFloat(cfg.currentCash) || 0) + (rec.total || 0);
         window.posConfig = cfg;
-        localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
+        safeSetItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
         document.getElementById('cashInDrawer').innerText = cfg.currentCash.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
         // แจ้งเตือนเข้า LINE เพราะการยกเลิกบิลเป็นเรื่องที่เจ้าของร้านควรรู้ทันที
@@ -2199,12 +2431,12 @@
             staffName: getStaffName() || '(ไม่ระบุ)'
         });
         if (closeouts.length > 90) closeouts = closeouts.slice(closeouts.length - 90);
-        localStorage.setItem(STORAGE_KEYS.closeouts, JSON.stringify(closeouts));
+        safeSetItem(STORAGE_KEYS.closeouts, JSON.stringify(closeouts));
 
         // ปรับยอดเงินในระบบให้ตรงกับที่นับได้จริง (ยึดเงินจริงเป็นหลัก)
         cfg.currentCash = counted;
         window.posConfig = cfg;
-        localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
+        safeSetItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
         document.getElementById('cashInDrawer').innerText = money(counted);
 
         // ส่งสรุปปิดยอดเข้า LINE
@@ -2313,7 +2545,7 @@
         msg += '\nสินค้าเดิมที่ไม่อยู่ในรายการนี้จะไม่ถูกลบ\n\nยืนยันนำเข้า?';
         if (!confirm(msg)) return;
 
-        const defaultImg = 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=200';
+
         PRICE_LIST_2569.forEach(item => {
             const idx = window.productList.findIndex(p => p.name === item.name);
             if (idx !== -1) {
@@ -2323,12 +2555,12 @@
                     id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
                     name: item.name,
                     price: item.price,
-                    img: defaultImg
+                    img: iconForProduct(item.name)
                 });
             }
         });
 
-        localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(window.productList));
+        safeSetItem(STORAGE_KEYS.products, JSON.stringify(window.productList));
         renderProducts();
         renderManagerProducts();
 
@@ -2402,7 +2634,8 @@
         document.getElementById('editingProdId').value = id;
         document.getElementById('newProdName').value = name;
         document.getElementById('newProdPrice').value = price;
-        document.getElementById('newProdImg').value = img;
+        setProductImage(img || DEFAULT_PROD_ICON);
+        document.getElementById('iconPicker').style.display = 'none';
 
         document.getElementById('productModalTitle').innerText = "✏️ แก้ไขรายการสินค้า";
         const saveBtn = document.getElementById('saveProdBtn');
@@ -2415,7 +2648,8 @@
         document.getElementById('editingProdId').value = "";
         document.getElementById('newProdName').value = "";
         document.getElementById('newProdPrice').value = "";
-        document.getElementById('newProdImg').value = "";
+        setProductImage(DEFAULT_PROD_ICON);
+        document.getElementById('iconPicker').style.display = 'none';
 
         document.getElementById('productModalTitle').innerText = "🏷️ เพิ่มสินค้าใหม่";
         const saveBtn = document.getElementById('saveProdBtn');
@@ -2429,7 +2663,7 @@
         const priceInput = document.getElementById('newProdPrice').value;
         const price = parseFloat(priceInput);
         const imgInput = document.getElementById('newProdImg').value.trim();
-        const img = imgInput || "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=200";
+        const img = imgInput || DEFAULT_PROD_ICON;
 
         if (!name) {
             alert('⚠️ กรุณากรอก "ชื่อสินค้า" ก่อนกดบันทึก');
@@ -2454,7 +2688,7 @@
             window.productList.push({ id: newId, name, price, img });
         }
 
-        localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(window.productList));
+        safeSetItem(STORAGE_KEYS.products, JSON.stringify(window.productList));
         renderProducts();
         renderManagerProducts();
 
@@ -2466,7 +2700,7 @@
     function deleteProd(prodId) {
         if (confirm('ยืนยันการลบสินค้านี้?')) {
             window.productList = window.productList.filter(p => p.id !== prodId);
-            localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(window.productList));
+            safeSetItem(STORAGE_KEYS.products, JSON.stringify(window.productList));
 
             if (currentProduct && currentProduct.id === prodId) {
                 currentProduct = null;
@@ -2559,7 +2793,7 @@
         cfg.openingFloat = total;  // ใช้เป็นยอดเริ่มต้นสำหรับรีเซ็ตประจำวันถัดไปด้วย
         cfg.denomCounts = counts;
         window.posConfig = cfg;
-        localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
+        safeSetItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
         document.getElementById('cashInDrawer').innerText = total.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
         alert('✅ บันทึกยอดนับเงินตั้งแก๊ะเรียบร้อยแล้ว: ' + total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ฿');
@@ -2598,7 +2832,7 @@
             bandEndCm: parseFloat(document.getElementById('cfgBandB').value) || 17
         });
         window.posConfig = cfg;
-        localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
+        safeSetItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
         document.getElementById('cashInDrawer').innerText = cfg.currentCash.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         applyBandMode(); // ปรับ layout ตามค่าแถบจอเสียทันที
         alert('บันทึกการตั้งค่าเรียบร้อยแล้ว');
