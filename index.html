@@ -194,9 +194,71 @@
             .modal { background: rgba(0, 0, 0, 0.45); }
             .top-bar { background: rgba(255, 255, 255, 0.97); }
         }
+
+        /* ============================================================
+           โหมดหลบแถบจอเสีย (Screen Dead-Band Avoidance)
+           iPad Air 4 แนวนอนกว้าง ~22.5 ซม. แต่มีแถบจอเสียช่วง 14–17 ซม.
+           จึงแบ่งพื้นที่เป็นซ้าย/ขวา แล้วเว้นแถบตรงกลางให้ว่างสนิท
+           ค่าทั้งหมดปรับได้จากหน้าตั้งค่า (เก็บใน --scr-w / --band-a / --band-b)
+           ============================================================ */
+        :root {
+            --scr-w: 22.5;   /* ความกว้างจอทั้งหมด (ซม.) */
+            --band-a: 14;    /* แถบเสียเริ่มที่ (ซม.) */
+            --band-b: 17;    /* แถบเสียจบที่ (ซม.) */
+        }
+        /* สัดส่วนที่คำนวณจากค่าด้านบน */
+        .avoid-band {
+            --left-pct:  calc(var(--band-a) / var(--scr-w) * 100%);
+            --band-pct:  calc((var(--band-b) - var(--band-a)) / var(--scr-w) * 100%);
+            --right-pct: calc((var(--scr-w) - var(--band-b)) / var(--scr-w) * 100%);
+        }
+
+        /* หน้าขาย: สินค้าอยู่ซ้าย · เว้นแถบกลาง · เครื่องคิดเลขอยู่ขวา */
+        .avoid-band .pos-layout {
+            display: grid;
+            grid-template-columns: var(--left-pct) var(--band-pct) var(--right-pct);
+            gap: 0;
+        }
+        .avoid-band .pos-layout > *:nth-child(1) { grid-column: 1; padding-right: 10px; }
+        .avoid-band .pos-layout > *:nth-child(2) { grid-column: 3; }
+        /* ตัวคั่นแถบจอเสีย — ปล่อยว่างสนิท ไม่วางอะไรทับ */
+        .avoid-band .pos-layout::after {
+            content: ''; grid-column: 2; grid-row: 1;
+        }
+
+        /* ฝั่งขวาแคบ (~288px) จึงบีบช่องกรอกเป็นคอลัมน์เดียว ไม่ให้ตัวหนังสือล้น */
+        .avoid-band .input-group { grid-template-columns: 1fr; }
+        .avoid-band .product-grid { grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); }
+
+        /* แถบบน + แผงเต็มความกว้าง (จัดการสินค้า/หลังบ้าน) ให้อยู่ในฝั่งซ้ายทั้งหมด
+           ไม่ให้เนื้อหาล้ำเข้าไปในแถบจอเสีย */
+        .avoid-band .top-bar,
+        .avoid-band #productsSection,
+        .avoid-band #managerSection { width: var(--left-pct); }
+
+        /* ป๊อบอัพทุกชนิด: จัดกึ่งกลางเฉพาะภายในฝั่งซ้าย ไม่ให้ทับแถบเสีย */
+        .avoid-band .modal { padding-right: calc(var(--band-pct) + var(--right-pct)); }
+        .avoid-band #numpadModal .numpad-box { max-width: 400px; }
+
+        /* แจ้งเตือนเมื่อถือแนวตั้ง — โหมดนี้ออกแบบมาสำหรับแนวนอน */
+        #rotateHint {
+            display: none; position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+            background: rgba(0,0,0,0.88); color: #fff; z-index: 3000;
+            align-items: center; justify-content: center; text-align: center;
+            font-size: 19px; font-weight: 600; padding: 40px; line-height: 1.7;
+        }
+        .avoid-band #rotateHint.show { display: flex; }
     </style>
 </head>
 <body>
+
+<div id="rotateHint">
+    <div>
+        📱➡️💻<br><br>
+        กรุณาหมุนเครื่องเป็น<b>แนวนอน</b><br>
+        <span style="font-size:15px; font-weight:400; opacity:0.85;">โหมดหลบแถบจอเสียออกแบบมาสำหรับแนวนอนเท่านั้น</span>
+    </div>
+</div>
 
 <div class="app-container">
     <div class="top-bar">
@@ -424,9 +486,20 @@
             <input type="checkbox" id="cfgNotifyEverySale">
             <label for="cfgNotifyEverySale">🔔 แจ้งเตือนทุกบิลที่ขาย (ไม่ใช่แค่บิลใหญ่/เงินใกล้หมด)</label>
         </div>
-        <div class="print-option-box" style="margin-top:0; margin-bottom:15px;">
+        <div class="print-option-box" style="margin-top:0; margin-bottom:8px;">
             <input type="checkbox" id="cfgTightLines" checked>
             <label for="cfgTightLines">🖨️ บีบบรรทัดให้ชิด (ประหยัดกระดาษ ~20%)</label>
+        </div>
+
+        <div class="print-option-box" style="margin-top:0; margin-bottom:8px;">
+            <input type="checkbox" id="cfgAvoidBand">
+            <label for="cfgAvoidBand">📱 โหมดหลบแถบจอเสีย (สำหรับจอที่มีบริเวณใช้ไม่ได้)</label>
+        </div>
+        <div id="bandSettings" style="display:none; background:#f2f2f7; border-radius:12px; padding:12px; margin-bottom:15px;">
+            <p style="font-size:12px; color:var(--apple-subtext); margin:0 0 10px 0;">วัดจากขอบซ้ายของจอตอนถือแนวนอน (หน่วย: เซนติเมตร)</p>
+            <div class="field" style="margin-bottom:8px;"><label>ความกว้างจอทั้งหมด</label><input type="number" id="cfgScrW" step="0.1" inputmode="decimal" placeholder="22.5"></div>
+            <div class="field" style="margin-bottom:8px;"><label>แถบเสียเริ่มที่</label><input type="number" id="cfgBandA" step="0.1" inputmode="decimal" placeholder="14"></div>
+            <div class="field" style="margin-bottom:0;"><label>แถบเสียจบที่</label><input type="number" id="cfgBandB" step="0.1" inputmode="decimal" placeholder="17"></div>
         </div>
         <button class="btn btn-add" onclick="saveConfig()">บันทึกการตั้งค่า</button>
         <button class="btn" style="background:#e5e5ea; color:#3a3a3c; margin-top:6px;" onclick="closeModal()">ยกเลิก</button>
@@ -618,6 +691,52 @@
         if (!detectFlexGapSupport()) {
             document.documentElement.className += ' no-flex-gap';
         }
+    }
+
+    // ---------- โหมดหลบแถบจอเสีย ----------
+    // สำหรับจอที่มีบริเวณเสีย/ใช้ไม่ได้เป็นแถบแนวตั้ง (เช่น iPad Air 4 ที่แถบ 14–17 ซม. เสีย)
+    // ระบบจะแบ่ง layout เป็นฝั่งซ้าย/ขวา แล้วเว้นแถบตรงกลางให้ว่างสนิท ไม่วางปุ่มหรือข้อความทับ
+    function applyBandMode() {
+        var cfg = window.posConfig || {};
+        var root = document.documentElement;
+        var body = document.body;
+
+        if (!cfg.avoidBand) {
+            body.classList.remove('avoid-band');
+            updateRotateHint();
+            return;
+        }
+
+        var w = parseFloat(cfg.screenWidthCm) || 22.5;
+        var a = parseFloat(cfg.bandStartCm) || 14;
+        var b = parseFloat(cfg.bandEndCm) || 17;
+
+        // ตรวจความสมเหตุสมผล ป้องกันค่าที่ทำให้ layout พัง
+        if (!(w > 0) || !(a >= 0) || !(b > a) || b > w) {
+            console.warn('ค่าแถบจอเสียไม่ถูกต้อง ใช้ค่าเริ่มต้นแทน');
+            w = 22.5; a = 14; b = 17;
+        }
+
+        root.style.setProperty('--scr-w', w);
+        root.style.setProperty('--band-a', a);
+        root.style.setProperty('--band-b', b);
+        body.classList.add('avoid-band');
+        updateRotateHint();
+    }
+
+    // แจ้งให้หมุนเป็นแนวนอน เพราะโหมดนี้คำนวณจากความกว้างจอแนวนอน
+    function updateRotateHint() {
+        var hint = document.getElementById('rotateHint');
+        if (!hint) return;
+        var cfg = window.posConfig || {};
+        var isPortrait = window.innerHeight > window.innerWidth;
+        if (cfg.avoidBand && isPortrait) hint.classList.add('show');
+        else hint.classList.remove('show');
+    }
+
+    function toggleBandSettings() {
+        var on = document.getElementById('cfgAvoidBand').checked;
+        document.getElementById('bandSettings').style.display = on ? 'block' : 'none';
     }
 
     // ---------- ระบบชื่อพนักงานผู้ปฏิบัติงาน ----------
@@ -916,6 +1035,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         applyCompatibilityMode(); // ต้องเรียกก่อนอย่างอื่น เพื่อจัด layout ให้ถูกต้องตั้งแต่แรก
         loadDrawerConfig();
+        applyBandMode();
         purgeOldSales();
         checkDailyCashReset();
         setInterval(checkDailyCashReset, 60 * 1000); // เช็คทุก 1 นาที เผื่อแท็บเปิดค้างจนถึง 23:55
@@ -1853,6 +1973,20 @@
         renderStaffBadge();
         renderPrinterBadge('idle');
         tryAutoReconnectPrinter();
+
+        // สลับแสดงช่องตั้งค่าแถบจอเมื่อติ๊ก/เอาติ๊กออก
+        var bandChk = document.getElementById('cfgAvoidBand');
+        if (bandChk) bandChk.addEventListener('change', toggleBandSettings);
+
+        // หมุนจอแล้วต้องเช็คใหม่ว่าควรเตือนให้หมุนกลับหรือไม่
+        window.addEventListener('resize', updateRotateHint);
+        window.addEventListener('orientationchange', function () {
+            setTimeout(updateRotateHint, 300); // รอให้ค่าขนาดจออัปเดตก่อน
+        });
+
+        attachNumpad('cfgScrW', { label: '📏 ความกว้างจอทั้งหมด (ซม.)' });
+        attachNumpad('cfgBandA', { label: '📏 แถบเสียเริ่มที่ (ซม.)' });
+        attachNumpad('cfgBandB', { label: '📏 แถบเสียจบที่ (ซม.)' });
     });
 
     // ---------- ระบบยกเลิกบิล ----------
@@ -2440,6 +2574,11 @@
         document.getElementById('cfgWebhook').value = cfg.webhookUrl || "";
         document.getElementById('cfgNotifyEverySale').checked = !!cfg.notifyEverySale;
         document.getElementById('cfgTightLines').checked = cfg.tightLineSpacing !== false;
+        document.getElementById('cfgAvoidBand').checked = !!cfg.avoidBand;
+        document.getElementById('cfgScrW').value = cfg.screenWidthCm || 22.5;
+        document.getElementById('cfgBandA').value = cfg.bandStartCm || 14;
+        document.getElementById('cfgBandB').value = cfg.bandEndCm || 17;
+        toggleBandSettings();
         document.getElementById('configModal').style.display = 'flex';
     }
     function closeModal() { document.getElementById('configModal').style.display = 'none'; }
@@ -2452,11 +2591,16 @@
             largeBillThreshold: parseFloat(document.getElementById('cfgLarge').value) || 10000,
             webhookUrl: document.getElementById('cfgWebhook').value.trim(),
             notifyEverySale: document.getElementById('cfgNotifyEverySale').checked,
-            tightLineSpacing: document.getElementById('cfgTightLines').checked
+            tightLineSpacing: document.getElementById('cfgTightLines').checked,
+            avoidBand: document.getElementById('cfgAvoidBand').checked,
+            screenWidthCm: parseFloat(document.getElementById('cfgScrW').value) || 22.5,
+            bandStartCm: parseFloat(document.getElementById('cfgBandA').value) || 14,
+            bandEndCm: parseFloat(document.getElementById('cfgBandB').value) || 17
         });
         window.posConfig = cfg;
         localStorage.setItem(STORAGE_KEYS.drawerConfig, JSON.stringify(cfg));
         document.getElementById('cashInDrawer').innerText = cfg.currentCash.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        applyBandMode(); // ปรับ layout ตามค่าแถบจอเสียทันที
         alert('บันทึกการตั้งค่าเรียบร้อยแล้ว');
         closeModal();
     }
