@@ -1356,13 +1356,23 @@
     // ลองส่งซ้ำ 1 ครั้งถ้าพลาดในครั้งแรก (เช่น เน็ตสะดุดชั่วคราว) ก่อนจะปล่อยผ่านแบบเงียบๆ
     // เพื่อไม่ให้การแจ้งเตือนที่ล้มเหลวไปบล็อกการขาย/พิมพ์ใบเสร็จซึ่งสำคัญกว่า
     async function sendLineNotification(webhookUrl, message) {
-        const payload = JSON.stringify({ value: message, message: message });
-        for (let attempt = 0; attempt < 2; attempt++) {
+        // 🛡️ กันส่งข้อความว่าง — ปลายทางจะ error ว่าไม่มีข้อความให้ส่ง
+        if (!message || !String(message).trim()) {
+            console.error('ยกเลิกการส่ง LINE: ข้อความว่างเปล่า');
+            return false;
+        }
+
+        const text = String(message);
+        const payload = JSON.stringify({ value: text, message: text });
+
+        // ⚠️ ห้ามใช้ keepalive: true
+        // บน Safari/Bluefy (WebKit) ตัวเลือกนี้ทำให้ body ถูกตัดทิ้ง
+        // request ไปถึงปลายทางแต่ข้อมูลข้างในว่างเปล่า (เจอจริงบน iPad)
+        for (let attempt = 0; attempt < 3; attempt++) {
             try {
                 const res = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    keepalive: true,
                     body: payload
                 });
                 if (res.ok) return true;
@@ -1370,7 +1380,7 @@
             } catch (e) {
                 console.error('ส่งแจ้งเตือน LINE ไม่สำเร็จ (ครั้งที่ ' + (attempt + 1) + '):', e);
             }
-            if (attempt === 0) await new Promise(r => setTimeout(r, 1500)); // เว้นจังหวะก่อนลองซ้ำ
+            if (attempt < 2) await new Promise(r => setTimeout(r, 1200)); // เว้นจังหวะก่อนลองซ้ำ
         }
         return false;
     }
@@ -1428,13 +1438,13 @@
 
             let alerts = [];
             if (config.notifyEverySale) {
-                alerts.push(`🧾 **บิลใหม่ #${ticketNo}**\n${itemSummary}\nยอดรวม: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท${whoLine}`);
+                alerts.push(`🧾 บิลใหม่ #${ticketNo}\n━━━━━━━━━━━━━━\n${itemSummary}\n━━━━━━━━━━━━━━\nยอดรวม: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท${whoLine}`);
             }
             if (total >= (parseFloat(config.largeBillThreshold) || 10000)) {
-                alerts.push(`🚨 **แจ้งเตือนบิลจ่ายใหญ่! #${ticketNo}**\n${itemSummary}\nยอดจ่ายรับซื้อ: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท${whoLine}`);
+                alerts.push(`🚨 แจ้งเตือนบิลจ่ายใหญ่! #${ticketNo}\n━━━━━━━━━━━━━━\n${itemSummary}\n━━━━━━━━━━━━━━\nยอดจ่ายรับซื้อ: ${total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท${whoLine}`);
             }
             if (currentCash <= (parseFloat(config.lowCashThreshold) || 5000)) {
-                alerts.push(`⚠️ **เตือนเงินสดในลิ้นชักใกล้หมด!**\nเงินคงเหลือในเก๊ะ: ${currentCash.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
+                alerts.push(`⚠️ เตือนเงินสดในลิ้นชักใกล้หมด!\nเงินคงเหลือในเก๊ะ: ${currentCash.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})} บาท`);
             }
 
             if (alerts.length > 0 && config.webhookUrl) {
@@ -2255,7 +2265,7 @@
 
         // แจ้งเตือนเข้า LINE เพราะการยกเลิกบิลเป็นเรื่องที่เจ้าของร้านควรรู้ทันที
         if (cfg.webhookUrl) {
-            const msg = `🚫 **ยกเลิกบิล #${ticketNo}**\nยอดเงินที่คืนเข้าเก๊ะ: ${money(rec.total)} บาท\nเหตุผล: ${rec.voidReason}\nผู้ยกเลิก: ${rec.voidedBy}\n⏰ ${new Date().toLocaleString('th-TH')}`;
+            const msg = `🚫 ยกเลิกบิล #${ticketNo}\nยอดเงินที่คืนเข้าเก๊ะ: ${money(rec.total)} บาท\nเหตุผล: ${rec.voidReason}\nผู้ยกเลิก: ${rec.voidedBy}\n⏰ ${new Date().toLocaleString('th-TH')}`;
             sendLineNotification(cfg.webhookUrl, msg);
         }
 
@@ -2446,7 +2456,7 @@
             else if (diff < 0) diffLine = `⚠️ เงินขาด ${money(Math.abs(diff))} บาท`;
             else diffLine = `⚠️ เงินเกิน ${money(diff)} บาท`;
 
-            const msg = `🔒 **ปิดยอดประจำวัน ${today}**\n━━━━━━━━━━━━━━\n`
+            const msg = `🔒 ปิดยอดประจำวัน ${today}\n━━━━━━━━━━━━━━\n`
                 + `เงินตั้งต้น: ${money(parseFloat(cfg.openingFloat) || 0)} บาท\n`
                 + `จ่ายซื้อ: ${money(sumActive)} บาท (${records.length} บิล)\n`
                 + `━━━━━━━━━━━━━━\n`
