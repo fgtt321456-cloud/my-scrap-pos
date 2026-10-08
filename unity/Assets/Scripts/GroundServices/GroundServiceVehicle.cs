@@ -45,6 +45,7 @@ namespace ThaiRail.GroundServices
         private PooledObject _pooled;
 
         public ServiceType Type { get { return serviceType; } }
+        public int PlatformIndex { get { return _platformIndex; } }
         public bool IsBusy { get { return _state != State.Idle; } }
 
         /// <summary>0..1 while working: drives the progress ring above the train icon.</summary>

@@ -132,6 +132,32 @@ namespace ThaiRail.Stations
             return true;
         }
 
+        public enum ServiceState : byte { NotNeeded, Pending, InProgress, Done }
+
+        /// <summary>What the floating icon above a parked train should show for one service.</summary>
+        public ServiceState GetServiceState(int platformIndex, ServiceType type)
+        {
+            if (!IsValid(platformIndex)) return ServiceState.NotNeeded;
+            var p = platforms[platformIndex];
+            if (p.Train == null) return ServiceState.NotNeeded;
+            if (type == ServiceType.LoadCargo && !HasCargoWagons(p.Train)) return ServiceState.NotNeeded;
+            var flag = ToFlag(type);
+            if ((p.Done & flag) != 0) return ServiceState.Done;
+            if ((p.InProgress & flag) != 0) return ServiceState.InProgress;
+            return ServiceState.Pending;
+        }
+
+        /// <summary>0..1 work progress of the vehicle serving this platform, or -1 if none is working.</summary>
+        public float GetServiceProgress(int platformIndex, ServiceType type)
+        {
+            for (int i = 0; i < _activeVehicles.Count; i++)
+            {
+                var v = _activeVehicles[i];
+                if (v.PlatformIndex == platformIndex && v.Type == type) return v.WorkProgress01;
+            }
+            return -1f;
+        }
+
         // ------------------------------------------------------------------ 3. departure
 
         /// <summary>
