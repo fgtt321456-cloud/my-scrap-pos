@@ -8,39 +8,40 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
-/* Layout: navy status bar on top, timeline rail on the left, 3D stage with a floating navy toolbar, info drawer sliding in from the right */
+/* Layout: navy status bar on top, timeline rail on the left, 3D stage with a floating navy toolbar, info drawer sliding in from the right.
+   Colour rule: navy/white/grey carry the interface; yellow appears only where the player must act now. */
 :root{
-  --bg:#eef1f6; --panel:#ffffff; --panel-2:#f3f5f9; --fg:#13294b; --muted:#5d6b82; --line:#d8dee8;
-  --navy:#13294b; --navy-2:#1f3a66; --on-navy:#ffffff; --on-navy-muted:#a9b6cc;
-  --accent:#f5b400; --accent-ink:#13294b; --accent-soft:#fff4cc;
-  --info:#2b5cab; --info-soft:#e4ecf8;
-  --good:#12855a; --good-soft:#dcf3e8; --amber:#a66d00; --amber-soft:#fff1cf; --bad:#cc3645; --bad-soft:#fbe3e6;
-  --hud:rgba(255,255,255,.92); --shadow:0 8px 28px rgba(19,41,75,.16);
-  --map-bg:#eef1f6; --map-sea:#d5e5f5; --chart-a:#13294b; --chart-b:#f5b400;
-  --paper:#fbfaf5; --ink:#1d1d1f;
+  --bg:#F4F6F9; --panel:#FFFFFF; --panel-2:#F4F6F9; --fg:#13233D; --muted:#6B7A90; --line:#D9DFE8;
+  --navy:#0F2240; --navy-2:#1B355E; --navy-5:#2E4F80; --navy-1:#E3E9F3; --on-navy:#FFFFFF; --on-navy-muted:#A7B6CF;
+  --accent:#FFC20E; --accent-ink:#0F2240; --accent-soft:#FFF3C4;
+  --info:#2E4F80; --info-soft:#E3E9F3; --select:#3A7BD5;
+  --good:#16834F; --good-soft:#DDF3E7; --amber:#8A5A00; --amber-soft:#FFF3C4; --bad:#C9353A; --bad-soft:#FCE4E5;
+  --hud:rgba(255,255,255,.94); --shadow:0 8px 28px rgba(15,34,64,.16);
+  --map-bg:#EFE9DB; --map-sea:#CFE2F2; --chart-a:#1B355E; --chart-b:#9AA8BD;
+  --paper:#FBFAF5; --ink:#1D1D1F;
   --f-display:"Chakra Petch","IBM Plex Sans Thai",system-ui,sans-serif;
   --f-body:"IBM Plex Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0b1220; --panel:#121b2c; --panel-2:#18233a; --fg:#e7edf7; --muted:#97a6bd; --line:#26334d;
-    --navy:#0d1830; --navy-2:#1a2d52; --on-navy:#ffffff; --on-navy-muted:#97a6bd;
-    --accent:#ffc929; --accent-ink:#0d1830; --accent-soft:#3a3010;
-    --info:#8fb1ff; --info-soft:#1c2b4d;
-    --good:#3fc58b; --good-soft:#143326; --amber:#f0b43c; --amber-soft:#3a2d12; --bad:#ff6b78; --bad-soft:#3d1a20;
-    --hud:rgba(18,27,44,.92); --shadow:0 8px 28px rgba(0,0,0,.5);
-    --map-bg:#0b1220; --map-sea:#12253f; --chart-a:#8fb1ff; --chart-b:#ffc929; color-scheme:dark;
+    --bg:#0A1426; --panel:#111E36; --panel-2:#16264A; --fg:#E6ECF5; --muted:#93A3BC; --line:#23345A;
+    --navy:#081124; --navy-2:#1B355E; --navy-5:#7F95B8; --navy-1:#1C2D52; --on-navy:#FFFFFF; --on-navy-muted:#93A3BC;
+    --accent:#FFC929; --accent-ink:#0A1426; --accent-soft:#3A3010;
+    --info:#A9C0E8; --info-soft:#1C2D52; --select:#6FA0F0;
+    --good:#3FC58B; --good-soft:#143326; --amber:#F0B43C; --amber-soft:#3A2D12; --bad:#FF6B78; --bad-soft:#3D1A20;
+    --hud:rgba(17,30,54,.94); --shadow:0 8px 28px rgba(0,0,0,.5);
+    --map-bg:#0E1A30; --map-sea:#13294A; --chart-a:#A9C0E8; --chart-b:#56688A; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0b1220; --panel:#121b2c; --panel-2:#18233a; --fg:#e7edf7; --muted:#97a6bd; --line:#26334d;
-  --navy:#0d1830; --navy-2:#1a2d52; --on-navy:#ffffff; --on-navy-muted:#97a6bd;
-  --accent:#ffc929; --accent-ink:#0d1830; --accent-soft:#3a3010;
-  --info:#8fb1ff; --info-soft:#1c2b4d;
-  --good:#3fc58b; --good-soft:#143326; --amber:#f0b43c; --amber-soft:#3a2d12; --bad:#ff6b78; --bad-soft:#3d1a20;
-  --hud:rgba(18,27,44,.92); --shadow:0 8px 28px rgba(0,0,0,.5);
-  --map-bg:#0b1220; --map-sea:#12253f; --chart-a:#8fb1ff; --chart-b:#ffc929; color-scheme:dark;
+  --bg:#0A1426; --panel:#111E36; --panel-2:#16264A; --fg:#E6ECF5; --muted:#93A3BC; --line:#23345A;
+  --navy:#081124; --navy-2:#1B355E; --navy-5:#7F95B8; --navy-1:#1C2D52; --on-navy:#FFFFFF; --on-navy-muted:#93A3BC;
+  --accent:#FFC929; --accent-ink:#0A1426; --accent-soft:#3A3010;
+  --info:#A9C0E8; --info-soft:#1C2D52; --select:#6FA0F0;
+  --good:#3FC58B; --good-soft:#143326; --amber:#F0B43C; --amber-soft:#3A2D12; --bad:#FF6B78; --bad-soft:#3D1A20;
+  --hud:rgba(17,30,54,.94); --shadow:0 8px 28px rgba(0,0,0,.5);
+  --map-bg:#0E1A30; --map-sea:#13294A; --chart-a:#A9C0E8; --chart-b:#56688A; color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -49,7 +50,8 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
-#app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr)}
+#app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);overflow:hidden}
+#main{overflow:hidden}
 
 /* top status bar */
 #topbar{background:var(--navy);color:var(--on-navy);display:flex;align-items:center;gap:12px;padding:8px 16px;min-width:0;z-index:8}
@@ -295,6 +297,73 @@ select{width:100%;font:inherit;background:var(--panel);color:var(--fg);border:1p
   *{transition:none!important;animation:none!important}
 }
 
+/* ---------- v4: hierarchy, typography, panels, onboarding ---------- */
+/* numbers that matter: heavier and larger */
+.stat span{font-size:11px;font-weight:600;letter-spacing:.05em}
+.stat b{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.stat.money b{color:var(--on-navy)}
+.stat b.neg{color:#FF8A94}
+/* selection states are navy, not yellow */
+.seg button[aria-pressed="true"]{background:rgba(255,255,255,.16);color:var(--on-navy);box-shadow:inset 0 -2px 0 var(--on-navy)}
+#toolbar button[aria-pressed="true"]{background:var(--navy-2);color:var(--on-navy);box-shadow:inset 0 2px 0 var(--on-navy)}
+#toolbar button.min::after{content:"";position:absolute;bottom:4px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--on-navy)}
+.badge{background:var(--navy-5);color:#fff;border-color:var(--navy)}
+.badge.urgent{background:var(--accent);color:var(--accent-ink)}
+#toolbar button[aria-pressed="true"] .badge{background:var(--navy);color:var(--on-navy)}
+#toolbar button[aria-pressed="true"] .badge.urgent{background:var(--accent);color:var(--accent-ink)}
+.btn,.acts button.primary{background:var(--navy-2);color:#fff}
+.btn:hover:not(:disabled),.acts button.primary:hover:not(:disabled){background:var(--navy-5)}
+.acts button.action,.btn.action,button.action{background:var(--accent);border:0;color:var(--accent-ink);font-weight:700;box-shadow:0 2px 0 rgba(15,34,64,.25)}
+.kind button[aria-pressed="true"],.tiercard.on{border-color:var(--navy-2);background:var(--navy-1)}
+.tl-row.sel{border-color:var(--select);background:var(--navy-1)}
+.card.sel{border-color:var(--select);box-shadow:0 0 0 3px var(--navy-1)}
+.stype{background:var(--navy-2)}
+.event-chip{background:var(--navy);color:var(--on-navy);border:1px solid rgba(255,255,255,.18)}
+.pill.warn{background:var(--amber-soft);color:var(--amber)}
+.pill.act{background:var(--accent);color:var(--accent-ink)}
+.tl-row .bar i.act{background:var(--accent)}
+.tl-row .bar i.warn{background:var(--amber)}
+.card header b,.tl-top b{font-weight:700}
+.meter .lbl b,.dstats b,.stats b{font-weight:600}
+.tog[aria-pressed="true"]{background:var(--good-soft);color:var(--good);border-color:var(--good)}
+/* left timeline collapses into an icon rail while the player works the map */
+#tl.show.rail{width:56px;cursor:pointer}
+#tl.rail .tl-head b,#tl.rail .tl-head .iconbtn,#tl.rail .tl-main,#tl.rail .pill,#tl.rail #tArrivals li>*:not(time){display:none}
+#tl.rail .tl-head{min-width:0;justify-content:center;padding:12px 0}
+#tl.rail .tl-head::before{content:"";width:20px;height:2px;background:var(--muted);box-shadow:0 6px 0 var(--muted),0 -6px 0 var(--muted)}
+#tl.rail #tlBody,#tl.rail #tArrivals{min-width:0;padding:8px 6px}
+#tl.rail .tl-row{grid-template-columns:1fr;padding:6px;justify-items:center}
+#tl.rail .tl-row .tier{width:22px;height:22px;min-height:0;border-radius:50%}
+#tl.rail #tArrivals li{grid-template-columns:1fr;padding:6px 2px;font-size:10px;text-align:center}
+/* route confirmation card above the toolbar */
+.route-card{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);z-index:5;width:min(460px,calc(100% - 32px));background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.route-card>div:first-child{flex:1;min-width:180px;display:grid;gap:2px}
+.route-card b{font-family:var(--f-display);font-size:15px}
+.route-card span{font-size:12.5px;color:var(--muted)}
+.route-card span.err{color:var(--bad)}
+.route-card .acts button{padding:8px 12px;font-size:13px}
+/* onboarding focus mask */
+#coach{position:fixed;inset:0;z-index:60;pointer-events:none}
+#coach .blk{position:fixed;background:rgba(8,16,32,.62);pointer-events:auto;display:none}
+#coach.dim::before{content:"";position:fixed;inset:0;background:rgba(8,16,32,.62);pointer-events:auto}
+#coachHole{position:fixed;border-radius:14px;box-shadow:0 0 0 3px var(--accent),0 0 22px 4px rgba(255,194,14,.55);pointer-events:none;animation:coachPulse 1.4s ease-in-out infinite}
+@keyframes coachPulse{50%{box-shadow:0 0 0 5px var(--accent),0 0 30px 8px rgba(255,194,14,.35)}}
+#coachTip{position:fixed;background:var(--panel);color:var(--fg);border-radius:14px;padding:14px 16px;box-shadow:0 12px 36px rgba(0,0,0,.35);pointer-events:auto;display:grid;gap:8px;border-top:4px solid var(--accent)}
+#coachTip small{font-family:var(--f-mono);font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+#coachTip p{margin:0;font-size:15px;font-weight:600;line-height:1.45;text-wrap:balance}
+#coachTip .acts{justify-content:flex-end}
+@media (max-width:820px){
+  .stat b{font-size:15px}
+  body{font-size:14.5px}
+  .route-card{bottom:84px}
+  #tl.show.rail{width:min(320px,86vw)}
+}
+#edgeArrows{position:absolute;inset:0;pointer-events:none;z-index:4}
+.edge-arrow{position:absolute;left:0;top:0;width:42px;height:42px;border-radius:50%;border:2px solid #fff;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;pointer-events:auto;box-shadow:0 4px 14px rgba(15,34,64,.35);animation:edgePulse 1.2s ease-in-out infinite}
+.edge-arrow.go{background:#1FA463;color:#fff}
+.edge-arrow svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+@keyframes edgePulse{50%{box-shadow:0 0 0 6px rgba(255,194,14,.35),0 4px 14px rgba(15,34,64,.35)}}
+
 /* ---- Terminal mode (หัวลำโพง) ---- */
 .pwrap{display:flex;flex-direction:column;min-height:0;flex:1}
 .modeseg{pointer-events:auto;flex:none;align-self:center}
@@ -432,6 +501,7 @@ select{width:100%;font:inherit;background:var(--panel);color:var(--fg);border:1p
       <canvas id="map2d" hidden aria-label="แผนที่โครงข่าย 2 มิติ"></canvas>
       <div id="popups"></div>
       <div id="emotes"></div>
+      <div id="edgeArrows"></div>
       <div class="seg hud-cam" role="group" aria-label="กล้อง">
         <button data-cam="in" aria-label="ซูมเข้า"><svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
         <button data-cam="out" aria-label="ซูมออก"><svg viewBox="0 0 20 20"><path d="M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
@@ -443,7 +513,7 @@ select{width:100%;font:inherit;background:var(--panel);color:var(--fg);border:1p
       <div class="dmi" id="dmi" hidden></div>
       <section class="nx" id="nx" hidden aria-label="แผงสั่งการ NX">
         <div class="nx-head">
-          <b>แผงสั่งการ NX · รีเลย์อินเตอร์ล็อก</b>
+          <b>แผงสัญญาณขั้นสูง (NX)</b>
           <span class="nx-hint" id="nxHint"></span>
           <button class="tog" id="arsArr" aria-pressed="false">ARS ขาเข้า</button>
           <button class="tog" id="arsDep" aria-pressed="false">ARS ขาออก</button>
@@ -452,6 +522,7 @@ select{width:100%;font:inherit;background:var(--panel);color:var(--fg);border:1p
         <div class="nx-body" id="nxBody"></div>
       </section>
       <div class="emote-pal" id="emotePal" hidden></div>
+      <div class="route-card" id="routeCard" hidden><div><b id="rcTitle"></b><span id="rcInfo"></span></div><div class="acts"><button class="ghost" id="rcCancel">ยกเลิก</button><button class="action" id="rcOk">ยืนยันวางราง</button></div></div>
       <nav id="toolbar" aria-label="เครื่องมือ"></nav>
     </section>
 
@@ -464,6 +535,7 @@ select{width:100%;font:inherit;background:var(--panel);color:var(--fg);border:1p
             <li>เริ่มจาก <b>THN ดีเซลราง</b> วิ่งกรุงเทพ–บ้านภาชี รายได้สะสมจะ<b>ปลดล็อกรถ Tier</b> ถัดไป</li>
             <li><b>ชุมทาง</b>มีชานชาลาจำกัด รถด่วนได้เข้าก่อน · <b>ปลายทาง</b>ต้องสับหลีกหัวรถจักร · <b>ICD</b>ขนตู้สินค้าด้วยหัวรถจักร</li>
             <li>ความพร้อมรถลดทุกเที่ยว ส่งเข้า<b>อู่ซ่อม</b>ก่อนเสีย และรับ<b>สัญญา</b>จากนายหน้า AI เพื่อเพิ่มชื่อเสียง</li>
+            <li>บนแผนที่ 2D แตะสถานีต้นทางแล้วแตะปลายทาง จะเห็นเส้นประสีเหลืองแสดงแนวรางก่อนกดยืนยัน</li>
             <li>ทุก 7 วันจะได้<b>ใบสรุปผล</b> กด <b>M</b> หรือปุ่มแผนที่ 2D เพื่อดูโครงข่ายทั้งประเทศ</li>
           </ol>
           <h3>เป้าหมาย</h3>
@@ -474,6 +546,8 @@ select{width:100%;font:inherit;background:var(--panel);color:var(--fg);border:1p
           </div>
           <h3>บันทึกการเดินรถ</h3>
           <ul class="log" id="log"></ul>
+          <h3>การแสดงผล</h3>
+          <div class="acts"><button id="qualityBtn" aria-pressed="true">กราฟิก: สูง</button><button id="tutBtn">ดูวิธีเล่นอีกครั้ง</button></div>
           <div class="foot"><div class="acts"><button class="ghost" id="resetBtn">เริ่มเกมเครือข่ายใหม่</button></div></div>
         </div>
         <div class="tab-body" data-body="trains" hidden>
@@ -574,8 +648,20 @@ select{width:100%;font:inherit;background:var(--panel);color:var(--fg);border:1p
   <div class="paper-wrap"><div class="paper" id="receiptPaper"></div></div>
   <button class="btn" id="receiptOk">รับทราบ · เล่นต่อ</button>
 </div>
+<div id="coach" hidden>
+  <div class="blk" id="coachT"></div><div class="blk" id="coachB"></div><div class="blk" id="coachL"></div><div class="blk" id="coachR"></div>
+  <div id="coachHole"></div>
+  <div id="coachTip" role="dialog" aria-live="polite"><small id="coachStep"></small><p id="coachText"></p><div class="acts"><button class="ghost" id="coachSkip">ข้ามการสอน</button><button class="action" id="coachNext" hidden>เริ่มเล่น</button></div></div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/RoundedBoxGeometry.js"></script>
 <script>
 (() => {
 'use strict';
@@ -724,8 +810,8 @@ let VIEW = 70;
 const MAP = 118;
 const camNet = { tx: 14, tz: -14, az: Math.PI / 4, azT: Math.PI / 4, zoom: narrow() ? 0.42 : 0.55, follow: null, view: 70, near: -500, far: 900,
   zmin: 0.22, zmax: 3.2, bounds: [-MAP, MAP, -MAP, MAP], home() { this.tx = 14; this.tz = -14; this.zoom = narrow() ? 0.42 : 0.55; } };
-const camTerm = { tx: 330, tz: 100, az: Math.PI / 4, azT: Math.PI / 4, zoom: narrow() ? 0.55 : 0.85, follow: null, view: 360, near: -3000, far: 3000,
-  zmin: 0.25, zmax: 7, bounds: [-200, 1000, -150, 250], home() { this.tx = 330; this.tz = 100; this.zoom = narrow() ? 0.55 : 0.85; } };
+const camTerm = { tx: 400, tz: 96, az: Math.PI / 4, azT: Math.PI / 4, zoom: narrow() ? 0.55 : 0.85, follow: null, view: 360, near: -3000, far: 3000,
+  zmin: 0.25, zmax: 7, bounds: [-200, 1000, -150, 250], home() { this.tx = 400; this.tz = 96; this.zoom = narrow() ? 0.55 : 0.85; } };
 let cam = camNet;
 
 const hemi = new THREE.HemisphereLight(0xffffff, 0xb9c4d4, 0.78); scene.add(hemi);
@@ -742,7 +828,7 @@ const M = {
   roof: mat(0xe3e8ef), yellow: mat(0xf5b400), dark: mat(0x2b313a), red: mat(0xd33b3b),
   trunk: mat(0xa98b6d), house: mat(0xffffff), locked: mat(0xc6ceda, { transparent: true, opacity: 0.55 }),
   person: mat(0xffffff), signalPole: mat(0x6b7480), lampR: new THREE.MeshBasicMaterial({ color: 0xff3b47 }), lampG: new THREE.MeshBasicMaterial({ color: 0x22d17a }),
-  ring: new THREE.MeshBasicMaterial({ color: 0xf5b400, transparent: true, opacity: 0.9, depthWrite: false }), warn: new THREE.MeshBasicMaterial({ color: 0xff3b47 }),
+  ring: new THREE.MeshBasicMaterial({ color: 0x3A7BD5, transparent: true, opacity: 0.9, depthWrite: false }), warn: new THREE.MeshBasicMaterial({ color: 0xff3b47 }),
   vertex: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0.05 }),
 };
 const CONT_MATS = [0x13294b, 0xf5b400, 0x8a96a8, 0xc62f3c, 0x2f6bff, 0x14a37f].map(c => mat(c));
@@ -756,7 +842,7 @@ function mergedGeo(parts) {
     c.set(q[3]);
     const base = pos.length / 3, P = g.attributes.position.array, N = g.attributes.normal.array;
     for (let i = 0; i < P.length; i++) { pos.push(P[i]); nor.push(N[i]); }
-    for (let i = 0; i < P.length / 3; i++) col.push(c.r, c.g, c.b);
+    for (let i = 0; i < P.length / 3; i++) { const k = 0.74 + 0.26 * clamp((P[i * 3 + 1] - 0.45) / 1.7, 0, 1); col.push(c.r * k, c.g * k, c.b * k); }
     for (const i of g.index.array) idx.push(base + i);
     g.dispose();
   }
@@ -775,16 +861,8 @@ function isDark() {
 var tThemeHook;
 let themeVer = 0;
 function applySceneTheme() {
-  const d = isDark();
-  scene.background = new THREE.Color(d ? 0x0b1220 : 0xe9edf3);
-  M.ground.color.set(d ? 0x1a2333 : 0xf3f6f9); M.slab.color.set(d ? 0x0f1726 : 0xcdd6e2);
-  M.grass.color.set(d ? 0x1f3529 : 0xd5e9cf); M.water.color.set(d ? 0x1c3752 : 0xb9d7ef); M.sea.color.set(d ? 0x16304d : 0xa7cbe9);
-  M.pad.color.set(d ? 0x2b3645 : 0xffffff); M.road.color.set(d ? 0x27313e : 0xdfe5ed);
-  M.ballast.color.set(d ? 0x4a5462 : 0xb9c0ca); M.roof.color.set(d ? 0x3a4656 : 0xe3e8ef); M.locked.color.set(d ? 0x3a4556 : 0xc6ceda);
-  M.hill.color.set(d ? 0x24392e : 0xb9cfb2);
-  hemi.intensity = d ? 0.62 : 0.78; sun.intensity = d ? 0.62 : 0.72;
+  // Environment lighting follows the in-game clock (applyDayNight); the UI theme only restyles labels.
   RT.labelsDirty = true; themeVer++;
-  if (typeof tThemeHook === 'function') tThemeHook(d);
 }
 
 // ---------- static world ----------
@@ -820,7 +898,7 @@ const nearRoad = (x, z, r) => ROADS.some(rd => { const along = rd.axis === 'z' ?
     const r = 6 + rng() * 10;
     dummy.position.set(x, 0.02, z); dummy.rotation.set(-Math.PI / 2, 0, 0); dummy.scale.set(r, r * (0.6 + rng() * 0.5), 1); dummy.updateMatrix(); patches.setMatrixAt(i, dummy.matrix);
   }
-  patches.receiveShadow = true; scene.add(patches);
+  patches.count = 0;
   const hills = new THREE.InstancedMesh(new THREE.ConeGeometry(1, 1, 7), M.hill, 26); hills.castShadow = hills.receiveShadow = true;
   let hn = 0;
   for (let k = 0; k < 200 && hn < 26; k++) {
@@ -880,6 +958,9 @@ function writeDecor() {
     dummy.rotation.set(0, 0, 0); dummy.position.set(h.x, h.h / 2 * k, h.z); dummy.scale.set(h.w * k, h.h * k, h.d * k); dummy.updateMatrix(); houseMesh.setMatrixAt(h.i, dummy.matrix);
   });
   treeTrunk.instanceMatrix.needsUpdate = treeCrown.instanceMatrix.needsUpdate = houseMesh.instanceMatrix.needsUpdate = true;
+  if (houseMesh.instanceColor) houseMesh.instanceColor.needsUpdate = true;
+  if (treeCrown.instanceColor) treeCrown.instanceColor.needsUpdate = true;
+  fxWriteDecor();
 }
 function clearDecorAlong(P) {
   DECOR.trees.forEach(t => { if (!t.hidden && distToPath(P, t.x, t.z) < 4) t.hidden = true; });
@@ -907,20 +988,20 @@ const contGeo = new THREE.BoxGeometry(0.8, 0.78, 1.7);
 function labelTexture(def, locked, st) {
   const c = document.createElement('canvas'); c.width = 560; c.height = 150;
   const g = c.getContext('2d'), d = isDark();
-  g.fillStyle = d ? 'rgba(15,29,54,0.95)' : 'rgba(255,255,255,0.96)';
-  g.strokeStyle = d ? '#2a3a55' : '#d8dee8'; g.lineWidth = 3;
+  g.fillStyle = 'rgba(15,34,64,0.94)';
+  g.strokeStyle = 'rgba(255,255,255,0.22)'; g.lineWidth = 3;
   const r = 26; g.beginPath(); g.moveTo(r + 4, 4); g.arcTo(556, 4, 556, 146, r); g.arcTo(556, 146, 4, 146, r); g.arcTo(4, 146, 4, 4, r); g.arcTo(4, 4, 556, 4, r); g.closePath(); g.fill(); g.stroke();
-  g.fillStyle = locked ? (d ? '#3a4556' : '#c6ceda') : '#f5b400';
+  g.fillStyle = locked ? '#6B7A90' : '#FFFFFF';
   const cx = 48, cy = 75;
   g.beginPath();
   if (def.type === 'T') g.rect(cx - 17, cy - 17, 34, 34);
   else if (def.type === 'J') { g.moveTo(cx, cy - 21); g.lineTo(cx + 21, cy); g.lineTo(cx, cy + 21); g.lineTo(cx - 21, cy); g.closePath(); }
   else { for (let k = 0; k < 6; k++) { const a = Math.PI / 3 * k; g.lineTo(cx + Math.cos(a) * 20, cy + Math.sin(a) * 20); } g.closePath(); }
   g.fill();
-  g.fillStyle = d ? '#e7edf7' : '#13294b';
-  g.font = '600 44px "Chakra Petch", "IBM Plex Sans Thai", sans-serif'; g.textBaseline = 'middle';
+  g.fillStyle = '#FFFFFF';
+  g.font = '700 44px "Chakra Petch", "IBM Plex Sans Thai", sans-serif'; g.textBaseline = 'middle';
   g.fillText(def.name, 86, 56, 455);
-  g.fillStyle = d ? '#97a6bd' : '#5d6b82';
+  g.fillStyle = '#A7B6CF';
   g.font = '500 28px "IBM Plex Sans Thai", sans-serif';
   g.fillText(locked ? `${TYPE_SHORT[def.type]} · ปิด · ฿${fmt(def.cost)}` : `${TYPE_SHORT[def.type]} · ${platformsOf(def.id)} ชานชาลา · ระดับ ${st.level}`, 86, 106, 455);
   const tex = new THREE.CanvasTexture(c); tex.anisotropy = 4; return tex;
@@ -935,7 +1016,7 @@ function makeStation(def) {
   const pad = box(13, 0.3, 13, m(M.pad)); pad.position.y = 0.15; pad.castShadow = false; g.add(pad);
   if (!locked) [[-6.2, 0], [6.2, 0], [0, -6.2], [0, 6.2]].forEach(([x, z]) => { const e = box(x ? 0.2 : 12.6, 0.04, x ? 12.6 : 0.2, M.padLine); e.position.set(x, 0.31, z); e.castShadow = false; g.add(e); });
   const bh = 2.0 + st.level * 0.7 + (def.type === 'T' ? 1 : 0);
-  const bld = box(3.4, bh, 3.4, m(M.white)); bld.position.set(-4.3, 0.3 + bh / 2, -4.3); g.add(bld);
+  const bld = bbox(3.4, bh, 3.4, m(M.white)); bld.position.set(-4.3, 0.3 + bh / 2, -4.3); g.add(bld);
   const roof = box(3.9, 0.22, 3.9, m(def.type === 'T' ? M.navy : M.roof)); roof.position.set(-4.3, 0.3 + bh + 0.11, -4.3); g.add(roof);
   for (let k = 0; k < 2; k++) { const dr = box(0.9, 1.3, 0.06, m(M.navy)); dr.position.set(-4.95 + k * 1.3, 0.95, -2.57); g.add(dr); }
   const sign = box(2.4, 0.5, 0.08, m(M.yellow)); sign.position.set(-4.3, 0.3 + bh - 0.5, -2.56); g.add(sign);
@@ -945,11 +1026,11 @@ function makeStation(def) {
   }
   if (def.type === 'T') { [-1.6, 1.6].forEach(z => { const b = box(0.6, 0.8, 1.2, m(M.red)); b.position.set(-6, 0.7, z); g.add(b); }); }
   if (def.type === 'J') {
-    const tower = box(1.6, 3.6, 1.6, m(M.white)); tower.position.set(-4.3, 2.1, 4.3); g.add(tower);
+    const tower = bbox(1.6, 3.6, 1.6, m(M.white)); tower.position.set(-4.3, 2.1, 4.3); g.add(tower);
     const cab = box(2.0, 1.0, 2.0, m(M.glass)); cab.position.set(-4.3, 4.4, 4.3); g.add(cab);
     const cr = box(2.3, 0.2, 2.3, m(M.navy)); cr.position.set(-4.3, 5.0, 4.3); g.add(cr);
   } else {
-    const shed = box(3.4, 1.9, 3.2, m(M.white)); shed.position.set(-4.3, 1.25, 4.3); g.add(shed);
+    const shed = bbox(3.4, 1.9, 3.2, m(M.white)); shed.position.set(-4.3, 1.25, 4.3); g.add(shed);
     const shedRoof = box(3.6, 0.16, 3.4, m(M.roof)); shedRoof.position.set(-4.3, 2.28, 4.3); g.add(shedRoof);
   }
   let people = null, crates = null, crane = null;
@@ -1066,6 +1147,7 @@ function makeCarObj(type) {
   const g = new THREE.Group();
   const m = new THREE.Mesh(carGeo(type), M.vertex); m.castShadow = true; m.receiveShadow = true; g.add(m);
   if (type === 'flat') g.userData.conts = [-0.75, 0.75].map((z, i) => { const c = new THREE.Mesh(contGeo, CONT_MATS[Math.floor(rng() * CONT_MATS.length)]); c.position.set(0, 1.33, z); c.scale.set(1.55, 1, 0.85); c.castShadow = true; g.add(c); return c; });
+  const ao = new THREE.Mesh(flatPlane, AO_MAT); ao.position.y = 0.06; ao.scale.set(2.6, 1, 3.8); ao.renderOrder = 1; g.add(ao);
   g.userData.type = type;
   return g;
 }
@@ -1444,6 +1526,7 @@ function resize() {
   camera.updateProjectionMatrix();
   const m2 = $('#map2d'), dpr = Math.min(window.devicePixelRatio || 1, 2);
   m2.width = Math.round(w * dpr); m2.height = Math.round(h * dpr);
+  if (typeof fxResize === 'function') fxResize(w, h);
 }
 function placeCam() {
   const D = 120;
@@ -1460,6 +1543,7 @@ function pan(dx, dy) {
   cam.tx += -rx * dx * k + fx * dy * k / sE; cam.tz += -rz * dx * k + fz * dy * k / sE;
   cam.tx = clamp(cam.tx, cam.bounds[0], cam.bounds[1]); cam.tz = clamp(cam.tz, cam.bounds[2], cam.bounds[3]);
   cam.follow = null;
+  if (!RT.gestureMin) { RT.gestureMin = true; fxMapInteract(); }
 }
 canvas.addEventListener('pointerdown', e => {
   canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -1470,7 +1554,7 @@ canvas.addEventListener('pointermove', e => {
   const p = ptrs.get(e.pointerId); if (!p) return;
   const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
   if (ptrs.size === 1) { moved += Math.abs(dx) + Math.abs(dy); if (moved > 5) pan(dx, dy); }
-  else if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch > 0) cam.zoom = clamp(cam.zoom * d / pinch, cam.zmin, cam.zmax); pinch = d; }
+  else if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch > 0) cam.zoom = clamp(cam.zoom * d / pinch, cam.zmin, cam.zmax); pinch = d; if (!RT.gestureMin) { RT.gestureMin = true; fxMapInteract(); } }
 });
 const endPtr = e => { if (!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId); if (ptrs.size === 0 && !multi && moved <= 5 && e.type === 'pointerup') pick(e); };
 canvas.addEventListener('pointerup', endPtr); canvas.addEventListener('pointercancel', endPtr);
@@ -1480,6 +1564,7 @@ function pick(e) {
   if (MODE === 'term') { tPick(e); return; }
   const r = canvas.getBoundingClientRect();
   ray.setFromCamera({ x: (e.clientX - r.left) / r.width * 2 - 1, y: -(e.clientY - r.top) / r.height * 2 + 1 }, camera);
+  const tap = bbPick(BB_NET); if (tap) { tap(); return; }
   const hit = ray.intersectObjects(pickables, false).find(h => h.object.userData.pick && h.object.visible && h.object.parent && h.object.parent.visible !== false);
   select(hit ? hit.object.userData.pick : null);
 }
@@ -1594,12 +1679,13 @@ function drawMap2d(time) {
     MAP2D.hit.push({ type: 'train', id: tr.id, x: q.x, y: q.y, r: 10 });
   }
   g.textAlign = 'left'; g.font = `500 11px ${cssVar('--f-body')}`; g.fillStyle = C.muted;
-  g.fillText('□ ปลายทาง   ◇ ชุมทาง   ⬡ ICD   ● ขบวนรถ (สีตาม Tier)   วงเหลือง = รอชานชาลา', 16, h - (narrow() ? 104 : 92));
+  g.fillText('□ ปลายทาง   ◇ ชุมทาง   ⬡ ICD   ● ขบวนรถ (สีตาม Tier) · แตะสถานี 2 แห่งเพื่อวางราง', 16, h - (narrow() ? 104 : 92));
+  drawPreview2d(g, time);
 }
 $('#map2d').addEventListener('click', e => {
   const r = $('#map2d').getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
   const hit = MAP2D.hit.slice().reverse().find(hh => Math.hypot(hh.x - x, hh.y - y) < hh.r);
-  select(hit ? { type: hit.type, id: hit.id } : null);
+  map2dClick(hit || null);
 });
 function setMap2d(on) { MAP2D.on = on; $('#map2d').hidden = !on; RT.toolbarDirty = true; }
 
@@ -1661,6 +1747,319 @@ function updateVisuals(dt) {
   updateEmotes();
 }
 
+// =================== Visual polish: terrain, contact shadows, bevels, lamps, day/night, bloom, billboards ===================
+const PAL = {
+  terrain: '#DCD1B8', terrainShade: '#D8CDB4', grass: '#C5D6A0', grassDeep: '#9DBB78', sand: '#EFE4C6',
+  tree: 0x6FA35A, treeLight: 0x8DBE6A, wall: 0xF6F1E7, houseWarm: 0xEFE3CF, houseCool: 0xD7DFEA,
+  roofT: 0xB8654A, roofS: 0x5E6F86, lamp: 0xFFD27A, window: 0xFFC768, glass: 0x4A5668,
+  yellow: '#FFC20E', navy: '#0F2240', navy7: '#1B355E', green: '#1FA463', red: '#E5484D', info: '#3A7BD5',
+};
+const FX = { quality: 'high', composer: null, bloom: null, renderPass: null, lamp: 0, hour: 12 };
+
+// ---------- shared helpers ----------
+function addHeightGradient(geo, lo, hi) {
+  const p = geo.attributes.position, n = p.count, col = new Float32Array(n * 3);
+  geo.computeBoundingBox();
+  const y0 = geo.boundingBox.min.y, y1 = geo.boundingBox.max.y, span = (y1 - y0) || 1;
+  for (let i = 0; i < n; i++) { const k = lo + (hi - lo) * ((p.getY(i) - y0) / span); col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = k; }
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  return geo;
+}
+function radialTexture(inner, outer, size = 128) {
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const g = c.getContext('2d'), grd = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  grd.addColorStop(0, inner); grd.addColorStop(1, outer); g.fillStyle = grd; g.fillRect(0, 0, size, size);
+  return new THREE.CanvasTexture(c);
+}
+const BEVEL_GEO = (() => {
+  const g = THREE.RoundedBoxGeometry ? new THREE.RoundedBoxGeometry(1, 1, 1, 2, 0.07) : new THREE.BoxGeometry(1, 1, 1);
+  return addHeightGradient(g, 0.72, 1.0);
+})();
+const M_WALL = mat(PAL.wall, { vertexColors: true });
+const M_HOUSE = mat(0xffffff, { vertexColors: true, roughness: 0.85 });
+const M_CROWN = mat(0xffffff, { vertexColors: true, roughness: 0.9, flatShading: true });
+/** Bevelled, gradient-shaded box for buildings (stations use it instead of flat cubes). */
+function bbox(w, h, d, m) {
+  const o = new THREE.Mesh(BEVEL_GEO, m === M.white ? M_WALL : m);
+  o.scale.set(w, h, d); o.castShadow = true; o.receiveShadow = true; return o;
+}
+const AO_TEX = radialTexture('rgba(20,24,30,0.55)', 'rgba(20,24,30,0)');
+const AO_MAT = new THREE.MeshBasicMaterial({ map: AO_TEX, transparent: true, depthWrite: false });
+const POOL_TEX = radialTexture('rgba(255,210,122,0.85)', 'rgba(255,210,122,0)');
+const flatPlane = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
+
+// ---------- network scene: terrain, colours, houses, trees ----------
+{
+  M.ground.color.set(PAL.terrainShade); M.slab.color.set(0xBFB399);
+  M.ballast.color.set(0x8C8476); M.sleeper.color.set(0x5B4636); M.rail.color.set(0x3A3F47);
+  M.pad.color.set(0xC9D0DA); M.road.color.set(0xCFC7B4); M.sea.color.set(0x6FA8D6); M.water.color.set(0x8FC1E3); M.hill.color.set(0x8FAE78);
+  M.white.color.set(PAL.wall); M.roof.color.set(0xDAD3C3);
+  // painted terrain with soft tonal variation and meadows (the "gradient texture" ground)
+  const N = 1024, c = document.createElement('canvas'); c.width = c.height = N;
+  const g = c.getContext('2d'), W2P = v => (v + MAP) / (2 * MAP) * N;
+  g.fillStyle = PAL.terrain; g.fillRect(0, 0, N, N);
+  const blob = (x, y, r, col) => { const grd = g.createRadialGradient(x, y, 0, x, y, r); grd.addColorStop(0, col); grd.addColorStop(1, 'rgba(220,209,184,0)'); g.fillStyle = grd; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); };
+  for (let i = 0; i < 160; i++) blob(rng() * N, rng() * N, 30 + rng() * 150, rng() < 0.5 ? 'rgba(212,199,170,0.45)' : 'rgba(244,238,222,0.5)');
+  for (let i = 0; i < 90; i++) {
+    let wx, wz, n = 0;
+    do { wx = (rng() * 2 - 1) * (MAP - 6); wz = (rng() * 2 - 1) * (MAP - 6); n++; } while ((nearStation(wx, wz, 13) || inSea(wx, wz, 3)) && n < 40);
+    const r = (6 + rng() * 15) / (2 * MAP) * N * 1.5;
+    blob(W2P(wx), W2P(wz), r, rng() < 0.6 ? 'rgba(197,214,160,0.9)' : 'rgba(157,187,120,0.75)');
+  }
+  // rice-field strips in the central plain
+  g.save(); g.globalAlpha = 0.35;
+  for (let i = 0; i < 26; i++) {
+    const wx = -40 + rng() * 70, wz = -60 + rng() * 50; if (nearStation(wx, wz, 12)) continue;
+    const x = W2P(wx), y = W2P(wz), w = 18 + rng() * 26, h = 10 + rng() * 16;
+    for (let k = 0; k < 4; k++) { g.fillStyle = k % 2 ? '#b9cf8f' : '#d2deb0'; g.fillRect(x + k * w / 4, y, w / 4 - 1, h); }
+  }
+  g.restore();
+  // beach along the gulf
+  const sx = W2P(SEA.x0), sz = W2P(SEA.z0);
+  g.fillStyle = PAL.sand; g.fillRect(sx - 10, sz - 10, N - sx + 10, 14); g.fillRect(sx - 10, sz - 10, 14, N - sz + 10);
+  for (let i = 0; i < 4000; i++) { g.fillStyle = rng() < 0.5 ? 'rgba(120,100,70,0.06)' : 'rgba(255,255,255,0.08)'; g.fillRect(rng() * N, rng() * N, 2, 2); }
+  const tex = new THREE.CanvasTexture(c); tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  const terrain = new THREE.Mesh(new THREE.PlaneGeometry(MAP * 2, MAP * 2).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95 }));
+  terrain.position.y = 0.012; terrain.receiveShadow = true; scene.add(terrain);
+  // houses: bevelled + gradient; crowns: low-poly + gradient
+  houseMesh.geometry = BEVEL_GEO; houseMesh.material = M_HOUSE;
+  const cc = [0xEFE3CF, 0xF6F1E7, 0xD7DFEA, 0xE4D5C1, 0xCDD8E6].map(x => new THREE.Color(x));
+  DECOR.houses.forEach((h, i) => houseMesh.setColorAt(h.i, cc[i % cc.length]));
+  treeCrown.geometry = addHeightGradient(new THREE.IcosahedronGeometry(1, 1), 0.7, 1.05); treeCrown.material = M_CROWN;
+  const t1 = new THREE.Color(PAL.tree), t2 = new THREE.Color(PAL.treeLight);
+  DECOR.trees.forEach(t => treeCrown.setColorAt(t.i, rng() < 0.5 ? t1 : t2));
+}
+// roofs, lit window bands, contact-shadow blobs for every house and tree
+const roofMesh = new THREE.InstancedMesh(new THREE.ConeGeometry(0.72, 1, 4).rotateY(Math.PI / 4), mat(0xffffff, { roughness: 0.8, flatShading: true }), DECOR.houses.length);
+const winMat = new THREE.MeshBasicMaterial({ color: PAL.glass });
+const winMesh = new THREE.InstancedMesh(unitBox, winMat, DECOR.houses.length * 2);
+const aoMesh = new THREE.InstancedMesh(flatPlane, AO_MAT, DECOR.houses.length + DECOR.trees.length + STATIONS.length);
+roofMesh.castShadow = true; aoMesh.renderOrder = 1;
+{
+  const r1 = new THREE.Color(PAL.roofT), r2 = new THREE.Color(PAL.roofS);
+  DECOR.houses.forEach((h, i) => roofMesh.setColorAt(i, i % 3 ? r1 : r2));
+  scene.add(roofMesh, winMesh, aoMesh);
+}
+function fxWriteDecor() {
+  const Z = 0.0001;
+  dummy.rotation.set(0, 0, 0);
+  DECOR.houses.forEach((h, i) => {
+    const k = h.hidden ? Z : 1, tall = h.h > 3.4, rh = tall ? Z : 0.45 + Math.min(h.w, h.d) * 0.22;
+    dummy.position.set(h.x, h.h + rh / 2 - 0.02, h.z); dummy.scale.set(h.w * 1.04 * k, rh * k, h.d * 1.04 * k); dummy.updateMatrix(); roofMesh.setMatrixAt(i, dummy.matrix);
+    dummy.position.set(h.x, h.h * 0.62, h.z); dummy.scale.set(h.w * 1.015 * k, Math.min(0.32, h.h * 0.16) * k, h.d * 1.015 * k); dummy.updateMatrix(); winMesh.setMatrixAt(i * 2, dummy.matrix);
+    const k2 = tall ? k : Z;
+    dummy.position.set(h.x, h.h * 0.3, h.z); dummy.scale.set(h.w * 1.015 * k2, 0.28 * k2, h.d * 1.015 * k2); dummy.updateMatrix(); winMesh.setMatrixAt(i * 2 + 1, dummy.matrix);
+    dummy.position.set(h.x, 0.03, h.z); dummy.scale.set((h.w + 1.6) * k, 1, (h.d + 1.6) * k); dummy.updateMatrix(); aoMesh.setMatrixAt(i, dummy.matrix);
+  });
+  const o = DECOR.houses.length;
+  DECOR.trees.forEach((t, i) => { const s = t.hidden ? Z : 2.2 * t.s; dummy.position.set(t.x + 0.25, 0.028, t.z + 0.25); dummy.scale.set(s, 1, s); dummy.updateMatrix(); aoMesh.setMatrixAt(o + i, dummy.matrix); });
+  const o2 = o + DECOR.trees.length;
+  STATIONS.forEach((s, i) => { dummy.position.set(s.x, 0.02, s.z); dummy.scale.set(17, 1, 17); dummy.updateMatrix(); aoMesh.setMatrixAt(o2 + i, dummy.matrix); });
+  roofMesh.instanceMatrix.needsUpdate = winMesh.instanceMatrix.needsUpdate = aoMesh.instanceMatrix.needsUpdate = true;
+}
+// street lamps (road edges + station corners)
+const LAMPS = [];
+ROADS.forEach(r => { for (let p = r.lo + 6; p < r.hi - 4; p += 11) { const x = r.axis === 'z' ? p : r.at + 2.4, z = r.axis === 'z' ? r.at + 2.4 : p; if (!nearStation(x, z, 8) && !inSea(x, z, 0.5)) LAMPS.push([x, z]); } });
+STATIONS.forEach(s => { LAMPS.push([s.x + 6.4, s.z + 6.4], [s.x - 6.4, s.z + 6.4], [s.x + 6.4, s.z - 6.4]); });
+function makeLamps(list, poleH, target) {
+  const poles = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.06, 0.09, 1, 6), mat(0x3A3F47), list.length);
+  const headMat = new THREE.MeshBasicMaterial({ color: 0x9aa0a8 });
+  const heads = new THREE.InstancedMesh(new THREE.SphereGeometry(0.2, 8, 6), headMat, list.length);
+  const poolMat = new THREE.MeshBasicMaterial({ map: POOL_TEX, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 });
+  const pools = new THREE.InstancedMesh(flatPlane, poolMat, list.length);
+  list.forEach(([x, z], i) => {
+    dummy.rotation.set(0, 0, 0);
+    dummy.position.set(x, poleH / 2, z); dummy.scale.set(1, poleH, 1); dummy.updateMatrix(); poles.setMatrixAt(i, dummy.matrix);
+    dummy.position.set(x, poleH + 0.1, z); dummy.scale.set(1, 1, 1); dummy.updateMatrix(); heads.setMatrixAt(i, dummy.matrix);
+    dummy.position.set(x, 0.05, z); dummy.scale.set(poleH * 2.6, 1, poleH * 2.6); dummy.updateMatrix(); pools.setMatrixAt(i, dummy.matrix);
+  });
+  poles.castShadow = true; pools.renderOrder = 2; target.add(poles, heads, pools);
+  return { headMat, poolMat };
+}
+const NET_LAMPS = makeLamps(LAMPS, 2.6, scene);
+
+// ---------- day / night ----------
+const DN_KEYS = [
+  { h: 0, sky: 0x0B1428, hs: 0x2a3a66, hg: 0x141a28, hi: 0.5, sc: 0x9fb4e0, si: 0.22, lamp: 1 },
+  { h: 5, sky: 0x111b36, hs: 0x2e3d68, hg: 0x161c2a, hi: 0.52, sc: 0x9fb4e0, si: 0.22, lamp: 1 },
+  { h: 6, sky: 0xF0C49C, hs: 0xf3cfaa, hg: 0x7a6c5e, hi: 0.46, sc: 0xFFB070, si: 0.4, lamp: 0.35 },
+  { h: 8, sky: 0xE6ECF2, hs: 0xeef2f8, hg: 0xa9a28f, hi: 0.58, sc: 0xFFF1DC, si: 0.56, lamp: 0 },
+  { h: 12, sky: 0xDDE7F2, hs: 0xf7f9fc, hg: 0xaaa38f, hi: 0.6, sc: 0xFFF6E8, si: 0.6, lamp: 0 },
+  { h: 16, sky: 0xE4E6EC, hs: 0xf6f0e6, hg: 0xa79e8a, hi: 0.58, sc: 0xFFEBD0, si: 0.56, lamp: 0 },
+  { h: 18, sky: 0xE9A07A, hs: 0xffcfa8, hg: 0x8a6f60, hi: 0.6, sc: 0xFF9E66, si: 0.5, lamp: 0.55 },
+  { h: 19.5, sky: 0x3A3560, hs: 0x6a5d8f, hg: 0x2a2433, hi: 0.5, sc: 0xc08aa0, si: 0.25, lamp: 1 },
+  { h: 21, sky: 0x0B1428, hs: 0x2a3a66, hg: 0x141a28, hi: 0.5, sc: 0x9fb4e0, si: 0.22, lamp: 1 },
+  { h: 24, sky: 0x0B1428, hs: 0x2a3a66, hg: 0x141a28, hi: 0.5, sc: 0x9fb4e0, si: 0.22, lamp: 1 },
+];
+const _ca = new THREE.Color(), _cb = new THREE.Color();
+function dnSample(hour) {
+  let i = 0; while (i < DN_KEYS.length - 2 && DN_KEYS[i + 1].h <= hour) i++;
+  const a = DN_KEYS[i], b = DN_KEYS[i + 1], t = clamp((hour - a.h) / (b.h - a.h), 0, 1), s = t * t * (3 - 2 * t);
+  const col = k => new THREE.Color(a[k]).lerp(_cb.set(b[k]), s);
+  return { sky: col('sky'), hs: col('hs'), hg: col('hg'), sc: col('sc'), hi: a.hi + (b.hi - a.hi) * s, si: a.si + (b.si - a.si) * s, lamp: a.lamp + (b.lamp - a.lamp) * s };
+}
+/** Applies time-of-day lighting to a scene's hemisphere + sun lights and lamp materials. */
+function applyDayNight(hour, sc, hemiL, sunL, center, radius, lamps) {
+  const d = dnSample(((hour % 24) + 24) % 24);
+  FX.lamp = d.lamp; FX.hour = hour;
+  sc.background = d.sky;
+  hemiL.color.copy(d.hs); hemiL.groundColor.copy(d.hg); hemiL.intensity = d.hi;
+  sunL.color.copy(d.sc); sunL.intensity = d.si;
+  const h = ((hour % 24) + 24) % 24;
+  if (h >= 5.5 && h <= 18.5) { const t = (h - 6) / 12; sunL.position.set(center.x + Math.cos(Math.PI * t) * radius, radius * 0.25 + Math.max(0.12, Math.sin(Math.PI * t)) * radius, center.z + radius * 0.35); }
+  else sunL.position.set(center.x - radius * 0.4, radius * 0.9, center.z - radius * 0.3);
+  sunL.target.position.copy(center); sunL.target.updateMatrixWorld();
+  if (lamps) { lamps.headMat.color.copy(_ca.set(0x9aa0a8).lerp(_cb.set(PAL.lamp), d.lamp)); lamps.poolMat.opacity = d.lamp * 0.85; }
+  winMat.color.copy(_ca.set(PAL.glass).lerp(_cb.set(PAL.window), d.lamp));
+  if (FX.bloom) { FX.bloom.strength = 0.06 + d.lamp * 0.55; FX.bloom.threshold = 0.97 - d.lamp * 0.33; }
+}
+sun.target.position.set(0, 0, 0); scene.add(sun.target);
+
+// ---------- bloom (high quality only) ----------
+function fxInitComposer() {
+  if (FX.composer || !THREE.EffectComposer || !THREE.UnrealBloomPass || !THREE.RenderPass) return;
+  try {
+    const sz = renderer.getSize(new THREE.Vector2()), pr = renderer.getPixelRatio();
+    let rt;
+    if (renderer.capabilities.isWebGL2 && THREE.WebGLMultisampleRenderTarget) rt = new THREE.WebGLMultisampleRenderTarget(Math.max(1, sz.x * pr), Math.max(1, sz.y * pr), { format: THREE.RGBAFormat });
+    const comp = new THREE.EffectComposer(renderer, rt);
+    FX.renderPass = new THREE.RenderPass(scene, camera); comp.addPass(FX.renderPass);
+    FX.bloom = new THREE.UnrealBloomPass(new THREE.Vector2(sz.x, sz.y), 0.2, 0.45, 0.86); comp.addPass(FX.bloom);
+    FX.composer = comp;
+  } catch (e) { FX.composer = null; FX.bloom = null; }
+}
+function fxSetQuality(q) {
+  FX.quality = q; if (state) state.quality = q;
+  const hi = q === 'high';
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, hi ? 2 : 1.5));
+  const want = hi ? 2048 : 1024;
+  [sun].concat(TVIS && TVIS.lights ? [TVIS.lights.s] : []).forEach(L => { if (L.shadow.mapSize.x !== want) { L.shadow.mapSize.set(want, want); if (L.shadow.map) { L.shadow.map.dispose(); L.shadow.map = null; } } });
+  if (hi) fxInitComposer();
+  resize();
+  const b = $('#qualityBtn'); if (b) { b.textContent = hi ? 'กราฟิก: สูง (bloom + เงาคมชัด)' : 'กราฟิก: ประหยัดแบตเตอรี่'; b.setAttribute('aria-pressed', String(hi)); }
+}
+function fxRender(sc) {
+  if (FX.quality === 'high' && FX.composer) { FX.renderPass.scene = sc; FX.composer.render(); }
+  else renderer.render(sc, camera);
+}
+function fxResize(w, h) { if (FX.composer) FX.composer.setSize(w, h); }
+
+// ---------- floating billboard icons (pooled sprites, constant screen size, tappable) ----------
+const BB_TEX = {};
+function bbTexture(kind) {
+  if (BB_TEX[kind]) return BB_TEX[kind];
+  const S = 128, c = document.createElement('canvas'); c.width = c.height = S; const g = c.getContext('2d');
+  const num = /^num(\d+)$/.exec(kind), numOff = /^off(\d+)$/.exec(kind);
+  const bg = { repair: PAL.yellow, depot: PAL.yellow, platform: PAL.yellow, ready: PAL.green, wait: PAL.navy7, crowd: PAL.navy7 }[kind] || (num ? PAL.yellow : '#8D97A8');
+  const fg = (bg === PAL.yellow) ? PAL.navy : '#ffffff';
+  if (bg === PAL.yellow || bg === PAL.green) { const gl = g.createRadialGradient(64, 64, 30, 64, 64, 64); gl.addColorStop(0, bg + 'aa'); gl.addColorStop(1, bg + '00'); g.fillStyle = gl; g.fillRect(0, 0, S, S); }
+  g.fillStyle = bg; g.beginPath(); g.arc(64, 64, 40, 0, 7); g.fill();
+  g.lineWidth = 5; g.strokeStyle = 'rgba(255,255,255,0.9)'; g.stroke();
+  g.strokeStyle = fg; g.fillStyle = fg; g.lineWidth = 7; g.lineCap = 'round'; g.lineJoin = 'round';
+  g.beginPath();
+  if (kind === 'repair' || kind === 'depot') { g.moveTo(48, 80); g.lineTo(70, 58); g.stroke(); g.beginPath(); g.arc(76, 52, 11, Math.PI * 0.75, Math.PI * 2.25); g.stroke(); if (kind === 'repair') { g.fillStyle = PAL.red; g.beginPath(); g.arc(86, 84, 9, 0, 7); g.fill(); } }
+  else if (kind === 'ready') { g.moveTo(46, 66); g.lineTo(59, 79); g.lineTo(84, 50); g.stroke(); }
+  else if (kind === 'wait') { g.arc(64, 64, 20, 0, 7); g.stroke(); g.beginPath(); g.moveTo(64, 52); g.lineTo(64, 65); g.lineTo(73, 70); g.stroke(); }
+  else if (kind === 'crowd') { [[50, 58], [64, 52], [78, 58]].forEach(([x, y]) => { g.beginPath(); g.arc(x, y, 6, 0, 7); g.fill(); g.beginPath(); g.arc(x, y + 20, 10, Math.PI, 0); g.fill(); }); }
+  else if (kind === 'platform') { g.moveTo(64, 44); g.lineTo(64, 78); g.stroke(); g.beginPath(); g.moveTo(52, 68); g.lineTo(64, 80); g.lineTo(76, 68); g.stroke(); g.lineWidth = 5; g.beginPath(); g.moveTo(46, 88); g.lineTo(82, 88); g.stroke(); }
+  else if (num || numOff) { g.font = '700 40px "Chakra Petch", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText((num || numOff)[1], 64, 67); }
+  const tex = new THREE.CanvasTexture(c); return (BB_TEX[kind] = tex);
+}
+function makeBB(group) { return { group, live: new Map(), pool: [] }; }
+const BB_NET = makeBB(new THREE.Group()); scene.add(BB_NET.group);
+/** items: [{key, kind, x, y, z, tap, pulse, px}] — diffed by key; sprites are pooled. */
+function bbSync(B, items, time) {
+  const seen = new Set(), worldPerPx = (camera.top - camera.bottom) / camera.zoom / Math.max(1, canvas.clientHeight);
+  for (const it of items) {
+    seen.add(it.key);
+    let sp = B.live.get(it.key);
+    if (!sp) { sp = B.pool.pop() || new THREE.Sprite(new THREE.SpriteMaterial({ depthTest: false, transparent: true })); sp.renderOrder = 20; B.group.add(sp); B.live.set(it.key, sp); sp.userData.kind = ''; }
+    if (sp.userData.kind !== it.kind) { sp.material.map = bbTexture(it.kind); sp.material.needsUpdate = true; sp.userData.kind = it.kind; }
+    sp.userData.tap = it.tap;
+    const pulse = it.pulse ? 1 + Math.sin(time * 5 + (it.x + it.z) * 0.3) * 0.1 : 1, s = (it.px || (narrow() ? 46 : 40)) * worldPerPx * pulse;
+    sp.position.set(it.x, it.y, it.z); sp.scale.set(s, s, 1); sp.visible = true;
+  }
+  for (const [k, sp] of B.live) if (!seen.has(k)) { sp.visible = false; B.group.remove(sp); B.pool.push(sp); B.live.delete(k); }
+}
+function bbPick(B) {
+  if (!B.live.size) return null;
+  const hits = ray.intersectObjects(B.group.children, false);
+  const h = hits.find(x => x.object.visible && x.object.userData.tap);
+  return h ? h.object.userData.tap : null;
+}
+function netBillboards(time) {
+  const items = [];
+  for (const tr of state.trains) {
+    if (offLine(tr)) continue;
+    const r = RT.trains[tr.id]; if (!r || !r.group.visible) continue;
+    const c = r.cars[Math.floor(r.cars.length / 2)].position;
+    if (tr.broken && tr.repair <= 0) items.push({ key: 't' + tr.id, kind: 'repair', x: c.x, y: 4.6, z: c.z, pulse: true, tap: () => { if (state.money >= 6000) trainAction('repair', tr); else select({ type: 'train', id: tr.id }); } });
+    else if (tr.cond < 30 && !tr.leased) items.push({ key: 't' + tr.id, kind: 'depot', x: c.x, y: 4.6, z: c.z, pulse: true, tap: () => { sendToDepot(tr, false); RT.staticDirty = true; } });
+    else if (tr.holding) items.push({ key: 't' + tr.id, kind: 'wait', x: c.x, y: 4.6, z: c.z, px: 32, tap: () => select({ type: 'train', id: tr.id }) });
+  }
+  for (const d of STATIONS) {
+    const st = state.stations[d.id]; if (!st.unlocked) continue;
+    const cap = stationCap(st);
+    if (st.pax > cap * 0.85 || st.cargo > cap * 0.85) items.push({ key: 's' + d.id, kind: 'crowd', x: d.x, y: 11.4, z: d.z, px: 34, tap: () => select({ type: 'station', id: d.id }) });
+  }
+  bbSync(BB_NET, MAP2D.on ? [] : items, time);
+  edgeIndicators(MAP2D.on ? [] : items);
+}
+
+// ---------- route preview: glowing dots that flow along a proposed / selected route ----------
+const PV_N = 90;
+const pvMat = new THREE.MeshBasicMaterial({ color: 0xFFC20E, transparent: true, opacity: 0.95, depthWrite: false });
+const pvMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(0.42, 8, 6), pvMat, PV_N);
+pvMesh.visible = false; pvMesh.renderOrder = 6; scene.add(pvMesh);
+function previewPath() {
+  if (RT.preview) { const ev = evalLine(RT.preview.a, RT.preview.b); return ev.ok ? buildPath(RT.preview.a, RT.preview.b, ev.mode) : null; }
+  if ($('#panel').classList.contains('open') && drawerTab === 'stations') { const a = $('#lineA').value, b = $('#lineB').value, ev = evalLineCached(); return ev.ok ? buildPath(a, b, ev.mode) : null; }
+  if ($('#panel').classList.contains('open') && drawerTab === 'trains') { const l = lineById($('#buyLine').value); return l && RT.lines[l.id] ? RT.lines[l.id].path : null; }
+  return null;
+}
+function updatePreview(time) {
+  const P = previewPath(); FX.previewP = P;
+  if (!P || MAP2D.on) { pvMesh.visible = false; return; }
+  pvMesh.visible = true;
+  dummy.rotation.set(0, 0, 0);
+  const n = Math.min(PV_N, Math.max(12, Math.floor(P.len / 2.4)));
+  for (let i = 0; i < PV_N; i++) {
+    if (i >= n) { dummy.scale.set(0.0001, 0.0001, 0.0001); dummy.updateMatrix(); pvMesh.setMatrixAt(i, dummy.matrix); continue; }
+    const s = ((i / n) * P.len + time * 9) % P.len, p = pathAt(P, s), k = 0.75 + 0.35 * Math.sin(time * 6 - i * 0.6);
+    dummy.position.set(p.x, 0.9, p.z); dummy.scale.set(k, k, k); dummy.updateMatrix(); pvMesh.setMatrixAt(i, dummy.matrix);
+  }
+  pvMesh.instanceMatrix.needsUpdate = true;
+}
+
+// ---------- wayfinding: yellow arrows on the screen edge pointing at offscreen trains that need the player ----------
+const EDGE_ELS = [];
+const EDGE_KINDS = { platform: 1, repair: 1, depot: 1, ready: 1 };
+function edgeIndicators(items) {
+  const w = canvas.clientWidth, h = canvas.clientHeight, top = 18, bottom = narrow() ? 92 : 100, side = 18;
+  let n = 0;
+  for (const it of items) {
+    if (!EDGE_KINDS[it.kind]) continue;
+    tmpV.set(it.x, it.y, it.z).project(camera);
+    const sx = (tmpV.x + 1) / 2 * w, sy = (1 - tmpV.y) / 2 * h;
+    if (sx > 0 && sx < w && sy > 0 && sy < h) continue;
+    let el = EDGE_ELS[n];
+    if (!el) {
+      el = document.createElement('button'); el.className = 'edge-arrow'; el.setAttribute('aria-label', 'ไปยังขบวนที่ต้องจัดการ');
+      el.innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 12h11M12 6l6 6-6 6"/></svg>';
+      el.addEventListener('click', () => { const t = el._t; if (t) { cam.tx = t.x; cam.tz = t.z; cam.follow = null; } });
+      $('#edgeArrows').appendChild(el); EDGE_ELS.push(el);
+    }
+    const cx = w / 2, cy = h / 2, dx = sx - cx, dy = sy - cy;
+    const kx = (w / 2 - side - 22) / Math.max(1e-6, Math.abs(dx)), ky = (dy < 0 ? h / 2 - top - 22 : h / 2 - bottom - 22) / Math.max(1e-6, Math.abs(dy));
+    const k = Math.min(kx, ky), x = cx + dx * k, y = cy + dy * k;
+    el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -50%)`;
+    el.firstChild.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+    el.classList.toggle('go', it.kind === 'ready');
+    el._t = { x: it.x, z: it.z }; el.hidden = false; n++;
+  }
+  for (let i = n; i < EDGE_ELS.length; i++) EDGE_ELS[i].hidden = true;
+}
+
 // =================== UI: drawer, toolbar, timeline ===================
 let MODE = 'net';
 const ICONS = {
@@ -1701,11 +2100,12 @@ function syncToolbar() {
     b.setAttribute('aria-pressed', String(on));
   });
   const offers = state.contracts.filter(c => c.status === 'offer').length;
-  setBadge('contracts', offers);
-  setBadge('depot', state.trains.filter(t => !offLine(t) && t.cond < 35).length);
-  setBadge('coop', typeof coopBadge === 'function' ? coopBadge() : 0);
+  setBadge('contracts', offers, false);
+  setBadge('depot', state.trains.filter(t => !offLine(t) && t.cond < 30).length, true);
+  setBadge('coop', typeof coopBadge === 'function' ? coopBadge() : 0, true);
+  document.querySelectorAll('#toolbar [data-tool]').forEach(b => b.classList.toggle('min', b.dataset.tool === minTab && !$('#panel').classList.contains('open')));
 }
-function setBadge(k, n) { const b = document.querySelector(`[data-badge="${k}"]`); if (b) { b.hidden = !n; b.textContent = n; } }
+function setBadge(k, n, urgent) { const b = document.querySelector(`[data-badge="${k}"]`); if (b) { b.hidden = !n; b.textContent = n; b.classList.toggle('urgent', !!urgent); } }
 $('#toolbar').addEventListener('click', e => {
   const b = e.target.closest('[data-tool]'); if (!b) return;
   const k = b.dataset.tool;
@@ -1718,6 +2118,7 @@ $('#toolbar').addEventListener('click', e => {
   syncToolbar();
 });
 function openDrawer(tab) {
+  minTab = null;
   if (tab) {
     drawerTab = tab;
     if (MODE === 'net') document.querySelectorAll('#netPanel [data-body]').forEach(b => { b.hidden = b.dataset.body !== tab; });
@@ -1740,7 +2141,8 @@ function trainStatus(tr) {
   if (tr.leasedOut) return ['ให้เพื่อนเช่า', 'mute', 0];
   if (tr.rescue) return ['ไปช่วยเพื่อน', 'warn', 1 - tr.rescue.t / 25];
   if (tr.depot) return [tr.depot.wait ? 'รอคิวอู่' : 'อยู่ในอู่ซ่อม', 'mute', tr.depot.wait ? 0 : 1 - tr.depot.t / tr.depot.dur];
-  if (tr.broken) return [tr.repair > 0 ? 'กำลังซ่อม' : 'ขัดข้อง', 'bad', 0];
+  if (tr.broken) return [tr.repair > 0 ? 'กำลังซ่อม' : 'ขัดข้อง · แตะประแจ', tr.repair > 0 ? 'mute' : 'act', 0];
+  if (tr.cond < 30 && !tr.leased) return ['ต้องเข้าอู่', 'act', 0];
   const rl = RT.lines[tr.line]; if (!rl) return ['—', 'mute', 0];
   const [s0, s1] = stopPoints(tr), legLen = Math.max(1, s1 - s0);
   if (tr.st === 'unload' || tr.st === 'load') {
@@ -1948,7 +2350,7 @@ function updateUI() {
     setF(card, 'condwrap', el => el.classList.toggle('low', tr.cond < 35));
     setF(card, 'rep', el => { el.hidden = !tr.broken; el.textContent = tr.repair > 0 ? 'กำลังซ่อม…' : `ส่งทีมซ่อม ${baht(6000)}`; el.disabled = tr.repair > 0 || state.money < 6000; });
     setF(card, 'resc', el => { el.hidden = !tr.broken || tr.repair > 0 || !(typeof coopReady === 'function' && coopReady()); el.disabled = !!tr.rescueReq; el.textContent = tr.rescueReq ? 'รอเพื่อนตอบรับ…' : 'ขอเพื่อนช่วยลาก'; });
-    setF(card, 'dep', el => { el.textContent = tr.depot ? 'อยู่ในอู่' : `ส่งเข้าอู่ ${baht(depotCost(tr))}`; el.disabled = offLine(tr) || !!tr.leased || state.money < depotCost(tr); });
+    setF(card, 'dep', el => { el.textContent = tr.depot ? 'อยู่ในอู่' : `ส่งเข้าอู่ ${baht(depotCost(tr))}`; el.disabled = offLine(tr) || !!tr.leased || tr.cond >= 99 || state.money < depotCost(tr); });
     setF(card, 'car', el => { el.textContent = tr.cars >= T.maxCars ? 'ตู้ครบแล้ว' : `+1 ตู้ ${baht(CAR_PRICE)}`; el.disabled = tr.cars >= T.maxCars || state.money < CAR_PRICE || !!tr.leased; });
     setF(card, 'lease', el => { el.textContent = tr.leasedOut ? 'กำลังถูกเช่า' : tr.leasable ? 'ปิดให้เช่า' : 'เปิดให้เพื่อนเช่า'; el.disabled = !!tr.leasedOut; el.setAttribute('aria-pressed', String(!!tr.leasable)); });
   });
@@ -2070,6 +2472,157 @@ function updateEmotes() {
     m.el.style.opacity = String(Math.min(1, (5 - age) * 1.5));
   }
 }
+
+// =================== UX: auto-minimising panels, route building on the 2D map, previews ===================
+let minTab = null;
+/** Called when the player starts working the map: panels shrink to icons so the map gets the screen. */
+function fxMapInteract() {
+  if (TUT.active) return;
+  if ($('#panel').classList.contains('open') && drawerTab) { minTab = drawerTab; closeDrawer(); }
+  $('#emotePal').hidden = true;
+  const tl = $('#tl');
+  if (tl.classList.contains('show')) { if (narrow()) tl.classList.remove('show'); else tl.classList.add('rail'); }
+  if (MODE === 'term') $('#nx').classList.add('collapsed');
+  syncToolbar();
+}
+$('#tl').addEventListener('click', e => { const tl = $('#tl'); if (tl.classList.contains('rail')) { tl.classList.remove('rail'); e.stopPropagation(); e.preventDefault(); } }, true);
+canvas.addEventListener('pointerdown', () => { RT.gestureMin = false; });
+let lastWheelMin = 0;
+canvas.addEventListener('wheel', () => { const t = performance.now(); if (t - lastWheelMin > 600) { lastWheelMin = t; fxMapInteract(); } }, { passive: true });
+
+// ----- 2D network map: tap station A, tap station B, see the route glow, confirm -----
+function setSel(s) { sel = s; RT.tlDirty = true; }
+function map2dClick(hit) {
+  if (!hit) { RT.routeFrom = null; RT.preview = null; setSel(null); renderRouteCard(); return; }
+  if (hit.type === 'train') { select({ type: 'train', id: hit.id }); return; }
+  const st = state.stations[hit.id];
+  if (!st.unlocked) { RT.routeFrom = null; RT.preview = null; select({ type: 'station', id: hit.id }); renderRouteCard(); return; }
+  if (RT.routeFrom && RT.routeFrom !== hit.id) { RT.preview = { a: RT.routeFrom, b: hit.id }; RT.routeFrom = null; }
+  else { RT.routeFrom = hit.id; RT.preview = null; }
+  setSel({ type: 'station', id: hit.id });
+  renderRouteCard();
+}
+function renderRouteCard() {
+  const card = $('#routeCard');
+  if (RT.preview) {
+    const { a, b } = RT.preview, ev = evalLine(a, b);
+    $('#rcTitle').textContent = `${SMAP[a].name} → ${SMAP[b].name}`;
+    $('#rcInfo').textContent = ev.ok ? `รางคู่ ${fmt(ev.km)} กม. · ค่าก่อสร้าง ${baht(ev.cost)}` : ev.reason;
+    $('#rcInfo').className = ev.ok ? '' : 'err';
+    const ok = $('#rcOk'); ok.hidden = !ev.ok; ok.disabled = !ev.ok || state.money < ev.cost; if (ev.ok) ok.textContent = `ยืนยันวางราง ${baht(ev.cost)}`;
+    card.hidden = false;
+  } else if (RT.routeFrom) {
+    $('#rcTitle').textContent = `ต้นทาง: ${SMAP[RT.routeFrom].name}`;
+    $('#rcInfo').textContent = 'แตะสถานีปลายทางเพื่อดูแนวรางก่อนยืนยัน'; $('#rcInfo').className = '';
+    $('#rcOk').hidden = true; card.hidden = false;
+  } else card.hidden = true;
+}
+$('#rcCancel').addEventListener('click', () => { RT.preview = null; RT.routeFrom = null; renderRouteCard(); });
+$('#rcOk').addEventListener('click', () => {
+  if (!RT.preview) return;
+  const l = addLine(RT.preview.a, RT.preview.b);
+  if (l) { RT.preview = null; refreshStatic(); toast(`วางรางเสร็จ ซื้อขบวนรถเพื่อเปิดเดินรถสาย ${lineName(l)}`); sfxCoin(); }
+  renderRouteCard();
+});
+/** Glowing, flowing dotted route line on the 2D map (proposed rail or selected line). */
+function drawPreview2d(g, time) {
+  const P = previewPath();
+  if (RT.routeFrom) { const d = SMAP[RT.routeFrom], q = map2dPt(d.x, d.z); g.strokeStyle = PAL.yellow; g.lineWidth = 3; g.beginPath(); g.arc(q.x, q.y, 16 + Math.sin(time * 5) * 2, 0, 7); g.stroke(); }
+  if (!P) return;
+  g.save();
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  g.shadowColor = 'rgba(255,194,14,0.9)'; g.shadowBlur = 14;
+  g.strokeStyle = PAL.yellow; g.lineWidth = 5; g.setLineDash([2, 12]); g.lineDashOffset = -time * 40;
+  g.beginPath(); P.pts.forEach((p, i) => { const q = map2dPt(p.x, p.z); if (i) g.lineTo(q.x, q.y); else g.moveTo(q.x, q.y); }); g.stroke();
+  g.restore();
+}
+$('#qualityBtn').addEventListener('click', () => fxSetQuality(FX.quality === 'high' ? 'eco' : 'high'));
+
+// =================== Onboarding: focus mask for the first minutes (core loop in 4 steps) ===================
+const TUT = { active: false, i: 0, t0: 0, clicked: false, trains0: 0, dep0: 0, shownAt: 0 };
+const tmpP = new THREE.Vector3();
+function worldRect(p, r = 34) {
+  if (!p) return null;
+  tmpP.set(p.x, p.y, p.z).project(camera);
+  const cr = canvas.getBoundingClientRect();
+  const x = cr.left + (tmpP.x + 1) / 2 * cr.width, y = cr.top + (1 - tmpP.y) / 2 * cr.height;
+  return { left: x - r, top: y - r, width: r * 2, height: r * 2 };
+}
+const termHeldPos = () => { const c = heldConsist(); if (!c || tstate.routes.some(r => r.from === 'HA')) return null; const p = pAt(c, c.s - 4); return { x: p.x, y: 9, z: p.z }; };
+const termPlatformPos = () => { if (!TRT.assign) return null; for (let T = 1; T <= 14; T++) if (allowedTrack(T)) return { x: 172, y: 3.2, z: TZ(T) }; return null; };
+const termReadyPos = () => { const s = tstate.services.find(x => x.phase === 'dwell' && x.state === 'ready' && !tstate.routes.some(r => r.from === 'ST' + x.track)); const c = s && tCons(s.cid); if (!c) return null; const p = pAt(c, c.s - 4); return { x: p.x, y: 9, z: p.z }; };
+const TUT_STEPS = [
+  { n: 1, mode: 'net', text: 'ซื้อรถ: เปิดเมนู "ขบวนรถ" ที่แถบด้านล่าง', el: () => $('[data-tool="trains"]'), done: () => drawerTab === 'trains' && $('#panel').classList.contains('open') },
+  { n: 1, mode: 'net', text: 'เลือกรุ่นรถ เริ่มที่ THN ดีเซลราง (Tier 1) ราคาถูก คืนทุนไว', el: () => $('#tierPick .tiercard'), done: () => TUT.clicked },
+  { n: 2, mode: 'net', text: 'เลือกเส้นทาง: กำหนดสายที่ขบวนนี้จะวิ่ง เส้นประสีเหลืองบนแผนที่คือเส้นทางที่เลือก', el: () => $('#buyLine'), done: () => TUT.clicked },
+  { n: 2, mode: 'net', text: 'กดซื้อ รถจะออกวิ่งรับผู้โดยสารทันที', el: () => $('#buyBtn'), done: () => state.trains.length > TUT.trains0 },
+  { n: 3, mode: 'any', text: 'เคลียร์ราง: ไปที่สถานีหัวลำโพงเพื่อคุมการเดินรถเอง', el: () => $('[data-mode="term"]'), done: () => MODE === 'term' },
+  { n: 3, mode: 'term', text: 'ขบวนที่มีไอคอนสีเหลืองกำลังรอสัญญาณ แตะไอคอนนั้น', world: termHeldPos, wait: 'รอขบวนรถเข้าเขตสถานี…', done: () => TRT.assign || tstate.routes.some(r => r.from === 'HA') },
+  { n: 3, mode: 'term', text: 'แตะหมายเลขชานชาลาสีเหลือง ระบบจะล็อกประแจ ทางจะเรืองเป็นสีเขียว แล้วเปิดสัญญาณให้', world: termPlatformPos, done: () => tstate.routes.some(r => r.from === 'HA') },
+  { n: 4, mode: 'term', text: 'ปล่อยรถ: ขบวนที่มีเครื่องหมายถูกสีเขียวพร้อมออกแล้ว แตะเพื่อปล่อยรถ', world: termReadyPos, wait: 'รอขบวนรถพร้อมออก…', done: () => tstate.routes.some(r => r.kind === 'dep') || tstate.stats.dep > TUT.dep0 },
+  { n: 4, mode: 'any', final: true, text: 'เยี่ยม! วงจรหลักคือ ซื้อรถ → เลือกเส้นทาง → เคลียร์ราง → ปล่อยรถ ลองขยายเครือข่ายต่อได้เลย' },
+];
+document.addEventListener('click', e => { if (!TUT.active) return; const s = TUT_STEPS[TUT.i], el = s && s.el && s.el(); if (el && el.contains(e.target)) TUT.clicked = true; }, true);
+function tutStart() {
+  if (state.tut === 'done' || state.stats.legs > 40) return;
+  TUT.active = true; TUT.i = 0; TUT.t0 = performance.now(); TUT.trains0 = state.trains.length; TUT.dep0 = tstate.stats.dep;
+  if (MODE !== 'net') setMode('net', true);
+  $('#coach').hidden = false; tutEnter();
+}
+function tutEnd() { TUT.active = false; state.tut = 'done'; $('#coach').hidden = true; }
+function tutEnter() {
+  const s = TUT_STEPS[TUT.i]; TUT.clicked = false; TUT.shownAt = performance.now();
+  if (s.mode === 'net' && MODE !== 'net') setMode('net', true);
+  $('#coachStep').textContent = s.final ? 'เสร็จแล้ว' : `ขั้นที่ ${s.n} จาก 4`;
+  $('#coachText').textContent = s.text;
+  $('#coachNext').hidden = !s.final; $('#coachSkip').hidden = !!s.final;
+  const el = s.el && s.el(); revealInDrawer(el);
+  if (s.n >= 3 && TUT.dep0 === undefined) TUT.dep0 = tstate.stats.dep;
+}
+/** Scrolls only the drawer's own list (scrollIntoView would also scroll the locked page layout). */
+function revealInDrawer(el) {
+  const body = el && el.closest && el.closest('.tab-body'); if (!body) return;
+  const r = el.getBoundingClientRect(), br = body.getBoundingClientRect();
+  body.scrollTop += (r.top - br.top) - br.height / 2 + r.height / 2;
+}
+function tutTick() {
+  if (!TUT.active) return;
+  const sc = document.scrollingElement; if (sc && sc.scrollTop) sc.scrollTop = 0;
+  if ($('#app').scrollTop) $('#app').scrollTop = 0; if ($('#main').scrollTop) $('#main').scrollTop = 0;
+  { const s0 = TUT_STEPS[TUT.i], e0 = s0 && s0.el && s0.el(); if (e0 && performance.now() - TUT.shownAt < 1500) revealInDrawer(e0); }
+  if (performance.now() - TUT.t0 > 5 * 60000) { tutEnd(); return; }
+  const s = TUT_STEPS[TUT.i];
+  if (!s.final && s.done()) { TUT.i++; tutEnter(); return; }
+  let rect = null;
+  if (s.el) { const el = s.el(); if (el && el.offsetParent !== null) { const r = el.getBoundingClientRect(); rect = { left: r.left - 6, top: r.top - 6, width: r.width + 12, height: r.height + 12 }; } }
+  else if (s.world) {
+    const wp = s.world();
+    rect = worldRect(wp, narrow() ? 38 : 34);
+    // camera assist: bring an offscreen target into view
+    const cr = canvas.getBoundingClientRect();
+    if (wp && rect && (rect.left < cr.left || rect.top < cr.top || rect.left + rect.width > cr.right || rect.top + rect.height > cr.bottom - 90)) { cam.tx += (wp.x - cam.tx) * 0.12; cam.tz += (wp.z - cam.tz) * 0.12; cam.follow = null; rect = null; }
+  }
+  const hole = $('#coachHole'), tip = $('#coachTip'), vw = window.innerWidth, vh = window.innerHeight;
+  if (rect) {
+    hole.hidden = false;
+    Object.assign(hole.style, { left: rect.left + 'px', top: rect.top + 'px', width: rect.width + 'px', height: rect.height + 'px' });
+    const blk = [['coachT', 0, 0, vw, rect.top], ['coachB', 0, rect.top + rect.height, vw, vh - rect.top - rect.height], ['coachL', 0, rect.top, rect.left, rect.height], ['coachR', rect.left + rect.width, rect.top, vw - rect.left - rect.width, rect.height]];
+    blk.forEach(([id, x, y, w, h]) => Object.assign($('#' + id).style, { left: x + 'px', top: y + 'px', width: Math.max(0, w) + 'px', height: Math.max(0, h) + 'px', display: 'block' }));
+    const below = rect.top + rect.height + 150 < vh;
+    const tw = Math.min(340, vw - 32), tx = clamp(rect.left + rect.width / 2 - tw / 2, 16, vw - tw - 16);
+    Object.assign(tip.style, { left: tx + 'px', top: (below ? rect.top + rect.height + 14 : Math.max(12, rect.top - 14 - tip.offsetHeight)) + 'px', width: tw + 'px' });
+    $('#coachText').textContent = s.text;
+  } else {
+    hole.hidden = true;
+    ['coachT', 'coachB', 'coachL', 'coachR'].forEach(id => { $('#' + id).style.display = 'none'; });
+    const tw = Math.min(360, vw - 32);
+    Object.assign(tip.style, { left: (vw - tw) / 2 + 'px', top: (vh * 0.3) + 'px', width: tw + 'px' });
+    $('#coachText').textContent = s.final ? s.text : (s.wait || s.text);
+  }
+  $('#coach').classList.toggle('dim', !rect && !!s.final);
+}
+$('#coachSkip').addEventListener('click', tutEnd);
+$('#coachNext').addEventListener('click', tutEnd);
 
 // =====================================================================
 // สถานีหัวลำโพง: คอขวด ประแจ อาณัติสัญญาณ NX/รีเลย์ ETCS และการกลับขบวน
@@ -2642,12 +3195,7 @@ const TM = {
 };
 let tBuilt = false;
 const TVIS = { tracks: {}, lamps: {}, marker: null };
-var tThemeHook = d => {
-  tScene.background = new THREE.Color(d ? 0x0d1218 : 0xe6ebf2);
-  TM.ground.color.set(d ? 0x19212b : 0xeef1f5); TM.plat.color.set(d ? 0x2f3a49 : 0xdde3ea);
-  TM.ballast.color.set(d ? 0x48525f : 0xb3b9c2); TM.water.color.set(d ? 0x1c3752 : 0x9cc4e6);
-  if (TVIS.lights) { TVIS.lights.h.intensity = d ? 0.62 : 0.8; TVIS.lights.s.intensity = d ? 0.6 : 0.7; }
-};
+var tThemeHook = d => {};
 tThemeHook(isDark());
 function tLabel(text, sub, w = 256) {
   const c = document.createElement('canvas'); c.width = w; c.height = 96; const g = c.getContext('2d');
@@ -2793,6 +3341,7 @@ function tBuildScene() {
     TVIS.tracks[i] = { crowd, cleaners, truck, z };
   }
   TVIS.marker = new THREE.Mesh(new THREE.ConeGeometry(1.6, 3.2, 4), TM.marker); TVIS.marker.rotation.x = Math.PI; TVIS.marker.visible = false; tScene.add(TVIS.marker);
+  tFxBuild();
 }
 function tReleaseCons(r) { r.vs.forEach(m => { r.group.remove(m); meshPool.put('tv_' + m.userData.vt, m); }); tRoot.remove(r.group); }
 function tSyncMeshes() {
@@ -2863,6 +3412,7 @@ function tVisuals(dt) {
 function tPick(e) {
   const r = canvas.getBoundingClientRect();
   ray.setFromCamera({ x: (e.clientX - r.left) / r.width * 2 - 1, y: -(e.clientY - r.top) / r.height * 2 + 1 }, camera);
+  if (tFxPick()) return;
   const hit = ray.intersectObject(tRoot, true).find(h => h.object.userData.cid);
   const c = hit && tCons(hit.object.userData.cid);
   tSelect(c && c.sid ? { sid: c.sid } : null);
@@ -3019,7 +3569,7 @@ function tRenderSvcList() {
       <div class="meta"><span>${s.kind === 'LH' ? 'ลากจูงด้วยหัวรถจักร' : 'ดีเซลราง push-pull'}</span><span>จาก${s.from}</span><span>กลับเป็น ${s.outName} ออก ${tClock(s.schedDep)}</span></div>
       <div class="tasks">${TASKS.map(n => `<div class="task" data-t="${n}"><span>${taskName(n, s)}</span><div class="bar"><i></i></div><small></small></div>`).join('')}</div>
       ${s.kind === 'LH' ? '<ol class="ra" data-f="ra"><li>ปลดหัวรถจักร</li><li>ไปปลายรางคู่</li><li>กลับรถที่คอขวด</li><li>ต่อท้ายขบวน</li></ol><div class="info" data-f="why"></div>' : ''}
-      <div class="acts"><button data-a="view">ดูบนแผนที่</button><button data-a="prio" data-f="prio"></button><button data-a="dep" class="primary" data-f="dep">ตั้งเส้นทางออก</button></div>
+      <div class="acts"><button data-a="view">ดูบนแผนที่</button><button data-a="prio" data-f="prio"></button><button data-a="dep" data-f="dep">ปล่อยรถ</button></div>
     </article>`).join('') || '<div class="info">ยังไม่มีขบวนในสถานี</div>';
     if (TRT.sel) tSelect(TRT.sel);
   }
@@ -3042,7 +3592,7 @@ function tRenderSvcList() {
       setF(card, 'why', el => { el.textContent = s.ra.st === 'done' ? '' : s.ra.why ? 'รอ: ' + s.ra.why : ''; });
     }
     setF(card, 'prio', el => { el.textContent = s.prio ? 'ยกเลิกเร่งด่วน' : 'เร่งด่วน'; el.disabled = s.phase !== 'dwell'; });
-    setF(card, 'dep', el => { el.disabled = s.phase !== 'dwell' || tstate.routes.some(r => r.from === 'ST' + s.track); });
+    setF(card, 'dep', el => { el.disabled = s.phase !== 'dwell' || tstate.routes.some(r => r.from === 'ST' + s.track); el.classList.toggle('action', s.state === 'ready' && !el.disabled); });
   }
 }
 function tRenderArrivals() {
@@ -3123,6 +3673,85 @@ function tLoad() {
   return null;
 }
 const tSerialize = () => JSON.stringify(tstate, (k, v) => (k === '_cum' ? undefined : v));
+
+// =================== Hua Lamphong: polish + direct 3D control (tap junctions, tap train → tap platform) ===================
+const BB_TERM = makeBB(new THREE.Group()); tScene.add(BB_TERM.group);
+const TNODE = {}, TEDGE = {}, TNODE_PICK = [];
+let TERM_LAMPS = null, tEdgeAcc = 0;
+const ROUTE_COL = { rt: new THREE.Color(0x2EE08A), sh: new THREE.Color(0xFFB020), occ: new THREE.Color(0xFF4D57) };
+function tFxBuild() {
+  TM.ground.color.set(PAL.terrain); TM.ballast.color.set(0x8C8476); TM.sleeper.color.set(0x5B4636); TM.rail.color.set(0x3A3F47);
+  TM.plat.color.set(0xC9D0DA); TM.building.color.set(0xF2E6CE); TM.city.color.set(0xffffff);
+  const lamps = [];
+  PLATFORMS_Z.forEach(z => { for (let x = 60; x <= 250; x += 38) lamps.push([x, z]); });
+  for (let x = 300; x <= 640; x += 55) lamps.push([x, 36.2], [x, 49.6]);
+  for (let z = -10; z <= 96; z += 18) lamps.push([-40, z]);
+  TERM_LAMPS = makeLamps(lamps, 6.5, tScene);
+  sun2Target();
+  for (const e of Object.values(G.edges)) {
+    const m = new THREE.Mesh(unitBox, new THREE.MeshBasicMaterial({ color: 0x2EE08A, transparent: true, opacity: 0.9, depthWrite: false }));
+    m.position.set((e.ax + e.bx) / 2, 0.66, (e.az + e.bz) / 2); m.rotation.y = Math.atan2(e.bx - e.ax, e.bz - e.az);
+    m.scale.set(1.3, 0.08, e.len + 0.4); m.visible = false; m.renderOrder = 4; tScene.add(m); TEDGE[e.id] = m;
+  }
+  for (const N of Object.values(G.nodes)) {
+    if ((N.kind !== 'switch' && N.kind !== 'slip') || /^R[ab]/.test(N.id)) continue; // throat junctions only; buffer-end crossovers are shunting detail
+    const r = N.kind === 'slip' ? 2.3 : 1.6;
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(r, 24).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    const ring = new THREE.Mesh(new THREE.RingGeometry(r, r + 0.5, 24).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x0F2240 }));
+    disc.position.set(N.x, 0.74, N.z); ring.position.set(N.x, 0.75, N.z); disc.renderOrder = ring.renderOrder = 5;
+    disc.userData.node = N.id; tScene.add(disc, ring); TNODE[N.id] = { disc, ring, r }; TNODE_PICK.push(disc);
+  }
+}
+function sun2Target() { if (TVIS.lights) { TVIS.lights.s.target.position.set(300, 0, 45); } }
+function heldConsist() { return tstate.consists.filter(c => c.job === 'approach').sort((a, b) => b.s - a.s)[0] || null; }
+function allowedTrack(T) { return trackFree(T) && !arrivalRule(T, nextArrivalSvc()); }
+function tAssignStart() { TRT.assign = true; toast('แตะหมายเลขชานชาลาสีเหลืองเพื่อรับขบวนเข้า (เทาคือรับไม่ได้)'); }
+function termBillboards(time) {
+  const items = [];
+  if (!tstate.routes.some(r => r.from === 'HA')) {
+    const c = heldConsist();
+    if (c) { const p = pAt(c, c.s - 4); items.push({ key: 'held', kind: 'platform', x: p.x, y: 9, z: p.z, pulse: true, tap: tAssignStart }); }
+  } else TRT.assign = false;
+  for (const s of tstate.services) {
+    if (s.phase !== 'dwell' || s.state !== 'ready' || tstate.routes.some(r => r.from === 'ST' + s.track)) continue;
+    const c = tCons(s.cid); if (!c) continue;
+    const p = pAt(c, c.s - 4);
+    items.push({ key: 'r' + s.id, kind: 'ready', x: p.x, y: 9, z: p.z, pulse: tstate.now >= s.schedDep - 30, tap: () => { requestDeparture(s.track, false); } });
+  }
+  if (TRT.assign) for (let T = 1; T <= 14; T++) {
+    const ok = allowedTrack(T);
+    items.push({ key: 'pm' + T, kind: (ok ? 'num' : 'off') + T, x: 172, y: 3.2, z: TZ(T), px: ok ? 40 : 30, pulse: ok,
+      tap: ok ? () => { if (requestArrival(T, false)) TRT.assign = false; } : () => { const svc = nextArrivalSvc(), why = arrivalRule(T, svc); toast(why ? 'ระเบียบสถานี: ' + why : `ราง ${T} ไม่ว่าง`); } });
+  }
+  bbSync(BB_TERM, items, time);
+  edgeIndicators(items);
+}
+function tFxUpdate(time, dt) {
+  applyDayNight(tstate.now / 3600, tScene, TVIS.lights.h, TVIS.lights.s, { x: 300, y: 0, z: 45 }, 420, TERM_LAMPS);
+  termBillboards(time);
+  const worldPerPx = (camera.top - camera.bottom) / camera.zoom / Math.max(1, canvas.clientHeight);
+  for (const id in TNODE) {
+    const n = TNODE[id], ns = tstate.nodes[id], locked = !!tstate.nlock[id];
+    n.disc.material.color.set(ns.mv > 0 ? (Math.sin(time * 14) > 0 ? 0xFFC20E : 0xffffff) : ns.pos > 0 ? 0x3A7BD5 : 0xffffff);
+    n.ring.material.color.set(locked ? 0x1FA463 : 0x0F2240);
+    const k = Math.max(1, ((n.r > 2 ? 11 : 8) * worldPerPx) / n.r); n.disc.scale.set(k, 1, k); n.ring.scale.set(k, 1, k);
+  }
+  tEdgeAcc += dt; if (tEdgeAcc < 0.12) return; tEdgeAcc = 0;
+  for (const id in TEDGE) {
+    const m = TEDGE[id], lk = tstate.elock[id], r = lk && tstate.routes.find(x => x.id === lk);
+    let col = null;
+    if (OCC[id]) col = r ? ROUTE_COL.occ : null;
+    else if (r) col = r.kind === 'shunt' ? ROUTE_COL.sh : ROUTE_COL.rt;
+    if (OCC[id] && G.edges[id].kind === 'throat') col = ROUTE_COL.occ;
+    m.visible = !!col; if (col) { m.material.color.copy(col); m.material.opacity = r && r.state === 'setting' ? 0.45 + 0.4 * Math.abs(Math.sin(time * 6)) : 0.9; }
+  }
+}
+function tFxPick() {
+  const tap = bbPick(BB_TERM); if (tap) { tap(); return true; }
+  const hit = ray.intersectObjects(TNODE_PICK, false)[0];
+  if (hit) { throwSwitch(hit.object.userData.node); return true; }
+  return false;
+}
 
 
 // =================== Co-op: room (presence, ping) + db (leasing, rescue, relay) ===================
@@ -3381,6 +4010,8 @@ function setMode(m, quiet) {
   $('#tlTitle').textContent = m === 'net' ? 'ตารางเดินรถ' : 'กำลังจะเข้าหัวลำโพง';
   $('#eventChip').hidden = m !== 'net' || !state.event;
   clearPops(); closeDrawer(); renderToolbar(); resize(); updateSpeedSeg(); tlSig = '';
+  RT.preview = null; RT.routeFrom = null; renderRouteCard(); minTab = null;
+  if (m === 'term' && !TRT.nxInit) { TRT.nxInit = true; $('#nx').classList.add('collapsed'); }
   try { localStorage.setItem('railtrack-mode', m); } catch (e) {}
   if (m === 'term') {
     computeOcc(); tUpdateUI();
@@ -3390,6 +4021,8 @@ function setMode(m, quiet) {
 }
 document.querySelectorAll('#modeSeg button').forEach(b => b.addEventListener('click', () => { if (b.dataset.mode !== MODE) setMode(b.dataset.mode); }));
 
+const NET_CENTER = { x: 0, y: 0, z: 0 };
+$('#tutBtn').addEventListener('click', () => { state.tut = null; state.stats.legs = Math.min(state.stats.legs, 40); closeDrawer(); tutStart(); });
 const SAVE_KEY = 'railtrack-th-v2';
 function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(state, (k, v) => (k === 'rescueReq' ? undefined : v))); if (tstate) localStorage.setItem(TSAVE_KEY, tSerialize()); } catch (e) {} }
 function loadSaved() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 2 && s.stations && Array.isArray(s.lines) && STATIONS.every(d => s.stations[d.id])) return s; } catch (e) {} return null; }
@@ -3425,16 +4058,17 @@ function frame(now) {
   if (MODE === 'term') {
     let rem = raw * tstate.speed * TRATE;
     while (rem > 1e-6) { const d = Math.min(0.25, rem); tStep(d); rem -= d; }
-    tVisuals(raw); renderer.render(tScene, camera);
+    tVisuals(raw); tFxUpdate(tSec, raw); fxRender(tScene);
     uiAcc += raw; if (uiAcc > 0.25) { uiAcc = 0; tUpdateUI(); updateStatus(); syncToolbar(); }
   } else {
     let rem = raw * state.speed;
     while (rem > 1e-6) { const d = Math.min(0.05, rem); simStep(d); rem -= d; }
     if (MAP2D.on) { cam.az += (cam.azT - cam.az) * Math.min(1, raw * 6); drawMap2d(tSec); updatePops(raw); updateEmotes(); }
-    else { updateVisuals(raw); renderer.render(scene, camera); }
+    else { updateVisuals(raw); applyDayNight(state.t / DAY_LEN * 24, scene, hemi, sun, NET_CENTER, 170, NET_LAMPS); netBillboards(tSec); updatePreview(tSec); fxRender(scene); }
     uiAcc += raw; if (uiAcc > 0.25) { uiAcc = 0; updateUI(); }
   }
   if (MODE === 'term') updateEmotes();
+  tutTick();
   saveAcc += raw; if (saveAcc > 5) { saveAcc = 0; save(); }
   requestAnimationFrame(frame);
 }
@@ -3459,13 +4093,15 @@ function start(data) {
   let m = 'net'; try { m = localStorage.getItem('railtrack-mode') || m; } catch (e) {}
   if (location.hash === '#hualamphong') m = 'term';
   setMode(m, true);
+  fxSetQuality(state.quality || (narrow() ? 'eco' : 'high'));
   if (!narrow()) $('#tl').classList.add('show');
+  setTimeout(tutStart, 700);
   resize(); syncToolbar();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { RT.labelsDirty = true; themeVer++; });
   coopInit();
   requestAnimationFrame(t => { last = t; frame(t); });
 }
-if (location.hash === '#rtdebug') window.__rt = { tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }) };
+if (location.hash === '#rtdebug') window.__rt = { tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }), hit: () => MAP2D.hit, heldRect: () => worldRect(termHeldPos()), platRect: () => worldRect(termPlatformPos()), readyRect: () => worldRect(termReadyPos()), routes: () => tstate.routes.map(r => r.kind + ':' + r.state), fx: () => ({ q: FX.quality, composer: !!FX.composer, lamp: FX.lamp }) };
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
 })();
