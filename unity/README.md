@@ -1,0 +1,67 @@
+# Thai Railway Management (Unity) · ระบบ Object Pooling
+
+สคริปต์ C# สำหรับ Unity 2020.3 LTS ขึ้นไป (เขียนด้วย C# 7.x) ใช้ pool ตู้รถไฟ ตู้สินค้า และรถบริการภาคพื้นดิน
+
+```
+Assets/Scripts/
+  Pooling/        PoolId, IPoolable, PooledObject, PoolCatalog, GameObjectPool, PoolManager
+  Trains/         TrainCar, TrainDefinition, TrainConsist (+ ClassPool)
+  GroundServices/ GroundServiceVehicle (+ ServiceType, IServiceRequester)
+  Stations/       StationController (ตัวอย่างการขอ/คืนจาก pool)
+```
+
+## ติดตั้ง
+
+1. **Prefab**: ใส่ `TrainCar` ให้ prefab ตู้รถไฟแต่ละแบบ (ตั้ง `role`, `length`, และ `cargoSlots` สำหรับตู้สินค้า) ใส่ `GroundServiceVehicle` ให้รถยก รถน้ำมัน และรถทำความสะอาด ส่วนตู้คอนเทนเนอร์ไม่ต้องใส่สคริปต์ (`PooledObject` ถูกเพิ่มให้อัตโนมัติ)
+2. **Pool Catalog**: `Create > Thai Railway > Pool Catalog` แล้วเพิ่มแถวละ `PoolId` กับ prefab กำหนด `prewarm` (จำนวนสร้างล่วงหน้า) และ `maxSize`
+3. **Train Definition**: `Create > Thai Railway > Train Definition` หนึ่งไฟล์ต่อรุ่นรถ:
+
+   | รุ่น | head | middle | tail | runAround |
+   |---|---|---|---|---|
+   | THN DMU (T1) | ThnDmuCab | ThnDmuTrailer ×1–2 | ThnDmuCab | ไม่ |
+   | Alsthom AD24C (T2) | Ad24cLocomotive | ContainerFlatWagon ×4–8 | None | ใช่ |
+   | ASR Sprinter (T3) | AsrSprinterCab | AsrSprinterCoach ×1–2 | AsrSprinterCab | ไม่ |
+   | QSY Ultraman (T4) | QsyLocomotive | QsyVipCoach / ContainerFlatWagon | None | ใช่ |
+
+4. **PoolManager**: วางบน GameObject ใน scene แรก (bootstrap/loading) แล้วผูก catalog ไว้ ตั้งค่าให้อยู่ข้าม scene ได้
+5. **StationController**: ตั้ง `platforms` (จุดหยุดรถ โดยแกน forward หันเข้าหากันชน และเส้นทางถนนจากอู่ไปยังข้างชานชาลา) และ `serviceDepot`
+
+## การใช้งาน
+
+```csharp
+// ขบวนรถได้ชานชาลา: สร้างตู้จาก pool
+station.AssignTrainToPlatform(ad24cDefinition, platformIndex: 2);
+
+// ผู้เล่นแตะไอคอนบริการ: รถบริการออกจาก pool ไปทำงานแล้วคืนตัวเองเมื่อเสร็จ
+station.RequestService(2, ServiceType.Refuel);
+
+// ปุ่มเหลือง Depart: ตู้ทุกตู้และตู้คอนเทนเนอร์กลับเข้า pool
+if (station.IsReadyToDepart(2)) station.Depart(2);
+
+// ใช้ pool ตรงๆ
+var car = PoolManager.Instance.Spawn<TrainCar>(PoolId.QsyVipCoach, pos, rot);
+PoolManager.Instance.Release(car.Pooled);
+PoolManager.Instance.ReleaseAfter(effect, 2f); // ปลอดภัยแม้ object ถูกคืนแล้วนำไปใช้ใหม่ก่อนครบเวลา
+```
+
+สถานะต่อรอบการใช้งานต้องรีเซ็ตใน `IPoolable.OnSpawned/OnDespawned` ไม่ใช่ใน `Awake` เพราะ `Awake` ทำงานครั้งเดียวต่อ instance
+
+## สิ่งที่ทำเพื่อประสิทธิภาพบนมือถือ
+
+- ค้นหา pool ด้วย `PoolId` เป็น index ของ array: ไม่มี string ไม่มี dictionary
+- Spawn/Release ไม่เรียก `GetComponent` (cache ไว้ใน `PooledObject`) ไม่สร้าง garbage ไม่ใช้ LINQ หรือ lambda
+- Instance เก็บใต้ root ที่ปิดอยู่ การ spawn จึงเป็นการย้าย parent ครั้งเดียว และ object ใหม่ไม่รัน `OnEnable` หรือ render ก่อนถูกใช้
+- Prewarm แบ่งทำทีละไม่กี่ชิ้นต่อเฟรม (`prewarmPerFrame`) ระหว่างหน้าโหลด จึงไม่กระตุก
+- ลบออกจากรายการที่ใช้งานอยู่แบบ swap-remove (O(1))
+- `ReleaseAfter` ใช้รายการเดียวที่ tick ใน `Update` แทน coroutine ต่อ object
+- เปลี่ยนสีตอนเลือกตู้ด้วย `MaterialPropertyBlock` จึงไม่สร้าง material ใหม่และไม่ทำลาย batching
+- `TrainConsist` เป็น class ธรรมดาที่ recycle ผ่าน `ClassPool<T>`
+- รถบริการที่อยู่ใน pool ถูกปิดอยู่ จึงไม่กิน `Update`
+
+## ปรับจำนวน prewarm
+
+เล่นช่วงที่สถานีพลุกพล่านที่สุดใน Editor หรือ Development Build แล้วคลิกขวาที่ PoolManager เลือก **Log Pool Stats** จากนั้นตั้ง `prewarm` ให้เท่ากับค่า `peak` ค่า `runtime instantiations` ควรเป็น 0 ถ้าไม่ใช่ จะมีคำเตือนใน Console ครั้งแรกที่ pool นั้นหมด
+
+## การตรวจสอบ
+
+โค้ดผ่านการคอมไพล์ด้วย Mono C# (`-langversion:7.2`) กับ stub ของ UnityEngine API เท่านั้น ยังไม่ได้รันใน Unity Editor จริง
