@@ -924,6 +924,14 @@ select{width:100%;font:inherit;background:var(--panel);color:var(--fg);border:1p
   .livecard .dmi{display:none}
   .psheet{left:6px;right:6px;bottom:140px;z-index:7}
 }
+.mode-stn #tl{width:0!important;border:0;visibility:hidden}
+.mode-stn .hud-cam{right:232px}
+@media (max-width:820px){.mode-stn .hud-cam{right:130px}}
+.lv .rl{font-style:normal;font-size:9.5px;font-weight:700;background:#2EE08A;color:#0F2240;border-radius:4px;padding:1px 4px;line-height:15px}
+.lv.sim{opacity:.92}
+.realnotes{margin:0;padding-left:18px;display:grid;gap:6px;font-size:13.5px}
+.hub .go.alt{background:var(--navy-2);color:#fff}
+.mode-stn #edgeArrows,.mode-net #edgeArrows{display:none}
 </style>
 </head>
 <body>
@@ -2111,6 +2119,7 @@ canvas.addEventListener('wheel', e => { e.preventDefault(); cam.zoom = clamp(cam
 const ray = new THREE.Raycaster();
 function pick(e) {
   if (MODE === 'term') { tPick(e); return; }
+  if (MODE === 'stn') { stnPick(e); return; }
   const r = canvas.getBoundingClientRect();
   ray.setFromCamera({ x: (e.clientX - r.left) / r.width * 2 - 1, y: -(e.clientY - r.top) / r.height * 2 + 1 }, camera);
   const tap = bbPick(BB_NET); if (tap) { tap(); return; }
@@ -2725,6 +2734,7 @@ $('#toolbar').addEventListener('click', e => {
   else if (k === 'nx') { $('#nx').classList.toggle('collapsed'); }
   else if (k === 'fleet') openFleet();
   else if (k === 'contracts') openContracts();
+  else if (k === 'sinfo' || k === 'sboard' || k === 'screw') stnTool(k);
   else if (k === 'gs') openGS();
   else if (k === 'plan') openPlanner();
   else if (k === 'ctrl') openCtrlModal();
@@ -3048,7 +3058,7 @@ function showReceipt(wk) {
 $('#receiptOk').addEventListener('click', () => { $('#receipt').hidden = true; state.speed = receiptPrevSpeed; updateSpeedSeg(); });
 
 // ---------- speed + sound ----------
-const speedObj = () => (MODE === 'term' ? tstate : state);
+const speedObj = () => (MODE === 'term' ? tstate : MODE === 'stn' ? stnState() : state);
 document.querySelectorAll('[data-sp]').forEach(b => b.addEventListener('click', () => { speedObj().speed = +b.dataset.sp; updateSpeedSeg(); }));
 function updateSpeedSeg() { const o = speedObj(); if (!o) return; document.querySelectorAll('[data-sp]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.sp === o.speed))); }
 $('#soundBtn').addEventListener('click', () => { state.sound = !state.sound; $('#soundBtn').setAttribute('aria-pressed', String(state.sound)); if (state.sound) { audio(); sfxCoin(); } });
@@ -3320,11 +3330,11 @@ const CTRLS = [
 const CTRL_MIN = 15, CTRL_COINS = 5, CTRL_BAHT = 30000, CAP_MAX = 8, CREW_MAX = 24;
 const HUBS = [
   { id: 'term', mode: 'term', code: 'BKK', name: 'สถานีกรุงเทพ (หัวลำโพง)', sub: 'สถานีปลายตัน 14 ราง · ขบวนธรรมดาและรถชานเมือง' },
-  { id: 'krt', code: 'KRT', name: 'สถานีกลางกรุงเทพอภิวัฒน์', sub: 'ต้นทางขบวนด่วนพิเศษ ด่วน และเร็วทุกสาย', lock: 15 },
-  { id: 'cmi', code: 'CMI', name: 'สถานีเชียงใหม่', sub: 'ปลายทางสายเหนือ · 751 กม. จากกรุงเทพ', lock: 8 },
-  { id: 'nki', code: 'NKI', name: 'สถานีหนองคาย', sub: 'ปลายทางสายอีสาน · ต่อขบวนข้ามสะพานมิตรภาพ', lock: 10 },
-  { id: 'ubn', code: 'UBN', name: 'สถานีอุบลราชธานี', sub: 'ปลายทางสายอีสานใต้', lock: 10 },
-  { id: 'hdy', code: 'HDY', name: 'สถานีชุมทางหาดใหญ่', sub: 'ชุมทางสายใต้ · shuttle ปาดังเบซาร์', lock: 12 },
+  { id: 'cmi', mode: 'stn:CMI', code: 'CMI', name: 'สถานีเชียงใหม่', sub: 'ปลายทางสายเหนือ · อาคารทรงไทยล้านนา · 3 ราง', lock: 2 },
+  { id: 'hdy', mode: 'stn:HDY', code: 'HDY', name: 'สถานีชุมทางหาดใหญ่', sub: 'ชุมทางสายใต้ · อาคารโคโลเนียล · 5 ราง', lock: 3 },
+  { id: 'nki', mode: 'stn:NKI', code: 'NKI', name: 'สถานีหนองคาย', sub: 'ปลายทางสายอีสาน · ต่อขบวนข้ามสะพานมิตรภาพ', lock: 4 },
+  { id: 'ubn', mode: 'stn:UBN', code: 'UBN', name: 'สถานีอุบลราชธานี', sub: 'ปลายทางสายอีสานใต้ · ริมแม่น้ำมูล', lock: 5 },
+  { id: 'krt', mode: 'stn:KRT', code: 'KRT', name: 'สถานีกลางกรุงเทพอภิวัฒน์', sub: 'ต้นทางขบวนทางไกลทุกสาย · 26 ชานชาลา', lock: 6 },
   { id: 'net', mode: 'net', code: null, name: 'แผนที่ประเทศไทย', sub: 'บริหารเส้นทาง ขบวนรถ และสัญญาทั่วประเทศ (มุมมอง 2D)' },
 ];
 
@@ -3817,7 +3827,7 @@ $('#mGift').addEventListener('click', () => { if (giftReady()) { M_().gift = gif
 $('#hubsBack').addEventListener('click', () => { $('#hubs').hidden = true; $('#menu').hidden = false; $('#menuLoad').hidden = true; $('#menuActs').hidden = false; renderMenuProfile(); });
 function showHubs() { closeModal(); $('#menu').hidden = true; $('#hubs').hidden = false; renderHubs(); }
 function hubWeather(mode) {
-  const h = mode === 'term' ? (tstate ? tstate.now / 3600 % 24 : 7) : state.t / DAY_LEN * 24;
+  const h = mode === 'stn' && stnState() ? stnState().now / 3600 % 24 : mode === 'term' ? (tstate ? tstate.now / 3600 % 24 : 7) : state.t / DAY_LEN * 24;
   const rain = mode === 'net' && state.event && state.event.type === 'rain', night = h < 6 || h >= 18.5;
   const ic = rain ? '<path d="M7 15a4 4 0 1 1 1-7.9A5 5 0 0 1 18 9a3 3 0 0 1 0 6z"/><path d="M8 18l-1 2M12 18l-1 2M16 18l-1 2"/>' : night ? '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>' : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6 19 19M5 19l1.4-1.4M17.6 6.4 19 5"/>';
   const hh = Math.floor(h), mm = Math.floor((h - hh) * 60);
@@ -3839,16 +3849,17 @@ function renderHubs() {
   $('#hubsSub').innerHTML = `เลือกสถานีที่จะบริหาร · Lv ${m.lv} · <i class="coin"></i> ${fmt(m.coins)} · ${baht(state.money)}`;
   const open = STATIONS.filter(d => state.stations[d.id].unlocked).length;
   const card = h => {
-    const locked = !!h.lock && m.lv < 99, avail = h.lock && m.lv >= h.lock, on = hubSel === h.id;
+    const locked = !!h.lock && m.lv < h.lock && !(m.su && m.su[h.code]), on = hubSel === h.id;
     let stars = 1, stats = '';
     if (h.mode === 'net') { stars = netStars(); stats = `<span>สถานี ${open}/${STATIONS.length}</span><span>เส้นทาง ${state.lines.length}</span><span>ขบวน ${state.trains.length}</span>`; }
+    else if (h.mode && h.mode.startsWith('stn:')) { stars = stnStars(h.code); const S = STN.st[h.code], dd = STN_DEFS[h.code]; stats = `<span>${dd.tracks.filter(t => hasPlat(dd, t)).length} ราง</span><span>${dd.kind === 'T' ? 'ปลายทาง' : 'สถานีผ่าน'}</span><span>ปล่อยรถ ${S ? S.stats.dep : 0}</span>`; }
     else if (h.mode === 'term') { stars = termStars(); stats = `<span>14 ราง</span><span>ปล่อยรถ ${tstate ? tstate.stats.dep : 0}</span><span>${tstate && tstate.stats.dep ? Math.round(tstate.stats.onTime / tstate.stats.dep * 100) : 0}% ตรงเวลา</span>`; }
     const n = h.code ? ttBoard(h.code).length : 0;
     return `<div class="hub${locked ? ' locked' : ''}${MODE === h.mode ? ' cur' : ''}${on ? ' on' : ''}${h.mode === 'net' ? ' netcard' : ''}" data-hsel="${h.id}" role="button" tabindex="0">
       <span class="hub-top"><b>${h.name}</b>${locked ? `<span class="pill mute">🔒 Lv ${h.lock}</span>` : starRow(stars)}</span>
       <span class="hub-sub">${h.sub}</span>
-      ${locked ? `<span class="hub-st"><span>${avail ? 'กำลังก่อสร้างฉาก 3 มิติ · เปิดในอัปเดตถัดไป' : `ปลดล็อกเมื่อถึงเลเวล ${h.lock}`}</span>${n ? `<span>ขบวนจริง ${n} รายการ</span>` : ''}</span>`
-        : `<span class="hub-st">${stats}</span><span class="hub-ft"><span class="wxw" data-wx="${h.mode}"></span><button class="go" data-hub="${h.mode}">${MODE === h.mode ? 'เล่นต่อ' : h.mode === 'net' ? 'เปิดแผนที่' : 'เข้าบริหาร'} ›</button></span>`}
+      ${locked ? `<span class="hub-st"><span>ปลดล็อกเมื่อถึงเลเวล ${h.lock}</span>${n ? `<span>ขบวนจริง ${n} รายการ</span>` : ''}</span><span class="hub-ft"><span></span><button class="go alt" data-hunlock="${h.code}">ปลดล็อกทันที <i class="coin"></i> 20</button></span>`
+        : `<span class="hub-st">${stats}</span><span class="hub-ft"><span class="wxw" data-wx="${h.mode && h.mode.startsWith('stn:') ? 'term' : h.mode}"></span><button class="go" data-hub="${h.mode}">${(MODE === h.mode || (MODE === 'stn' && h.mode === 'stn:' + STN.cur)) ? 'เล่นต่อ' : h.mode === 'net' ? 'เปิดแผนที่' : 'เข้าบริหาร'} ›</button></span>`}
       ${on ? hubBoard(h) : ''}
     </div>`;
   };
@@ -3869,11 +3880,13 @@ function renderHubs() {
 }
 $('#hubsList').addEventListener('click', e => {
   const g = e.target.closest('[data-hub]'); if (g) { metaPick(g.dataset.hub); return; }
+  const u = e.target.closest('[data-hunlock]'); if (u) { const mm = M_(); if (spendCoins(20)) { mm.su = mm.su || {}; mm.su[u.dataset.hunlock] = 1; metaSave(); hubSig = ''; toast('ปลดล็อกสถานีแล้ว'); sfxCoin(); renderHubs(); } return; }
   const c = e.target.closest('[data-hsel]'); if (c) { hubSel = c.dataset.hsel; renderHubs(); }
 });
 $('#hubsMap').addEventListener('click', e => { const c = e.target.closest('[data-hsel]'); if (c) { hubSel = c.dataset.hsel; renderHubs(); const el = document.querySelector(`#hubsList [data-hsel="${hubSel}"]`); if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } });
 function metaPick(mode) {
   hideMenus();
+  if (mode.startsWith('stn:')) { stnEnter(mode.slice(4)); return; }
   if (MODE !== mode) setMode(mode);
   if (mode === 'term' && !TUT.active) setTimeout(tutStart, 500);
 }
@@ -4056,14 +4069,15 @@ function cgTick() { document.querySelectorAll('[data-cgcd]').forEach(el => { con
 $('#metaHud').insertAdjacentHTML('afterbegin', '<button class="area" id="hArea" aria-label="พื้นที่ ดาว และสภาพอากาศ"><b id="hAreaN">TH</b><span id="hAreaS"></span><span class="tmp" id="hAreaT"></span></button>');
 $('#hArea').addEventListener('click', openRewards);
 function areaTemp(mode) {
-  const h = mode === 'term' ? (tstate ? tstate.now / 3600 % 24 : 7) : state.t / DAY_LEN * 24;
+  const h = mode === 'stn' && stnState() ? stnState().now / 3600 % 24 : mode === 'term' ? (tstate ? tstate.now / 3600 % 24 : 7) : state.t / DAY_LEN * 24;
   const rain = mode === 'net' && state.event && state.event.type === 'rain';
   return Math.round(28 + 6 * Math.sin((h - 9) / 24 * Math.PI * 2) - (rain ? 4 : 0));
 }
 function areaHud() {
   const term = MODE === 'term';
-  $('#hAreaN').textContent = term ? 'HLP' : 'TH';
-  const n = term ? termStars() : netStars(), sig = MODE + n;
+  const sn = MODE === 'stn';
+  $('#hAreaN').textContent = sn ? STN.cur : term ? 'HLP' : 'TH';
+  const n = sn ? stnStars(STN.cur) : term ? termStars() : netStars(), sig = MODE + (STN.cur || '') + n;
   if ($('#hAreaS').dataset.k !== sig) { $('#hAreaS').dataset.k = sig; $('#hAreaS').innerHTML = starRow(n); }
   $('#hAreaT').textContent = areaTemp(MODE) + '°C';
 }
@@ -4083,6 +4097,7 @@ $('#zoneBar').addEventListener('click', e => {
   document.querySelectorAll('#zoneBar [data-zone]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
 });
 TOOLS.term.splice(TOOLS.term.findIndex(t => t[0] === 'tcrew'), 0, ['gs', 'รถบริการ'], ['contracts', 'สัญญา']);
+TOOLS.term.unshift(['sinfo', 'ข้อมูลจริง']);
 ICONS.gs = '<path d="M3 20V9l9-5 9 5v11"/><path d="M7 20v-7h10v7M7 16h10"/>';
 
 // =================== Hua Lamphong live list, train card and platform selection (WoA-style) ===================
@@ -4292,6 +4307,591 @@ $('#psList').addEventListener('click', e => {
   liveRender(true);
 });
 setInterval(() => { if (!state || !tstate) return; liveRender(); if (LIVE.sheet) renderPlatSheet(); }, 300);
+
+// =================== Real-world station layouts (scaled game models; 1 unit ≈ 1 m) ===================
+// Each layout follows the station's real arrangement as far as public descriptions allow: platform count and
+// type, terminus vs through, which side the building stands, building style, and notable surroundings.
+// Track z positions run across the yard; x runs along the platforms. Terminus buffers are at the -x end.
+const STN_DEFS = {
+  CMI: {
+    id: 'CMI', name: 'สถานีเชียงใหม่', en: 'Chiang Mai', kind: 'T', km: 751, line: 'สายเหนือ', style: 'lanna',
+    P0: 0, P1: 300, tracks: [{ n: 1, z: -4, cls: 3 }, { n: 2, z: 6, cls: 3 }, { n: 3, z: 11, cls: 2 }, { n: 4, z: 21, cls: 1, siding: true }],
+    platforms: [{ z: -10.5, w: 8 }, { z: 1, w: 5.6 }, { z: 16, w: 5 }],
+    bz: -30, bw: 92, bd: 22,
+    extras: ['mountains', 'locoshed', 'songthaew', 'trees'],
+    locals: { from: ['ลำพูน', 'ลำปาง', 'ชุมทางเด่นชัย', 'นครลำปาง'], prefix: 'ท้องถิ่น', no: [402, 408, 410], gap: [35, 55] },
+    real: ['ปลายทางสายเหนือ ระยะ 751 กม. จากกรุงเทพ (ตามข้อมูลการเดินรถ)', 'อาคารสถานีชั้นเดียว หลังคาจั่วทรงไทยหลายชั้น สร้างขึ้นใหม่หลังสงครามโลกครั้งที่ 2', 'ชานชาลาด้านข้างติดอาคาร และชานชาลาเกาะกลาง ใช้งาน 3 ราง พร้อมรางหลีก/รางสินค้า', 'ฝั่งตะวันตกมองเห็นแนวดอยสุเทพ–ปุย ลานหน้าสถานีมีรถสองแถวสีแดงรับส่งผู้โดยสาร'],
+  },
+  NKI: {
+    id: 'NKI', name: 'สถานีหนองคาย', en: 'Nong Khai', kind: 'X', km: 624, line: 'สายตะวันออกเฉียงเหนือ', style: 'modern',
+    P0: -150, P1: 150, tracks: [{ n: 1, z: -4, cls: 3, thru: true }, { n: 2, z: 4, cls: 3, thru: true }, { n: 3, z: 14, cls: 1, siding: true }],
+    platforms: [{ z: -10.5, w: 8 }, { z: 8.5, w: 5 }],
+    bz: -32, bw: 70, bd: 20, eastLabel: 'สะพานมิตรภาพไทย–ลาว แห่งที่ 1 →',
+    extras: ['mekong', 'bridge', 'customs', 'trees'],
+    locals: { from: ['อุดรธานี', 'ขอนแก่น', 'ชุมทางถนนจิระ'], prefix: 'ท้องถิ่น', no: [418, 432], gap: [45, 70] },
+    real: ['ปลายทางสายหนองคาย ระยะ 624 กม. · อาคารสถานีสมัยใหม่ใกล้เชิงสะพานมิตรภาพไทย–ลาว', 'ทางรถไฟวิ่งต่อข้ามแม่น้ำโขงไปสถานีท่านาแล้ง/คำสะหวาด (ขบวน 133/134, 147/148)', 'ชานชาลาด้านข้างติดอาคาร พร้อมรางหลีกและรางสำหรับขบวนข้ามแดน (ผังในเกมเพิ่มชานชาลาที่สองเพื่อให้รับขบวนพร้อมกันได้)', 'มีด่านศุลกากรและตรวจคนเข้าเมืองสำหรับผู้โดยสารข้ามแดนในพื้นที่สถานี'],
+  },
+  UBN: {
+    id: 'UBN', name: 'สถานีอุบลราชธานี', en: 'Ubon Ratchathani', kind: 'T', km: 575, line: 'สายตะวันออกเฉียงเหนือ', style: 'midcentury',
+    P0: 0, P1: 300, tracks: [{ n: 1, z: -4, cls: 3 }, { n: 2, z: 6, cls: 3 }, { n: 3, z: 11, cls: 2 }, { n: 4, z: 21, cls: 1, siding: true }],
+    platforms: [{ z: -10.5, w: 8 }, { z: 1, w: 5.6 }, { z: 16, w: 5 }],
+    bz: -30, bw: 84, bd: 22,
+    extras: ['mun', 'locoshed', 'trees'],
+    locals: { from: ['ศรีสะเกษ', 'สุรินทร์', 'ชุมทางถนนจิระ', 'บุรีรัมย์'], prefix: 'ท้องถิ่น', no: [426, 428], gap: [40, 60] },
+    real: ['ปลายทางสายอุบลราชธานี ตั้งอยู่ในอำเภอวารินชำราบ ฝั่งใต้ของแม่น้ำมูล', 'อาคารสถานีคอนกรีตสองชั้นแบบสมัยใหม่ยุคกลางศตวรรษ หันหน้าเข้าหาเมือง', 'ชานชาลาด้านข้างและชานชาลาเกาะกลาง พร้อมรางหลีกและโรงรถจักร', 'ปลายรางเป็นกันชน ขบวนรถหัวรถจักรต้องสับหลีกก่อนกลับกรุงเทพ'],
+  },
+  HDY: {
+    id: 'HDY', name: 'สถานีชุมทางหาดใหญ่', en: 'Hat Yai Junction', kind: 'X', km: 945, line: 'สายใต้', style: 'colonial',
+    P0: -160, P1: 160, tracks: [{ n: 1, z: -4, cls: 3, thru: true }, { n: 2, z: 6, cls: 3, thru: true }, { n: 3, z: 11, cls: 3, thru: true }, { n: 4, z: 21, cls: 2, thru: true }, { n: 5, z: 26, cls: 2, thru: true }, { n: 6, z: 36, cls: 1, siding: true }],
+    platforms: [{ z: -10.5, w: 8 }, { z: 1, w: 5.6 }, { z: 16, w: 5.6 }, { z: 31, w: 5 }],
+    bz: -32, bw: 110, bd: 22, split: true,
+    extras: ['footbridge', 'locoshed', 'hills', 'trees'],
+    locals: { from: ['ยะลา', 'พัทลุง', 'สุไหงโก-ลก', 'ชุมทางทุ่งสง'], prefix: 'ท้องถิ่น', no: [445, 447, 451, 455], gap: [30, 50] },
+    real: ['ชุมทางใหญ่ของภาคใต้ ระยะราว 945 กม. ทางแยกไปปาดังเบซาร์ (ชายแดน) และสุไหงโก-ลก', 'อาคารสถานีสองชั้นแบบโคโลเนียล มีระเบียงโค้งด้านหน้า', 'ชานชาลาหลายแห่งเชื่อมกันด้วยสะพานลอยข้ามราง มีโรงรถจักรอยู่ทางใต้ของย่าน', 'ขบวน shuttle 947–950 วิ่งระหว่างหาดใหญ่–ปาดังเบซาร์ ต่อรถไฟ ETS มาเลเซีย'],
+  },
+  KRT: {
+    id: 'KRT', name: 'สถานีกลางกรุงเทพอภิวัฒน์', en: 'Krung Thep Aphiwat Central Terminal', kind: 'X', km: 0, line: 'ทุกสาย (ทางไกล)', style: 'grand', deck: 10,
+    P0: -220, P1: 220, tracks: Array.from({ length: 12 }, (_, i) => ({ n: i + 1, z: Math.floor(i / 2) * 13 + (i % 2) * 5, cls: 3, thru: true })),
+    platforms: Array.from({ length: 7 }, (_, i) => ({ z: i * 13 - 4, w: i === 0 || i === 6 ? 3 : 7.5 })),
+    red: [88, 93, 101, 106], hsr: [124, 129, 137, 142, 150, 155, 163, 168, 176, 181],
+    bz: -40, bw: 600, bd: 250,
+    extras: ['grandhall', 'redline', 'city', 'mrt'],
+    locals: { from: ['อยุธยา', 'ลพบุรี', 'นครปฐม', 'ชุมทางบ้านภาชี', 'ราชบุรี'], prefix: 'ธรรมดา/เชิงพาณิชย์', no: [111, 135, 139, 141, 255, 261], gap: [18, 30] },
+    real: ['สถานีรถไฟที่ใหญ่ที่สุดในอาเซียน เปิดให้บริการปี 2566 แทนหัวลำโพงสำหรับขบวนทางไกล', 'อาคารยาวราว 600 ม. กว้างราว 240 ม. สูง 3 ชั้น: ชั้น 1 โถงผู้โดยสาร ชั้น 2 รถไฟทางไกลและสายสีแดง ชั้น 3 รถไฟความเร็วสูง', 'รวม 26 ชานชาลา: ทางไกล 12 · สายสีแดง 4 · ความเร็วสูง 10 (สำรองสำหรับอนาคต)', 'เชื่อมรถไฟฟ้า MRT สถานีบางซื่อ ด้านหน้ามีลานและถนนทางเข้าขนาดใหญ่'],
+  },
+};
+const STN_CLS = { 'ด่วนพิเศษ CNR': { rev: 16000, kind: 'LH', veh: [11, 14], car: 'cnr' }, 'ด่วนพิเศษ': { rev: 14000, kind: 'LH', veh: [8, 11], car: 'cnr' }, 'ด่วนพิเศษ (ดีเซลราง)': { rev: 12000, kind: 'PP', veh: [4, 6], car: 'dmu' },
+  'ด่วน': { rev: 11000, kind: 'LH', veh: [8, 12], car: 'coach' }, 'เร็ว': { rev: 9000, kind: 'LH', veh: [7, 10], car: 'coach' }, 'Shuttle': { rev: 6000, kind: 'PP', veh: [2, 3], car: 'dmu' } };
+// =================== Real stations: 3D scene builder, timetable-driven platform game, UI ===================
+const STN_SAVE = 'railtrack-stn-v1';
+const STN_RATE = 30;                       // game seconds per real second at 1×
+const STN_END = { CMI: ['', 'กรุงเทพ · ลำปาง →'], UBN: ['', 'กรุงเทพ · ศรีสะเกษ →'], NKI: ['← อุดรธานี · กรุงเทพ', 'สะพานมิตรภาพไทย–ลาว →'], HDY: ['← กรุงเทพ · ทุ่งสง', 'ปาดังเบซาร์ · สุไหงโก-ลก →'], KRT: ['← สายใต้ (นครปฐม)', 'สายเหนือ · สายอีสาน →'] };
+const STN = { cur: null, built: {}, st: {}, sel: null, sheet: null, acc: 0, uiAcc: 0, sig: '', cardSig: '' };
+const camStn = { tx: 0, tz: 10, az: Math.PI / 4, azT: Math.PI / 4, zoom: 0.8, follow: null, view: 360, near: -3000, far: 3000, zmin: 0.25, zmax: 7, bounds: [-1000, 1000, -500, 500],
+  home() { const d = STN_DEFS[STN.cur]; if (!d) return; this.tx = (d.P0 + d.P1) / 2; this.tz = 6; this.zoom = (narrow() ? 0.62 : 1) * (d.id === 'KRT' ? 1.0 : 1.7); this.azT = Math.PI / 4; } };
+const stnDef = () => STN_DEFS[STN.cur];
+const stnState = () => STN.st[STN.cur];
+const hm = s => { const m = Math.floor(((s % 86400) + 86400) % 86400 / 60); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+const toSec = t => { const [h, m] = t.split(':').map(Number); return h * 3600 + m * 60; };
+
+// ---------- geometry helpers ----------
+const SM = {
+  ground: mat(0xDCD1B8, { roughness: 1 }), ballast: mat(0xA79F92), sleeper: mat(0x6B5646), rail: mat(0x59626e, { metalness: 0.5, roughness: 0.4 }),
+  plat: mat(0xD9DEE5), edge: mat(0xF1C232), buffer: mat(0xD33B3B), white: mat(0xF7F3EA), cream: mat(0xF0E4C6), tile: mat(0x8A3B2A, { roughness: 0.8 }), tileO: mat(0xC2622D, { roughness: 0.8 }),
+  wood: mat(0x7A4B2A), dark: mat(0x2B313A), glass: new THREE.MeshStandardMaterial({ color: 0x86A9CC, roughness: 0.12, metalness: 0.35, emissive: 0x0b1a30 }),
+  glassRoof: new THREE.MeshStandardMaterial({ color: 0xD4E4F4, transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false, roughness: 0.2 }),
+  steel: mat(0x8A96A8, { metalness: 0.5, roughness: 0.4 }), concrete: mat(0xC8C4BC), grass: mat(0x7FB069, { roughness: 1 }), water: new THREE.MeshStandardMaterial({ color: 0x5E8FA8, roughness: 0.15, metalness: 0.2, emissive: 0x0a1f2c }),
+  road: mat(0x4A4F57, { roughness: 0.95 }), red: mat(0xC8102E), navy: mat(0x13294B), blueSign: mat(0x1F4FD1), yellow: mat(0xF5B400),
+};
+function mkPath(pts) { const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y, pts[i].z - pts[i - 1].z)); return { pts, cum, len: cum[cum.length - 1] }; }
+function pAtS(P, s) {
+  s = clamp(s, 0, P.len); let lo = 0, hi = P.cum.length - 2;
+  while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (P.cum[mid] <= s) lo = mid; else hi = mid - 1; }
+  const a = P.pts[lo], b = P.pts[lo + 1], seg = (P.cum[lo + 1] - P.cum[lo]) || 1e-6, t = (s - P.cum[lo]) / seg;
+  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t, dx: (b.x - a.x) / seg, dz: (b.z - a.z) / seg };
+}
+const revPath = P => mkPath(P.pts.slice().reverse());
+function sOfX(P, x, z) { for (let i = 0; i < P.pts.length - 1; i++) { const a = P.pts[i], b = P.pts[i + 1]; if (Math.abs(a.z - z) < 0.01 && Math.abs(b.z - z) < 0.01 && (x - a.x) * (x - b.x) <= 0) return P.cum[i] + Math.abs(x - a.x); } return null; }
+const mainZ = d => { const t = d.tracks.filter(x => !x.siding); return t.reduce((a, x) => a + x.z, 0) / t.length; };
+/** Full track path from the east approach (+x) through the platform to the buffer (terminus) or out to the west approach (through station). */
+function stnTrackPath(d, t) {
+  const y = d.deck || 0, zm = mainZ(d), pts = [], far = 900, thr = 170;
+  const curve = (x0, x1, z0, z1) => { for (let i = 1; i < 16; i++) { const u = i / 16, k = u * u * (3 - 2 * u); pts.push({ x: x0 + (x1 - x0) * u, y, z: z0 + (z1 - z0) * k }); } };
+  pts.push({ x: d.P1 + far, y, z: zm }, { x: d.P1 + thr, y, z: zm }); curve(d.P1 + thr, d.P1 + 25, zm, t.z); pts.push({ x: d.P1 + 25, y, z: t.z });
+  if (d.kind === 'T') pts.push({ x: d.P0 + 1, y, z: t.z });
+  else { pts.push({ x: d.P0 - 25, y, z: t.z }); curve(d.P0 - 25, d.P0 - thr, t.z, zm); pts.push({ x: d.P0 - thr, y, z: zm }, { x: d.P0 - far, y, z: zm }); }
+  return mkPath(pts);
+}
+const hasPlat = (d, t) => !t.siding && d.platforms.some(p => Math.abs(Math.abs(t.z - p.z) - p.w / 2) <= 3);
+function railInstances(scene, paths, y0) {
+  let nSeg = 0, nSl = 0; paths.forEach(P => { nSeg += P.pts.length - 1; nSl += Math.floor(P.len / 1.2); });
+  const ball = new THREE.InstancedMesh(unitBox, SM.ballast, nSeg), rails = new THREE.InstancedMesh(unitBox, SM.rail, nSeg * 2), sl = new THREE.InstancedMesh(unitBox, SM.sleeper, nSl);
+  ball.receiveShadow = sl.receiveShadow = true; let i = 0, k = 0;
+  paths.forEach((P, pi) => {
+    for (let j = 0; j < P.pts.length - 1; j++) {
+      const a = P.pts[j], b = P.pts[j + 1], dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz) || 1e-6, nx = -dz / L, nz = dx / L;
+      dummy.rotation.set(0, Math.atan2(dx, dz), 0);
+      dummy.position.set((a.x + b.x) / 2, a.y + 0.15 + pi * 0.002, (a.z + b.z) / 2); dummy.scale.set(3.4, 0.3, L + 0.4); dummy.updateMatrix(); ball.setMatrixAt(i, dummy.matrix);
+      [-0.52, 0.52].forEach((o, q) => { dummy.position.set((a.x + b.x) / 2 + nx * o, a.y + 0.47, (a.z + b.z) / 2 + nz * o); dummy.scale.set(0.09, 0.14, L + 0.05); dummy.updateMatrix(); rails.setMatrixAt(i * 2 + q, dummy.matrix); });
+      i++;
+    }
+    const n = Math.floor(P.len / 1.2);
+    for (let j = 0; j < n; j++) { const p = pAtS(P, (j + 0.5) * 1.2); dummy.rotation.set(0, Math.atan2(p.dx, p.dz), 0); dummy.position.set(p.x, p.y + 0.34, p.z); dummy.scale.set(1.9, 0.1, 0.25); dummy.updateMatrix(); sl.setMatrixAt(k++, dummy.matrix); }
+  });
+  scene.add(ball, rails, sl);
+}
+function gable(len, w, h, m) {
+  const sh = new THREE.Shape(); sh.moveTo(-w / 2, 0); sh.lineTo(w / 2, 0); sh.lineTo(0, h); sh.lineTo(-w / 2, 0);
+  const g = new THREE.ExtrudeGeometry(sh, { depth: len, bevelEnabled: false }); g.translate(0, 0, -len / 2); g.rotateY(Math.PI / 2);
+  const o = new THREE.Mesh(g, m); o.castShadow = true; o.receiveShadow = true; return o;
+}
+const bx = (sc, w, h, d, m, x, y, z) => { const o = box(w, h, d, m); o.position.set(x, y, z); sc.add(o); return o; };
+const STN_VEH = {};
+function stnVehGeo(t) {
+  if (STN_VEH[t]) return STN_VEH[t];
+  const P = [], add = (w, h, d, c, x, y, z) => P.push({ w, h, d, c: new THREE.Color(c), x, y, z });
+  add(2.5, 0.7, 18.6, 0x2b313a, 0, 1.05, 0); [-6.4, 6.4].forEach(z => add(2.2, 0.75, 2.8, 0x1f242b, 0, 0.92, z));
+  if (t === 'cnr') { add(2.85, 3.0, 19, 0xF4F5F8, 0, 2.9, 0); add(2.88, 0.3, 19.02, 0xC8102E, 0, 1.75, 0); add(2.88, 0.16, 19.02, 0x13294B, 0, 2.05, 0); add(2.88, 0.7, 17, 0x203047, 0, 3.3, 0); add(2.6, 0.4, 19, 0x8f99a6, 0, 4.55, 0); }
+  else if (t === 'red') { add(2.85, 3.0, 19, 0xF4F5F8, 0, 2.9, 0); add(2.88, 1.1, 19.02, 0xC8102E, 0, 1.95, 0); add(2.88, 0.8, 17, 0x203047, 0, 3.4, 0); add(2.6, 0.3, 19, 0xb7bfca, 0, 4.5, 0); }
+  else if (t === 'frt') { add(2.6, 0.25, 19, 0x7c8693, 0, 1.55, 0); add(2.5, 2.5, 8.6, [0x13294b, 0xf5b400, 0xc62f3c, 0x2f6bff][Math.floor(Math.random() * 4)], 0, 2.95, -4.6); add(2.5, 2.5, 8.6, [0x8a96a8, 0x14a37f, 0xe2772b][Math.floor(Math.random() * 3)], 0, 2.95, 4.6); }
+  const pos = [], nor = [], col = [], idx = [];
+  for (const q of P) { const g = new THREE.BoxGeometry(q.w, q.h, q.d); g.translate(q.x, q.y, q.z); const b = pos.length / 3, A = g.attributes.position.array, N = g.attributes.normal.array; for (let i = 0; i < A.length; i++) { pos.push(A[i]); nor.push(N[i]); } for (let i = 0; i < A.length / 3; i++) col.push(q.c.r, q.c.g, q.c.b); for (const i of g.index.array) idx.push(b + i); g.dispose(); }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); geo.setIndex(idx);
+  return (STN_VEH[t] = geo);
+}
+function stnVehMesh(t) { const m = ['loco', 'coach', 'cab', 'car'].includes(t) ? tVehMesh(t) : new THREE.Mesh(stnVehGeo(t), vehMat); m.castShadow = true; return m; }
+
+// ---------- buildings by real style ----------
+function buildLanna(sc, d) {      // Chiang Mai: single-storey hall with layered Thai gable roofs and a porch
+  const z = d.bz, cx = 150;
+  bx(sc, 40, 7, d.bd, SM.white, cx, 3.5, z);
+  const r1 = gable(46, d.bd + 4, 7, SM.tile); r1.position.set(cx, 7, z); sc.add(r1);
+  const r2 = gable(30, d.bd - 4, 5, SM.tile); r2.position.set(cx, 11.5, z); sc.add(r2);
+  for (const s of [-1, 1]) {
+    bx(sc, 30, 5.2, d.bd - 4, SM.white, cx + s * 36, 2.6, z);
+    const r = gable(34, d.bd, 4.6, SM.tile); r.position.set(cx + s * 36, 5.2, z); sc.add(r);
+    const fin = new THREE.Mesh(new THREE.ConeGeometry(0.5, 2.6, 6), SM.yellow); fin.position.set(cx + s * 23, 13.4, z - d.bd / 2 + 2); fin.rotation.z = s * 0.5; sc.add(fin);
+  }
+  for (let k = -3; k <= 3; k++) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.5, 6, 10), SM.white); c.position.set(cx + k * 4, 3, z - d.bd / 2 - 4); c.castShadow = true; sc.add(c); }
+  const porch = gable(30, 9, 3.4, SM.tile); porch.position.set(cx, 6, z - d.bd / 2 - 4); sc.add(porch);
+  for (let k = -6; k <= 6; k++) if (Math.abs(k) > 1) bx(sc, 2.2, 2.6, 0.2, SM.glass, cx + k * 5.6, 3.4, z - d.bd / 2 - 0.05);
+  const sign = tLabel('สถานีเชียงใหม่', 'CHIANG MAI', 360); sign.scale.set(30, 8, 1); sign.position.set(cx, 24, z - 6); sc.add(sign);
+}
+function buildModern(sc, d) {     // Nong Khai: modern terminal with a broad canopy and a customs block
+  const z = d.bz, cx = -40;
+  bx(sc, d.bw, 6.5, d.bd, SM.cream, cx, 3.25, z);
+  for (let k = 0; k < 12; k++) bx(sc, 4.2, 4.2, 0.2, SM.glass, cx - d.bw / 2 + 4 + k * 5.6, 3.2, z - d.bd / 2 - 0.05);
+  const roof = gable(d.bw + 8, d.bd + 10, 6, SM.tileO); roof.position.set(cx, 6.5, z); sc.add(roof);
+  const can = bx(sc, d.bw + 30, 0.5, 12, SM.steel, cx, 6.2, z - d.bd / 2 - 6); can.castShadow = true;
+  for (let k = -5; k <= 5; k++) bx(sc, 0.5, 6, 0.5, SM.steel, cx + k * 9, 3, z - d.bd / 2 - 11.5);
+  const sign = tLabel('สถานีหนองคาย', 'NONG KHAI', 360); sign.scale.set(28, 7.5, 1); sign.position.set(cx, 18, z - 4); sc.add(sign);
+  // customs & immigration
+  bx(sc, 26, 5, 14, SM.white, 60, 2.5, z - 2); const cr = gable(28, 16, 3, SM.tileO); cr.position.set(60, 5, z - 2); sc.add(cr);
+  const cs = tLabel('ด่านพรมแดน', 'ตม. · ศุลกากร', 260); cs.scale.set(16, 6, 1); cs.position.set(60, 13, z - 2); sc.add(cs);
+}
+function buildMid(sc, d) {        // Ubon Ratchathani: two-storey mid-century concrete hall with a clock tower
+  const z = d.bz, cx = 150;
+  bx(sc, d.bw, 10, d.bd, SM.cream, cx, 5, z);
+  for (const y of [3, 7.6]) for (let k = 0; k < 14; k++) bx(sc, 4, 2, 0.2, SM.glass, cx - d.bw / 2 + 4 + k * 6, y, z - d.bd / 2 - 0.05);
+  bx(sc, d.bw + 3, 0.6, d.bd + 3, SM.concrete, cx, 10.3, z);
+  bx(sc, 9, 20, 9, SM.white, cx, 10, z - d.bd / 2 + 4);
+  const face = new THREE.Mesh(new THREE.CircleGeometry(2.6, 32), mat(0xFBF7EC)); face.position.set(cx, 16.5, z - d.bd / 2 - 0.6); face.rotation.y = Math.PI; sc.add(face);
+  bx(sc, 60, 0.45, 8, SM.concrete, cx, 5, z - d.bd / 2 - 4);
+  const sign = tLabel('สถานีอุบลราชธานี', 'UBON RATCHATHANI', 400); sign.scale.set(32, 7.6, 1); sign.position.set(cx, 26, z - 4); sc.add(sign);
+}
+function buildColonial(sc, d) {   // Hat Yai Junction: two-storey colonial building with arched verandas
+  const z = d.bz, cx = 0;
+  bx(sc, d.bw, 11, d.bd, mat(0xEAD9A8), cx, 5.5, z);
+  for (const y of [3.5, 8.3]) for (let k = 0; k < 18; k++) {
+    const a = new THREE.Mesh(new THREE.CircleGeometry(1.7, 16, 0, Math.PI), SM.dark); a.position.set(cx - d.bw / 2 + 4 + k * 6, y + 0.6, z - d.bd / 2 - 0.06); a.rotation.y = Math.PI; sc.add(a);
+    bx(sc, 3.4, 1.2, 0.12, SM.dark, cx - d.bw / 2 + 4 + k * 6, y, z - d.bd / 2 - 0.06);
+  }
+  bx(sc, d.bw + 2, 0.6, d.bd + 2, SM.white, cx, 6.6, z);
+  const roof = gable(d.bw + 4, d.bd + 4, 4.5, SM.tileO); roof.position.set(cx, 11, z); sc.add(roof);
+  const ped = gable(18, 10, 5, SM.white); ped.rotation.y = 0; ped.position.set(cx, 11, z - d.bd / 2 + 2); sc.add(ped);
+  const face = new THREE.Mesh(new THREE.CircleGeometry(1.9, 32), mat(0xFBF7EC)); face.position.set(cx, 13.4, z - d.bd / 2 - 1.2); face.rotation.y = Math.PI; sc.add(face);
+  const sign = tLabel('สถานีชุมทางหาดใหญ่', 'HAT YAI JUNCTION', 400); sign.scale.set(34, 8, 1); sign.position.set(cx, 25, z - 4); sc.add(sign);
+}
+function buildGrand(sc, d) {      // Krung Thep Aphiwat: three-level hall, long-distance + Red Line on level 2, vaulted roof
+  const y = d.deck, x0 = -300, x1 = 300, z0 = -26, z1 = 196, cx = 0, cz = (z0 + z1) / 2;
+  bx(sc, x1 - x0, y - 0.4, z1 - z0, SM.concrete, cx, (y - 0.4) / 2, cz);
+  bx(sc, x1 - x0, 0.4, z1 - z0, mat(0xBFC4CC), cx, y - 0.2, cz);
+  for (let x = x0; x <= x1; x += 30) for (const z of [z0, z1]) bx(sc, 1.6, 30, 1.6, SM.white, x, 15, z);
+  for (let x = x0 + 30; x < x1; x += 60) for (let z = z0 + 26; z < z1; z += 52) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 22, 10), SM.white); c.position.set(x, y + 11, z); sc.add(c); }
+  for (let z = z0; z < z1; z += 37) {
+    const v = new THREE.Mesh(new THREE.CylinderGeometry(18.5, 18.5, x1 - x0, 32, 1, true, 0, Math.PI), SM.glassRoof);
+    v.rotation.z = Math.PI / 2; v.scale.x = 0.4; v.position.set(cx, 30, z + 18.5); sc.add(v);
+    bx(sc, x1 - x0, 0.8, 1.2, SM.white, cx, 30, z);
+  }
+  // front façade (south) with glass curtain wall and entrance canopy
+  for (let x = x0 + 20; x < x1; x += 40) bx(sc, 36, 18, 0.4, SM.glass, x, y + 9, z0 - 0.6);
+  bx(sc, 200, 1, 18, SM.white, cx, 8, z0 - 10);
+  const sign = tLabel('สถานีกลางกรุงเทพอภิวัฒน์', 'KRUNG THEP APHIWAT CENTRAL TERMINAL', 560); sign.scale.set(90, 15, 1); sign.position.set(cx, 46, z0 - 4); sc.add(sign);
+  // MRT Bang Sue entrance
+  bx(sc, 14, 4, 8, SM.blueSign, -180, 2, z0 - 46); const ms = tLabel('MRT', 'บางซื่อ', 200); ms.scale.set(10, 4.5, 1); ms.position.set(-180, 9, z0 - 46); sc.add(ms);
+  // Red Line and high-speed sections (labels)
+  const rl = tLabel('รถไฟฟ้าสายสีแดง', 'ชานชาลา 4 ราง', 320); rl.scale.set(28, 8, 1); rl.position.set(230, y + 16, 97); sc.add(rl);
+  const hs = tLabel('รถไฟความเร็วสูง', '10 ชานชาลา · สำรองอนาคต', 360); hs.scale.set(32, 8, 1); hs.position.set(230, y + 16, 152); sc.add(hs);
+}
+function stnExtras(sc, d) {
+  const ex = d.extras || [];
+  if (ex.includes('mountains')) {
+    const g = [mat(0x5E8C4A), mat(0x6E9A56), mat(0x7FA668)];
+    for (let i = 0; i < 16; i++) { const h = 60 + rng() * 90, m = new THREE.Mesh(new THREE.ConeGeometry(70 + rng() * 60, h, 7), g[i % 3]); m.position.set(-330 - rng() * 220, h / 2 - 4, -260 + i * 40 + rng() * 20); m.castShadow = true; sc.add(m); }
+    const ds = tLabel('ดอยสุเทพ', 'ทิศตะวันตก', 260); ds.scale.set(24, 9, 1); ds.position.set(-420, 140, 40); sc.add(ds);
+  }
+  if (ex.includes('hills')) for (let i = 0; i < 10; i++) { const h = 30 + rng() * 40, m = new THREE.Mesh(new THREE.ConeGeometry(60 + rng() * 40, h, 7), mat(0x6E9A56)); m.position.set(-400 + i * 90, h / 2 - 3, 330 + rng() * 80); sc.add(m); }
+  if (ex.includes('mekong')) {
+    const r = new THREE.Mesh(new THREE.PlaneGeometry(420, 1400).rotateX(-Math.PI / 2), SM.water); r.position.set(d.P1 + 700, 0.1, 0); sc.add(r);
+    const lb = tLabel('แม่น้ำโขง', 'MEKONG', 240); lb.scale.set(22, 9, 1); lb.position.set(d.P1 + 700, 18, -120); sc.add(lb);
+  }
+  if (ex.includes('bridge')) {
+    const zm = mainZ(d);
+    bx(sc, 470, 1.2, 12, SM.concrete, d.P1 + 700, 3.4, zm);
+    for (let x = d.P1 + 480; x <= d.P1 + 920; x += 44) { bx(sc, 3, 3.4, 8, SM.concrete, x, 1.7, zm); bx(sc, 0.6, 7, 0.6, SM.steel, x, 7.4, zm - 6); bx(sc, 0.6, 7, 0.6, SM.steel, x, 7.4, zm + 6); }
+    bx(sc, 470, 0.6, 0.6, SM.steel, d.P1 + 700, 10.6, zm - 6); bx(sc, 470, 0.6, 0.6, SM.steel, d.P1 + 700, 10.6, zm + 6);
+  }
+  if (ex.includes('mun')) { const r = new THREE.Mesh(new THREE.PlaneGeometry(2400, 120).rotateX(-Math.PI / 2), SM.water); r.position.set(150, 0.1, 300); sc.add(r); const lb = tLabel('แม่น้ำมูล', 'ฝั่งเมืองอุบลฯ', 260); lb.scale.set(22, 8, 1); lb.position.set(150, 16, 300); sc.add(lb); }
+  if (ex.includes('locoshed')) {
+    const sx = d.kind === 'T' ? 120 : -60, sz = Math.max(...d.tracks.map(t => t.z)) + 22;
+    bx(sc, 70, 9, 16, mat(0xB7A68A), sx, 4.5, sz); const r = gable(74, 18, 4, SM.steel); r.position.set(sx, 9, sz); sc.add(r);
+    const lb = tLabel('โรงรถจักร', '', 200); lb.scale.set(14, 5, 1); lb.position.set(sx, 18, sz); sc.add(lb);
+    const loco = stnVehMesh('loco'); loco.position.set(sx + 40, 0, sz); loco.rotation.y = Math.PI / 2; sc.add(loco);
+  }
+  if (ex.includes('footbridge')) {
+    const zs = d.platforms.map(p => p.z), zMin = Math.min(...zs) - 2, zMax = Math.max(...zs) + 2;
+    bx(sc, 4, 0.7, zMax - zMin, SM.steel, 20, 7.5, (zMin + zMax) / 2); bx(sc, 4, 2.6, zMax - zMin, SM.glassRoof, 20, 9.2, (zMin + zMax) / 2);
+    zs.forEach(z => bx(sc, 3, 7.5, 3, SM.steel, 20, 3.75, z));
+  }
+  if (ex.includes('customs')) {}
+  if (ex.includes('redline')) {}
+  if (ex.includes('songthaew')) { for (let i = 0; i < 8; i++) { const c = bx(sc, 2, 2, 4.4, mat(0xC8102E), 110 + i * 7, 1, d.bz - d.bd / 2 - 24); c.castShadow = true; } }
+  if (ex.includes('city') || d.id === 'KRT') {
+    const n = 90, city = new THREE.InstancedMesh(unitBox, mat(0xffffff), n), cc = [0xffffff, 0xdfe8f7, 0xeef1f5, 0xcfdcf2, 0xf6efe4].map(c => new THREE.Color(c)); city.castShadow = true;
+    let ci = 0; for (let k = 0; k < 300 && ci < n; k++) { const x = -800 + rng() * 1600, z = rng() < 0.5 ? -170 - rng() * 260 : 260 + rng() * 240, h = 10 + rng() * rng() * 110; dummy.rotation.set(0, 0, 0); dummy.position.set(x, h / 2, z); dummy.scale.set(18 + rng() * 30, h, 18 + rng() * 30); dummy.updateMatrix(); city.setMatrixAt(ci, dummy.matrix); city.setColorAt(ci, cc[ci % 5]); ci++; }
+    city.count = ci; sc.add(city);
+  }
+  if (ex.includes('trees')) {
+    const pts = []; for (let x = d.P0 - 60; x <= d.P1 + 60; x += 14) { pts.push([x, d.bz - d.bd / 2 - 30 - rng() * 30]); if (rng() < 0.6) pts.push([x + 5, Math.max(...d.tracks.map(t => t.z)) + 45 + rng() * 60]); }
+    const tr = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.3, 0.45, 1, 6), SM.wood, pts.length), cr = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 9, 7), mat(0xffffff, { roughness: 0.9 }), pts.length);
+    const g1 = new THREE.Color(0x4E8B3A), g2 = new THREE.Color(0x6FA34B); tr.castShadow = cr.castShadow = true;
+    pts.forEach(([x, z], i) => { const h = 4 + rng() * 3, s = 3 + rng() * 2; dummy.rotation.set(0, 0, 0); dummy.position.set(x, h / 2, z); dummy.scale.set(1, h, 1); dummy.updateMatrix(); tr.setMatrixAt(i, dummy.matrix); dummy.position.set(x, h + 1.4, z); dummy.scale.set(s * 1.3, s * 0.8, s * 1.3); dummy.updateMatrix(); cr.setMatrixAt(i, dummy.matrix); cr.setColorAt(i, i % 2 ? g1 : g2); });
+    sc.add(tr, cr);
+  }
+}
+function stnBuild(id) {
+  if (STN.built[id]) return STN.built[id];
+  const d = STN_DEFS[id], sc = new THREE.Scene(), y = d.deck || 0;
+  const h = new THREE.HemisphereLight(0xffffff, 0xb9c4d4, 0.8); sc.add(h);
+  const s = new THREE.DirectionalLight(0xffffff, 0.7); s.position.set((d.P0 + d.P1) / 2 + 160, 260, 160); s.target.position.set((d.P0 + d.P1) / 2, 0, 20); sc.add(s.target);
+  s.castShadow = true; s.shadow.mapSize.set(2048, 2048); Object.assign(s.shadow.camera, { left: -500, right: 500, top: 360, bottom: -360, near: 10, far: 1200 }); s.shadow.bias = -0.0008; sc.add(s);
+  const ground = box(3200, 2, 1400, SM.ground); ground.position.set((d.P0 + d.P1) / 2, -1, 40); ground.castShadow = false; sc.add(ground);
+  const paths = d.tracks.map(t => stnTrackPath(d, t));
+  // draw: each track inside the throats, plus the main line(s) once
+  const inner = paths.map(P => mkPath(P.pts.filter(p => p.x <= d.P1 + 170.01 && (d.kind === 'T' || p.x >= d.P0 - 170.01))));
+  const zm = mainZ(d), mains = [mkPath([{ x: d.P1 + 170, y, z: zm }, { x: d.P1 + 900, y, z: zm }])];
+  if (d.kind === 'X') mains.push(mkPath([{ x: d.P0 - 900, y, z: zm }, { x: d.P0 - 170, y, z: zm }]));
+  if (d.split) mains.push(mkPath([{ x: d.P1 + 260, y, z: zm }, { x: d.P1 + 420, y, z: zm + 40 }, { x: d.P1 + 900, y, z: zm + 160 }]));
+  if (d.red) d.red.forEach(z => mains.push(mkPath([{ x: -900, y, z }, { x: 900, y, z }])));
+  if (d.hsr) d.hsr.forEach(z => mains.push(mkPath([{ x: -260, y, z }, { x: 260, y, z }])));
+  railInstances(sc, inner.concat(mains));
+  if (y) {   // viaduct approaches and throat decks outside the hall
+    for (let x = -900; x <= 900; x += 30) if (x < -300 || x > 300) bx(sc, 6, y - 0.3, 5, SM.concrete, x, (y - 0.3) / 2, zm);
+    bx(sc, 520, 0.6, 12, SM.concrete, -640, y - 0.1, zm); bx(sc, 520, 0.6, 12, SM.concrete, 640, y - 0.1, zm);
+    const zs = d.tracks.map(t => t.z), za = Math.min(...zs) - 4, zb = Math.max(...zs) + 4;
+    for (const sx of [-1, 1]) { bx(sc, 100, 0.6, zb - za, SM.concrete, sx * 340, y - 0.1, (za + zb) / 2); for (let x = 300; x <= 390; x += 30) for (let z = za + 4; z < zb; z += 20) bx(sc, 3, y - 0.3, 3, SM.concrete, sx * x, (y - 0.3) / 2, z); }
+  }
+  // platforms, edges and canopies
+  const pl0 = d.kind === 'T' ? d.P0 - 2 : d.P0, pl1 = d.P1;
+  d.platforms.forEach(p => {
+    const pb = box(pl1 - pl0, 1, p.w, SM.plat); pb.position.set((pl0 + pl1) / 2, y + 0.5, p.z); pb.castShadow = false; sc.add(pb);
+    [-1, 1].forEach(sd => { const e = box(pl1 - pl0, 0.04, 0.35, SM.edge); e.position.set((pl0 + pl1) / 2, y + 1.02, p.z + sd * (p.w / 2 - 0.3)); e.castShadow = false; sc.add(e); });
+    if (!d.deck && p.w >= 5) {
+      const len = Math.min(180, pl1 - pl0 - 20), cx = d.kind === 'T' ? pl0 + len / 2 + 6 : (pl0 + pl1) / 2;
+      const roof = d.style === 'lanna' ? gable(len, p.w + 1.6, 1.6, SM.tile) : box(len, 0.35, p.w + 1.2, d.style === 'colonial' ? SM.tileO : SM.steel);
+      roof.position.set(cx, 5.2, p.z); sc.add(roof);
+      for (let x = cx - len / 2 + 6; x < cx + len / 2; x += 18) bx(sc, 0.3, 4.2, 0.3, SM.steel, x, 3.1, p.z);
+    }
+  });
+  d.tracks.forEach(t => { if (d.kind === 'T') bx(sc, 1.2, 1.5, 2.6, SM.buffer, d.P0 - 0.6, y + 0.9, t.z); const lb = tLabel(String(t.n)); lb.scale.set(5, 1.9, 1); lb.position.set((d.kind === 'T' ? d.P0 + 12 : d.P1 - 12), y + 5, t.z); sc.add(lb); });
+  ({ lanna: buildLanna, modern: buildModern, midcentury: buildMid, colonial: buildColonial, grand: buildGrand })[d.style](sc, d);
+  stnExtras(sc, d);
+  const [wl, el] = STN_END[id] || ['', ''];
+  if (el) { const l = tLabel(el, '', 420); l.scale.set(34, 7.5, 1); l.position.set(d.P1 + 260, y + 14, zm); sc.add(l); }
+  if (wl) { const l = tLabel(wl, '', 420); l.scale.set(34, 7.5, 1); l.position.set(d.P0 - 260, y + 14, zm); sc.add(l); }
+  const lampList = []; d.platforms.forEach(p => { for (let x = pl0 + 10; x <= pl1 - 10; x += 34) lampList.push([x, p.z]); });
+  const lamps = makeLamps(lampList, 6.5 + y, sc);
+  const root = new THREE.Group(); sc.add(root);
+  const red = [];
+  if (d.red) d.red.slice(0, 2).forEach((z, i) => { const g = new THREE.Group(); for (let k = 0; k < 6; k++) { const m = stnVehMesh('red'); m.rotation.y = Math.PI / 2; m.position.set(k * 20, y, 0); g.add(m); } g.position.set(-700 + i * 600, 0, z); sc.add(g); red.push({ g, v: i ? -1 : 1, x: -700 + i * 600 }); });
+  return (STN.built[id] = { sc, lights: { h, s }, paths, lamps, root, red, meshes: {} });
+}
+
+// ---------- simulation ----------
+function stnNew(id) { return { v: 1, id, now: 6 * 3600, speed: 1, nextId: 1, crew: 3, genDay: -1, services: [], lockE: 0, lockW: 0, stats: { dep: 0, onTime: 0, rev: 0, holdMin: 0 }, log: [] }; }
+function slog(S, text, kind = '') { S.log.unshift({ t: hm(S.now), text, kind }); S.log.length = Math.min(S.log.length, 40); }
+function railKm(a, b) { const P = railPath(a, b); if (!P) return null; let L = 0; for (let i = 1; i < P.length; i++) L += Math.hypot(P[i].x - P[i - 1].x, P[i].z - P[i - 1].z); return L * UNIT_KM; }
+/** Real timetable events at this station, including estimated passing times for trains that run through it. */
+function stnEvents(id) {
+  const out = [], d = STN_DEFS[id], seen = new Set();
+  for (const t of TT) {
+    if (t.no === '45') continue;   // runs attached to train 37 out of Krung Thep Aphiwat
+    const dep = toSec(t.dep), arr0 = toSec(t.arr), arr = arr0 < dep ? arr0 + 86400 : arr0, name = `${t.cls} ${t.no}${t.no === '37' ? '/45' : ''}`;
+    if (t.from === id) out.push({ name, cls: t.cls, mode: 'orig', t: dep, other: t.to, real: true });
+    else if (t.to === id) out.push({ name, cls: t.cls, mode: 'term', t: arr0, other: t.from, real: true });
+    else if (id === 'NKI' && (t.to === 'VTE' || t.from === 'VTE')) out.push({ name, cls: t.cls, mode: 'thru', t: (t.to === 'VTE' ? arr - 2100 : dep + 2100) % 86400, other: t.to === 'VTE' ? t.from : t.to, real: true, est: true, dirE: t.to === 'VTE' });
+    else if (GEO.snap[t.from] != null && GEO.snap[t.to] != null && GEO.snap[id] != null) {
+      const a = railKm(t.from, id), b = railKm(id, t.to), c = railKm(t.from, t.to);
+      if (a && b && c && Math.abs(a + b - c) < c * 0.03) out.push({ name, cls: t.cls, mode: 'thru', t: Math.round(dep + (arr - dep) * a / c) % 86400, other: `${ttName(t.from)} → ${ttName(t.to)}`, real: true, est: true, dirE: true });
+    }
+  }
+  return out;
+}
+const STN_EAST = { KRT: ['CMI', 'NKI', 'UBN', 'VTE', 'UDN'], HDY: ['PBR', 'SGK'], NKI: ['VTE'] };
+const stnEastOf = (id, other) => (STN_EAST[id] || []).includes(other);
+function stnMakeSvc(S, d, e, day) {
+  const C = STN_CLS[e.cls] || { rev: 6000, kind: Math.random() < 0.5 ? 'LH' : 'PP', veh: [4, 7], car: 'coach' };
+  const n = rint(C.veh[0], C.veh[1]), veh = C.kind === 'LH' ? ['loco'].concat(Array(n - 1).fill(C.car)) : ['cab'].concat(Array(Math.max(1, n - 2)).fill('car'), ['cab']);
+  const base = day * 86400 + e.t;
+  const east = e.dirE != null ? e.dirE : stnEastOf(d.id, e.other);
+  const sideIn = d.kind === 'T' ? 'E' : e.mode === 'thru' ? (east ? 'W' : 'E') : e.mode === 'orig' ? (east ? 'W' : 'E') : (east ? 'E' : 'W');
+  const svc = { id: 'V' + (S.nextId++), name: e.name, cls: e.cls, real: !!e.real, est: !!e.est, mode: e.mode, other: e.other, kind: C.kind, veh, rev: C.rev, side: sideIn, phase: 'sched', track: 0, s: 0, hold: 0, lift: Math.random() < 0.25 };
+  if (e.mode === 'orig') { svc.schedArr = base - 45 * 60; svc.schedDep = base; svc.label = `ไป ${ttName(e.other)}`; }
+  else if (e.mode === 'term') { svc.schedArr = base; svc.schedDep = base + 25 * 60; svc.label = `จาก ${ttName(e.other)}`; }
+  else { svc.schedArr = base - 6 * 60; svc.schedDep = base + 6 * 60; svc.label = typeof e.other === 'string' && e.other.includes('→') ? e.other : `${ttName(e.other)}`; }
+  return svc;
+}
+function stnGenDay(S, day) {
+  const d = STN_DEFS[S.id], ev = stnEvents(S.id), L = d.locals;
+  let t = 5 * 3600 + rint(0, 30) * 60;
+  while (t < 23.5 * 3600) {
+    const mode = d.kind === 'T' ? (Math.random() < 0.5 ? 'term' : 'orig') : (Math.random() < 0.6 ? 'thru' : Math.random() < 0.5 ? 'term' : 'orig');
+    const from = pickOne(L.from), no = pickOne(L.no) + 2 * rint(0, 3);
+    ev.push({ name: `${L.prefix} ${no}`, cls: 'ท้องถิ่น', mode, t, other: from, real: false, dirE: d.kind === 'T' ? false : Math.random() < 0.5 });
+    t += rint(L.gap[0], L.gap[1]) * 60;
+  }
+  ev.forEach(e => { const v = stnMakeSvc(S, d, e, day); if (v.schedArr >= S.now - 120) S.services.push(v); });
+  S.genDay = day;
+}
+const stnCls = s => { const n = s.veh.length; return n <= 4 ? 0 : n <= 6 ? 1 : n <= 9 ? 2 : 3; };
+const stnLen = s => s.veh.length * 20;
+function stnTrackInfo(S, d, s, t) {
+  if (!hasPlat(d, t)) return [false, 'ไม่มีชานชาลา'];
+  if (stnCls(s) > t.cls) return [false, 'สั้นเกินไป'];
+  const occ = S.services.find(o => o !== s && o.track === t.n && ['entering', 'dwell', 'ready', 'departing'].includes(o.phase));
+  if (occ) return [false, `มี ${occ.name}`];
+  if (S.services.some(o => o !== s && o.track === t.n && ['approach', 'held'].includes(o.phase))) return [false, 'จองให้ขบวนอื่นแล้ว'];
+  if (d.kind === 'X' && s.mode === 'thru' && !t.thru) return [false, 'รางปลายตัน'];
+  return [true, 'ว่าง'];
+}
+function stnPathFor(d, s, built) {
+  const t = d.tracks.find(x => x.n === s.track) || d.tracks[0], P = built.paths[d.tracks.indexOf(t)];
+  return s.side === 'E' ? P : (P._rev || (P._rev = revPath(P)));
+}
+function stnStopS(d, s, P) {
+  const t = d.tracks.find(x => x.n === s.track) || d.tracks[0];
+  const x = d.kind === 'T' ? d.P0 + 3 : s.side === 'E' ? d.P0 + 8 : d.P1 - 8;
+  return sOfX(P, x, t.z) || P.len * 0.5;
+}
+const lockKey = side => (side === 'E' ? 'lockE' : 'lockW');
+function stnStep(S, dt) {
+  const d = STN_DEFS[S.id], B = STN.built[S.id];
+  S.now += dt;
+  const day = Math.floor(S.now / 86400);
+  if (S.genDay < day) stnGenDay(S, day);
+  if (S.genDay === day && S.now % 86400 > 20 * 3600) stnGenDay(S, day + 1);
+  const homeS = 900 - 210;   // distance from the far end of the approach to the home signal
+  const gr = ctrlOn('ground') ? 1.25 : 1;
+  const dwellers = S.services.filter(s => s.phase === 'dwell').sort((a, b) => a.readyAt - b.readyAt);
+  dwellers.forEach((s, i) => { if (i >= S.crew) s.readyAt += dt; else s.readyAt -= dt * (gr - 1); });
+  for (const s of S.services) {
+    if (s.phase === 'sched' && S.now >= s.schedArr - 300) { s.phase = 'approach'; s.s = 0; s.v = 16; }
+    if (s.phase === 'approach' || s.phase === 'held') {
+      if (!s.track && ctrlOn('app') && s.phase !== 'sched') { const t = d.tracks.filter(t => stnTrackInfo(S, d, s, t)[0]).sort((a, b) => a.cls - b.cls)[0]; if (t) s.track = t.n; }
+      const k = lockKey(s.side), canGo = s.track && S[k] <= S.now;
+      if (canGo && s.s > homeS - 260) { S[k] = S.now + 1e9; s.phase = 'entering'; s.lock = k; slog(S, `${s.name} ได้รับอาณัติเข้าราง ${s.track}`); }
+      else if (s.phase === 'approach') { s.v = Math.min(16, Math.sqrt(2 * 0.5 * Math.max(0, homeS - s.s))); s.s = Math.min(homeS, s.s + s.v * dt); if (s.s >= homeS - 0.5) { s.phase = 'held'; slog(S, `${s.name} หยุดรอที่สัญญาณเข้า`, 'bad'); } }
+      if (s.phase === 'held') { s.hold += dt; S.stats.holdMin += dt / 60; pay(1.5 * dt, 'penalty'); }
+    }
+    if (s.phase === 'entering') {
+      const P = stnPathFor(d, s, B), stop = stnStopS(d, s, P), dist = stop - s.s;
+      s.v = Math.max(1.2, Math.min(s.v + 0.6 * dt, 12, Math.sqrt(2 * 0.45 * Math.max(0, dist))));
+      s.s = Math.min(stop, s.s + s.v * dt);
+      if (s.s > 900 - 150 + stnLen(s) && S[s.lock] > S.now + 1e8) S[s.lock] = S.now + 30;
+      if (stop - s.s < 0.3) { s.phase = 'dwell'; s.v = 0; s.arrAt = S.now; S[s.lock] = Math.min(S[s.lock], S.now + 20);
+        s.readyAt = s.mode === 'term' ? S.now + 18 * 60 : s.mode === 'orig' ? Math.max(S.now + 15 * 60, s.schedDep - 90) : Math.max(S.now + 6 * 60, s.schedDep - 30);
+        if (s.lift) s.readyAt += 3 * 60; }
+    }
+    if (s.phase === 'dwell' && S.now >= s.readyAt) { s.phase = 'ready'; slog(S, `${s.name} ${s.mode === 'term' ? 'ส่งผู้โดยสารลงครบ พร้อมเข้าศูนย์ซ่อม' : 'พร้อมออก'} (ราง ${s.track})`, 'good'); }
+    if (s.phase === 'ready' && ctrlOn('dep') && S.now >= s.schedDep - 30) stnRelease(S, s, true);
+    if (s.phase === 'departing') {
+      s.v = Math.min(16, s.v + 0.5 * dt); s.s += s.v * dt;
+      if (s.s > s.clearS && S[s.lock] > S.now + 1e8) S[s.lock] = S.now + 20;
+      if (s.s >= s.P.len - 5) { s.phase = 'gone'; s.goneAt = S.now; }
+    }
+  }
+  S.services = S.services.filter(s => s.phase !== 'gone' || S.now - s.goneAt < 5);
+}
+function stnRelease(S, s, quiet) {
+  const d = STN_DEFS[S.id], B = STN.built[S.id];
+  const out = d.kind === 'T' ? 'E' : (s.side === 'E' ? 'W' : 'E'), k = lockKey(out);
+  if (S[k] > S.now) { if (!quiet) toast('คอขวดด้านทางออกมีขบวนอื่นใช้อยู่ รอสักครู่'); return false; }
+  const Pin = stnPathFor(d, s, B), L = stnLen(s);
+  if (d.kind === 'T') { s.P = revPath(Pin); s.s = Pin.len - s.s + L; s.dirFlip = true; }
+  else { s.P = Pin; }
+  s.clearS = d.kind === 'T' ? s.P.len - 900 + 180 + L : s.P.len - 900 + 180 + L;
+  S[k] = S.now + 1e9; s.lock = k; s.phase = 'departing'; s.v = 2;
+  const late = s.mode === 'term' ? Math.max(0, ((s.arrAt || S.now) - s.schedArr) / 60) : Math.max(0, (S.now - s.schedDep) / 60);
+  const rev = Math.round(s.rev * Math.max(0.3, 1 - late * 0.02) * (s.real ? 1.2 : 1));
+  earn(rev, 'term'); S.stats.dep++; S.stats.rev += rev; if (late <= 3) S.stats.onTime++;
+  gainXP(late <= 3 ? 8 : 4);
+  slog(S, `${s.name} ${s.mode === 'term' ? 'ออกไปศูนย์ซ่อม' : 'ออกจากราง ' + s.track} ${late > 3 ? `ช้า ${Math.round(late)} นาที` : 'ตรงเวลา'} · ${baht(rev)}`, late > 3 ? 'bad' : 'good');
+  if (!quiet) { sfxCoin(); popupStn(s, '+' + baht(rev), late > 3); }
+  return true;
+}
+function popupStn(s, text, bad) { const B = STN.built[STN.cur]; if (!B) return; const r = B.meshes[s.id]; const p = r && r.vs[0] ? r.vs[0].position : null; if (p) popup(new THREE.Vector3(p.x, p.y + 8, p.z), text, bad); }
+
+// ---------- visuals ----------
+function stnSync(S, dt) {
+  const d = STN_DEFS[S.id], B = STN.built[S.id], alive = new Set();
+  for (const s of S.services) {
+    if (s.phase === 'sched' || s.phase === 'gone') continue;
+    alive.add(s.id);
+    let r = B.meshes[s.id];
+    if (!r) { const g = new THREE.Group(), vs = s.veh.map(t => { const m = stnVehMesh(t); m.userData.svc = s.id; g.add(m); return m; }); B.root.add(g); r = B.meshes[s.id] = { g, vs }; }
+    const P = s.phase === 'departing' ? s.P : stnPathFor(d, s.track ? s : Object.assign({}, s, { track: d.tracks[0].n }), B);
+    s.veh.forEach((t, i) => {
+      const f = pAtS(P, s.s - i * 20 - 1), b = pAtS(P, s.s - i * 20 - 19), m = r.vs[i];
+      m.position.set((f.x + b.x) / 2, (f.y + b.y) / 2, (f.z + b.z) / 2);
+      m.rotation.y = Math.atan2(f.x - b.x, f.z - b.z) + (t === 'cab' && i > 0 ? Math.PI : 0);
+    });
+  }
+  for (const id in B.meshes) if (!alive.has(id)) { B.root.remove(B.meshes[id].g); delete B.meshes[id]; }
+  B.red.forEach(r => { r.x += r.v * dt * 60; if (r.x > 900) r.x = -900; if (r.x < -900) r.x = 900; r.g.position.x = r.x; });
+}
+function stnFrame(raw) {
+  const S = stnState(), B = STN.built[STN.cur]; if (!S || !B) return;
+  let rem = raw * S.speed * STN_RATE;
+  while (rem > 1e-6) { const dd = Math.min(0.5, rem); stnStep(S, dd); rem -= dd; }
+  cam.az += (cam.azT - cam.az) * Math.min(1, raw * 6);
+  if (cam.follow) { const r = B.meshes[cam.follow]; if (r && r.vs[0]) { const p = r.vs[Math.floor(r.vs.length / 2)].position; cam.tx += (p.x - cam.tx) * Math.min(1, raw * 3); cam.tz += (p.z - cam.tz) * Math.min(1, raw * 3); } else cam.follow = null; }
+  placeCam();
+  stnSync(S, raw);
+  const d = stnDef();
+  applyDayNight(S.now / 3600 % 24, B.sc, B.lights.h, B.lights.s, { x: (d.P0 + d.P1) / 2, y: 0, z: 20 }, 520, B.lamps);
+  fxRender(B.sc); updatePops(raw);
+  STN.uiAcc += raw; if (STN.uiAcc > 0.25) { STN.uiAcc = 0; stnUI(); }
+}
+function stnPick(e) {
+  const B = STN.built[STN.cur]; if (!B) return;
+  const r = canvas.getBoundingClientRect();
+  ray.setFromCamera({ x: (e.clientX - r.left) / r.width * 2 - 1, y: -(e.clientY - r.top) / r.height * 2 + 1 }, camera);
+  const hit = ray.intersectObject(B.root, true).find(h => h.object.userData.svc);
+  STN.sel = hit ? hit.object.userData.svc : null; STN.cardSig = ''; stnUI();
+}
+
+// ---------- UI ----------
+$('#stage').insertAdjacentHTML('beforeend', `
+<aside class="live" id="sLive" hidden><div class="live-head"><b id="sLiveT">ขบวนรถ</b></div><div class="live-list" id="sList"></div></aside>
+<section class="tcard" id="sCard" hidden></section>
+<section class="psheet" id="sSheet" hidden><header><div><b>เลือกชานชาลา</b><small id="sSheetSub"></small></div><button class="iconbtn" id="sSheetClose" aria-label="ปิด"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header><div class="ps-list" id="sSheetList"></div></section>`);
+$('#termStatus').insertAdjacentHTML('afterend', `<div class="topstat" id="stnStatus" hidden>
+  <div class="stat money"><span>เงินทุน</span><b id="ssMoney">฿0</b></div><div class="stat"><span>เวลาสถานี</span><b id="ssClock">—</b></div>
+  <div class="stat"><span>ออกตรงเวลา</span><b id="ssOnTime">—</b></div><div class="stat"><span>ในชานชาลา</span><b id="ssIn">0</b></div>
+  <div class="stat"><span>รอสัญญาณเข้า</span><b id="ssHeld">0</b></div><div class="stat"><span>รายได้สถานี</span><b id="ssRev">฿0</b></div></div>`);
+const sAlert = (S, s) => s.phase === 'held' || (s.phase === 'approach' && !s.track) || (s.phase === 'ready' && S.now >= s.schedDep - 60);
+const sPhase = s => ({ sched: 'ตามกำหนด', approach: 'กำลังเข้าเขต', held: 'รอสัญญาณเข้า', entering: 'เข้าชานชาลา', dwell: s.mode === 'term' ? 'ส่งผู้โดยสารลง' : s.mode === 'orig' ? 'รับผู้โดยสาร' : 'จอดรับส่ง', ready: s.mode === 'term' ? 'พร้อมเข้าศูนย์ซ่อม' : 'พร้อมออก', departing: 'กำลังออก', gone: 'ออกแล้ว' })[s.phase];
+function stnUI() {
+  const S = stnState(), d = stnDef(); if (!S || MODE !== 'stn') return;
+  $('#ssMoney').textContent = baht(state.money); $('#ssClock').textContent = hm(S.now);
+  $('#ssOnTime').textContent = S.stats.dep ? Math.round(S.stats.onTime / S.stats.dep * 100) + '%' : '—';
+  const usable = d.tracks.filter(t => hasPlat(d, t)).length;
+  $('#ssIn').textContent = S.services.filter(s => ['entering', 'dwell', 'ready'].includes(s.phase)).length + '/' + usable;
+  const held = S.services.filter(s => s.phase === 'held').length; $('#ssHeld').textContent = held; $('#ssHeld').classList.toggle('neg', held > 0);
+  $('#ssRev').textContent = baht(S.stats.rev);
+  const list = S.services.filter(s => s.phase !== 'gone' && s.schedArr - S.now < 3 * 3600).sort((a, b) => (sAlert(S, b) - sAlert(S, a)) || (a.schedArr - b.schedArr)).slice(0, 14);
+  const html = list.map(s => { const al = sAlert(S, s); return `<button class="lv${al ? ' alert' : ''}${STN.sel === s.id ? ' sel' : ''}${s.real ? '' : ' sim'}" data-sv="${s.id}"><span class="lv-st"><svg viewBox="0 0 24 24">${al ? '<circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/>' : ['sched', 'approach', 'held'].includes(s.phase) ? LV_IC.arr : s.phase === 'departing' ? LV_IC.dep : LV_IC.in}</svg></span><span class="lv-ty"><b>${esc(s.name.split(' ').pop())}</b><span><i class="cl">${CLS[stnCls(s)]}</i>${s.lift ? '<i class="wc">♿</i>' : ''}${s.real ? '<i class="rl" title="ขบวนจริงจากตารางเดินรถ">จริง</i>' : ''}</span></span><span class="lv-or"><b>${esc(String(s.cls).split(' ')[0])}</b><small>${s.track ? 'ราง ' + s.track : hm(s.mode === 'orig' ? s.schedDep : s.schedArr)}</small></span></button>`; }).join('');
+  if (html !== STN.sig) { STN.sig = html; $('#sList').innerHTML = html; }
+  stnCard(S, d);
+  if (STN.sheet) stnSheet(S, d);
+}
+function stnCard(S, d) {
+  const s = STN.sel && S.services.find(x => x.id === STN.sel), el = $('#sCard');
+  $('#app').classList.toggle('livecard', !!s);
+  if (!s) { el.hidden = true; STN.cardSig = ''; return; }
+  el.hidden = false;
+  const sig = s.id + s.phase;
+  if (sig !== STN.cardSig) {
+    STN.cardSig = sig;
+    el.innerHTML = `<header><div class="tc-id"><b>${esc(s.name)}</b><small>${esc(s.label)}</small></div><div class="tc-ty"><b>${s.kind === 'LH' ? 'หัวรถจักร' : 'ดีเซลราง'}</b><span><i class="cl">${CLS[stnCls(s)]}</i>${s.lift ? '<i class="wc">♿</i>' : ''}</span></div><span class="tc-al" data-f="al">!</span></header>
+      <div class="tc-body"><div class="tc-main"><div><small>สถานะ</small><b data-f="ph"></b></div><div><small>ชานชาลา</small><b data-f="tr"></b></div><div><small>ข้อมูล</small><span class="tc-op">${s.real ? `ตารางเดินรถจริง${s.est ? ' (เวลาผ่านโดยประมาณ)' : ''}` : 'ขบวนจำลองเสริมตาราง'}</span></div></div>
+      <div class="tc-pic">${trainSvg(s.veh.includes('cnr') ? 'QSY' : s.kind === 'LH' ? 'AD24C' : 'THN', 'std', Math.min(4, s.veh.length - 1), 'P')}</div>
+      <div class="tc-sched"><span data-f="sl"></span><b data-f="sv"></b><div class="bar"><i data-f="sb"></i></div></div>
+      <div class="tc-status"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="14" rx="2"/><circle cx="12" cy="7" r="1.3"/><circle cx="12" cy="12" r="1.3"/><path d="M12 17v4"/></svg><span data-f="st"></span></div>
+      <button class="btn action big" data-f="act"></button></div>
+      <nav class="tc-side"><button data-sc="follow" aria-label="ติดตามกล้อง"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button><button data-sc="close" aria-label="ปิด"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></nav>`;
+  }
+  const late = Math.round((s.mode === 'term' ? (s.arrAt || S.now) - s.schedArr : S.now - s.schedDep) / 60);
+  setF(el, 'ph', x => { x.textContent = sPhase(s); }); setF(el, 'tr', x => { x.textContent = s.track ? 'ราง ' + s.track : '—'; });
+  setF(el, 'sl', x => { x.textContent = s.mode === 'term' ? `ถึงตามกำหนด ${hm(s.schedArr)}` : `ออกตามกำหนด ${hm(s.schedDep)}`; });
+  setF(el, 'sv', x => { x.textContent = late > 0 ? `ช้า ${late} นาที` : `อีก ${-late} นาที`; x.className = late > 3 ? 'bad' : 'good'; });
+  setF(el, 'sb', x => { x.style.width = (s.phase === 'dwell' ? clamp(1 - (s.readyAt - S.now) / (20 * 60), 0, 1) : s.phase === 'ready' ? 1 : 0.3) * 100 + '%'; });
+  const c = { sched: `เข้าเขตสถานีเวลา ${hm(s.schedArr - 300)}`, approach: s.track ? `ได้รางที่ ${s.track} แล้ว กำลังรอเปิดสัญญาณ` : 'ยังไม่ได้เลือกชานชาลา', held: `หยุดรอที่สัญญาณเข้า ${Math.floor(s.hold / 60)} นาที · เสียค่าปรับ`, entering: `กำลังเข้าราง ${s.track}`, dwell: `${sPhase(s)} · เสร็จราว ${hm(s.readyAt)}${s.lift ? ' · ใช้ลิฟต์วีลแชร์' : ''}`, ready: s.mode === 'term' ? 'ส่งขบวนเปล่าเข้าศูนย์ซ่อมเพื่อคืนชานชาลา' : 'ผู้โดยสารขึ้นครบ รอปล่อยรถ', departing: 'ออกจากสถานีผ่านคอขวด' }[s.phase] || '';
+  setF(el, 'st', x => { x.textContent = c; });
+  setF(el, 'al', x => { x.hidden = !sAlert(S, s); });
+  let act = ['—', false, ''];
+  if (['sched', 'approach', 'held'].includes(s.phase)) act = [s.track ? `เปลี่ยนชานชาลา (ราง ${s.track})` : 'เลือกชานชาลา', true, 'plat'];
+  else if (s.phase === 'ready') act = [s.mode === 'term' ? 'ส่งเข้าศูนย์ซ่อม' : 'ปล่อยรถ', true, 'go'];
+  else act = [sPhase(s), false, ''];
+  setF(el, 'act', x => { if (x.textContent !== act[0]) x.textContent = act[0]; x.disabled = !act[1]; x.dataset.k = act[2]; });
+}
+$('#sList').addEventListener('click', e => { const b = e.target.closest('[data-sv]'); if (!b) return; STN.sel = STN.sel === b.dataset.sv ? null : b.dataset.sv; STN.cardSig = ''; STN.sig = ''; stnUI(); });
+$('#sCard').addEventListener('click', e => {
+  const S = stnState(), s = STN.sel && S.services.find(x => x.id === STN.sel); if (!s) return;
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.sc === 'close') { STN.sel = null; stnUI(); return; }
+  if (b.dataset.sc === 'follow') { cam.follow = s.id; return; }
+  if (b.dataset.f === 'act') { if (b.dataset.k === 'plat') { STN.sheet = s.id; $('#sSheet').hidden = false; stnSheet(S, stnDef()); } else if (b.dataset.k === 'go') stnRelease(S, s); STN.cardSig = ''; stnUI(); }
+});
+function stnSheet(S, d) {
+  const s = S.services.find(x => x.id === STN.sheet);
+  if (!s || !['sched', 'approach', 'held'].includes(s.phase)) { STN.sheet = null; $('#sSheet').hidden = true; return; }
+  $('#sSheetSub').textContent = `${s.name} · ขนาด ${CLS[stnCls(s)]} · ${s.veh.length} คัน`;
+  const html = d.tracks.map(t => { const [ok, why] = stnTrackInfo(S, d, s, t); return `<button class="pcard${ok ? '' : ' no'}${s.track === t.n ? ' plan' : ''}" data-st="${t.n}"><b>ราง ${t.n}</b><span class="pc-cl">${[0, 1, 2, 3].map(c => `<i class="${c <= t.cls ? 'on' : ''}">${CLS[c]}</i>`).join('')}</span><small>${s.track === t.n ? 'เลือกแล้ว' : why}</small></button>`; }).join('');
+  const L = $('#sSheetList'); if (L.dataset.h !== html) { L.dataset.h = html; L.innerHTML = html; }
+}
+$('#sSheetClose').addEventListener('click', () => { STN.sheet = null; $('#sSheet').hidden = true; });
+$('#sSheetList').addEventListener('click', e => {
+  const b = e.target.closest('[data-st]'); if (!b) return;
+  const S = stnState(), d = stnDef(), s = S.services.find(x => x.id === STN.sheet); if (!s) return;
+  const t = d.tracks.find(x => x.n === +b.dataset.st), [ok, why] = stnTrackInfo(S, d, s, t);
+  if (!ok) { toast(`ราง ${t.n}: ${why}`); return; }
+  s.track = t.n; STN.sheet = null; $('#sSheet').hidden = true; sfxPing(); toast(`${s.name} เข้าราง ${t.n}`); slog(S, `จัด ${s.name} เข้าราง ${t.n}`); STN.cardSig = ''; stnUI();
+});
+function stnShowUI(on) {
+  ['#sLive', '#stnStatus'].forEach(q => { $(q).hidden = !on; });
+  if (!on) { $('#sCard').hidden = true; $('#sSheet').hidden = true; }
+}
+function stnInfoModal() {
+  const d = stnDef();
+  modal('sinfo', () => mSet(d.name, `${d.en} · ${d.line}${d.km ? ` · ${fmt(d.km)} กม. จากกรุงเทพ` : ''}`,
+    `<h4 class="msec">อ้างอิงสถานที่จริง</h4><ul class="realnotes">${d.real.map(r => `<li>${r}</li>`).join('')}</ul>
+     <h4 class="msec">ผังในเกม</h4><p class="info">${d.kind === 'T' ? 'สถานีปลายทาง (รางปลายตัน) ขบวนเข้า-ออกทางเดียว' : 'สถานีผ่าน ขบวนเข้าได้ทั้งสองด้าน'} · ${d.tracks.length} ราง (มีชานชาลา ${d.tracks.filter(t => hasPlat(d, t)).length} ราง) · ชานชาลา ${d.platforms.length} แห่ง</p>
+     <p class="info">โมเดลอาคารและผังรางเป็นแบบย่อส่วน จัดตามลักษณะเด่นของสถานีจริง (ชนิดชานชาลา ด้านที่ตั้งอาคาร รูปแบบสถาปัตยกรรม และภูมิทัศน์รอบสถานี) ไม่ใช่แบบก่อสร้างจริง</p>`));
+}
+function hlpInfoModal() { const d = HLP_REAL; modal('sinfo', () => mSet(d.name, `${d.en} · ${d.line}`, `<h4 class="msec">อ้างอิงสถานที่จริง</h4><ul class="realnotes">${d.real.map(r => `<li>${r}</li>`).join('')}</ul><p class="info">กดปุ่ม ★ ด้านขวาเพื่อดูหน้าสถานี ลานน้ำพุ และถนนพระรามที่ 4 · โมเดลเป็นแบบย่อส่วนตามลักษณะเด่นของสถานีจริง</p>`)); }
+function stnBoardModal() {
+  const d = stnDef(), b = ttBoard(d.id), S = stnState();
+  modal('sboard', () => mSet(`ตารางเดินรถ · ${d.name}`, 'ข้อมูลจริงจากคู่มือการเดินรถ รฟท. + ขบวนผ่าน (เวลาประมาณ)',
+    `<div class="board">${stnEvents(d.id).sort((a, b) => a.t - b.t).map(e => `<div class="bd-r ${e.mode === 'orig' ? 'dep' : 'arr'}"><time>${hm(e.t)}</time><span>${e.name}</span><span>${e.mode === 'orig' ? 'ออกไป' : e.mode === 'term' ? 'มาถึงจาก' : 'ผ่าน ·'} ${typeof e.other === 'string' && e.other.includes('→') ? e.other : ttName(e.other)}${e.est ? ' (ประมาณ)' : ''}</span></div>`).join('') || '<p class="info">ไม่มีขบวนในตาราง</p>'}</div>
+     <p class="info">นอกจากขบวนจริงแล้ว เกมเพิ่มขบวนท้องถิ่นจำลองเพื่อให้สถานีมีการเดินรถต่อเนื่อง (แสดงเป็นรายการที่ไม่มีป้าย "จริง")</p>`));
+}
+function stnCrewModal() {
+  const S = stnState();
+  modal('screw', () => mSet('ทีมบริการชานชาลา', `ทำงานพร้อมกันได้ ${S.crew} ขบวน`, `<div class="slots">${Array.from({ length: S.crew }, () => '<i class="slot free"></i>').join('')}</div><p class="info">ทีมหนึ่งดูแลการส่งลง ทำความสะอาด และรับขึ้นของขบวนที่จอดอยู่ได้ทีละขบวน ขบวนเกินจำนวนทีมจะต้องรอคิว</p>`, null, `<div class="acts"><button class="primary" data-shire ${state.money < 20000 * S.crew ? 'disabled' : ''}>จ้างเพิ่ม 1 ทีม ${baht(20000 * S.crew)}</button></div>`));
+}
+$('#mmodal').addEventListener('click', e => { const b = e.target.closest('[data-shire]'); if (!b || b.disabled) return; const S = stnState(); if (spend(20000 * S.crew)) { S.crew++; toast(`ทีมบริการเป็น ${S.crew} ทีม`); MCACHE.body = null; stnCrewModal(); } });
+const HLP_REAL = { name: 'สถานีกรุงเทพ (หัวลำโพง)', en: 'Bangkok (Hua Lamphong)', line: 'ต้นทางขบวนธรรมดาและรถชานเมือง', km: 0, kind: 'T', tracks: Array.from({ length: 14 }, (_, i) => ({ n: i + 1, z: i })), platforms: Array(8),
+  real: ['เปิดใช้งานปี 2459 (ค.ศ. 1916) ออกแบบโดยมาริโอ ตามัญโญ สถาปัตยกรรมแบบอิตาเลียนเรอเนสซองส์', 'โถงหลักหลังคาโค้งและหน้าต่างกระจกโค้งบานใหญ่ด้านหน้า มีนาฬิกาอยู่กลางซุ้มโค้ง', 'สถานีปลายตัน 14 ราง ใต้หลังคาโรงคลุมชานชาลาโค้ง ขบวนเข้า-ออกผ่านคอขวดด้านเดียว', 'ด้านหน้ามีน้ำพุช้างสามเศียร ถนนพระรามที่ 4 และคลองผดุงกรุงเกษมเลียบข้างสถานี', 'ตั้งแต่ปี 2566 ขบวนทางไกลย้ายไปกรุงเทพอภิวัฒน์ หัวลำโพงยังรับขบวนธรรมดาและรถชานเมือง'] };
+function stnTool(k) { if (k === 'sinfo' && MODE === 'term') hlpInfoModal(); else if (k === 'sinfo') stnInfoModal(); else if (k === 'sboard') stnBoardModal(); else if (k === 'screw') stnCrewModal(); }
+TOOLS.stn = [['sinfo', 'ข้อมูลจริง'], ['sboard', 'ตารางจริง'], ['screw', 'ทีมบริการ'], ['ctrl', 'ห้องควบคุม'], ['contracts', 'สัญญา']];
+Object.assign(ICONS, { sinfo: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>', sboard: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h10M7 17h6"/>', screw: '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M14 15.5c.9-.3 1.9-.5 3-.5 2.5 0 4 1.5 4 4"/>' });
+
+// ---------- enter / save ----------
+function stnLoad() { try { const o = JSON.parse(localStorage.getItem(STN_SAVE)); if (o && typeof o === 'object') for (const k in o) if (STN_DEFS[k] && o[k].v === 1) STN.st[k] = o[k]; } catch (e) {} }
+function stnSave() { try { localStorage.setItem(STN_SAVE, JSON.stringify(STN.st, (k, v) => (k === 'P' ? undefined : v))); } catch (e) {} }
+function stnEnter(id) {
+  if (!STN_DEFS[id]) return;
+  if (!STN.st[id]) STN.st[id] = stnNew(id);
+  const S = STN.st[id];
+  S.services.forEach(s => { if (s.phase === 'departing') s.phase = 'gone', s.goneAt = S.now; });
+  STN.cur = id; STN.sel = null; STN.sig = ''; STN.cardSig = '';
+  stnBuild(id); camStn.home(); camStn.az = camStn.azT;
+  setMode('stn');
+  if (!S.hinted) { S.hinted = true; toast(`${STN_DEFS[id].name}: เลือกชานชาลาให้ขบวนที่มีเครื่องหมาย ! แล้วปล่อยรถเมื่อพร้อม`); }
+}
+const stnStars = id => { const S = STN.st[id]; if (!S) return 1; const s = S.stats; return 1 + (s.dep >= 5) + (s.dep >= 5 && s.onTime / s.dep >= 0.8) + (s.dep >= 30) + (s.dep >= 10 && s.holdMin / s.dep < 2); };
+stnLoad();
 
 // =====================================================================
 // สถานีหัวลำโพง: คอขวด ประแจ อาณัติสัญญาณ NX/รีเลย์ ETCS และการกลับขบวน
@@ -5487,7 +6087,17 @@ function tBeautify() {
   for (const side of [-1, 1]) { const l = new THREE.Mesh(unitBox, grass); l.scale.set(20, 0.4, 30); l.receiveShadow = true; add(l, -113, 0.2, cz + side * 36); }
   const basin = new THREE.Mesh(new THREE.CylinderGeometry(7.2, 7.6, 1.1, 40), stoneDk); basin.castShadow = true; add(basin, -112, 0.55, cz);
   const water = new THREE.Mesh(new THREE.CircleGeometry(6.7, 40).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x4FA3D9, roughness: 0.1, metalness: 0.2, emissive: 0x0d3550 })); add(water, -112, 1.06, cz);
-  add(new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.3, 3, 16), stone), -112, 1.5, cz);
+  add(new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.8, 2.4, 16), stone), -112, 1.2, cz);
+  // three-headed elephant fountain in front of the station
+  const ele = mat(0x8E949C, { roughness: 0.55, metalness: 0.25 });
+  add(new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 12), ele), -112, 3.6, cz).scale.set(1, 0.85, 1);
+  for (let k = 0; k < 3; k++) {
+    const a = k / 3 * Math.PI * 2 + Math.PI, hx = -112 + Math.cos(a) * 1.3, hz = cz + Math.sin(a) * 1.3;
+    add(new THREE.Mesh(new THREE.SphereGeometry(0.75, 12, 10), ele), hx, 4.1, hz);
+    const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.24, 2, 8), ele); tr.position.set(hx + Math.cos(a) * 0.6, 3.2, hz + Math.sin(a) * 0.6); tr.rotation.set(Math.sin(a) * 0.45, 0, -Math.cos(a) * 0.45); tScene.add(tr);
+    for (const s of [-1, 1]) { const ear = new THREE.Mesh(new THREE.CircleGeometry(0.6, 10), ele); ear.position.set(hx - Math.sin(a) * s * 0.7, 4.2, hz + Math.cos(a) * s * 0.7); ear.rotation.y = -a; tScene.add(ear); }
+  }
+  add(new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.4, 10), mat(0xD4A017, { metalness: 0.6, roughness: 0.3 })), -112, 5.4, cz);
   const jetMat = new THREE.MeshBasicMaterial({ color: 0xE8F6FF, transparent: true, opacity: 0.55, depthWrite: false });
   for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2, j = new THREE.Mesh(new THREE.ConeGeometry(0.35, 1, 8), jetMat); j.position.set(-112 + Math.cos(a) * 4.2, 1.6, cz + Math.sin(a) * 4.2); tScene.add(j); TB.jets.push(j); }
   const top = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1, 10), jetMat); top.position.set(-112, 3.5, cz); tScene.add(top); TB.jets.push(top);
@@ -5813,9 +6423,11 @@ setInterval(() => { if (drawerTab === 'coop' && $('#panel').classList.contains('
 function setMode(m, quiet) {
   MODE = m;
   if (m === 'net') setMap2d(true);
+  if (m === 'stn') setMap2d(false);
+  if (typeof stnShowUI === 'function') stnShowUI(m === 'stn');
   if (m === 'term') { tBuildScene(); if (!TRT.nxE) nxBuild(); if (!$('#dmi').firstChild) dmiBuild(); setMap2d(false); }
-  cam = m === 'term' ? camTerm : camNet; VIEW = cam.view;
-  $('#app').classList.toggle('mode-term', m === 'term'); $('#app').classList.toggle('mode-net', m === 'net');
+  cam = m === 'term' ? camTerm : m === 'stn' ? camStn : camNet; VIEW = cam.view;
+  $('#app').classList.toggle('mode-term', m === 'term'); $('#app').classList.toggle('mode-net', m === 'net'); $('#app').classList.toggle('mode-stn', m === 'stn');
   document.querySelectorAll('#modeSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
   $('#netStatus').hidden = m !== 'net'; $('#termStatus').hidden = m !== 'term';
   $('#nx').hidden = m !== 'term'; $('#dmi').hidden = m !== 'term' || !TRT.sel;
@@ -5827,7 +6439,7 @@ function setMode(m, quiet) {
   clearPops(); closeDrawer(); renderToolbar(); resize(); updateSpeedSeg(); tlSig = '';
   RT.preview = null; RT.routeFrom = null; renderRouteCard(); minTab = null;
   if (m === 'term' && !TRT.nxInit) { TRT.nxInit = true; $('#nx').classList.add('collapsed'); }
-  try { localStorage.setItem('railtrack-mode', m); } catch (e) {}
+  try { if (m !== 'stn') localStorage.setItem('railtrack-mode', m); } catch (e) {}
   if (m === 'term') {
     computeOcc(); tUpdateUI();
     if (!tstate.hinted && !quiet) { tstate.hinted = true; toast('ชานเมืองที่ราง 13 พร้อมออกแล้ว: กดสามเหลี่ยม S13 แล้วกด "ออก" บนแผง NX'); }
@@ -5839,7 +6451,7 @@ document.querySelectorAll('#modeSeg button').forEach(b => b.addEventListener('cl
 const NET_CENTER = { x: 0, y: 0, z: 0 };
 $('#tutBtn').addEventListener('click', () => { state.tut = null; state.stats.legs = Math.min(state.stats.legs, 40); closeDrawer(); tutStart(); });
 const SAVE_KEY = 'railtrack-th-v2';
-function save() { try { metaSave(); localStorage.setItem(SAVE_KEY, JSON.stringify(state, (k, v) => (k === 'rescueReq' ? undefined : v))); if (tstate) localStorage.setItem(TSAVE_KEY, tSerialize()); } catch (e) {} }
+function save() { try { metaSave(); stnSave(); localStorage.setItem(SAVE_KEY, JSON.stringify(state, (k, v) => (k === 'rescueReq' ? undefined : v))); if (tstate) localStorage.setItem(TSAVE_KEY, tSerialize()); } catch (e) {} }
 function loadSaved() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 2 && s.stations && Array.isArray(s.lines) && ['BKK', 'BPC', 'CMI'].every(id => s.stations[id])) {
     STATIONS.forEach(d => { if (!s.stations[d.id]) s.stations[d.id] = { unlocked: false, level: 1, plat: 0, pax: 0, cargo: 0 }; });
     for (const k in s.stations) if (!SMAP[k]) delete s.stations[k];
@@ -5876,7 +6488,8 @@ function boot(saved) {
 let last = performance.now(), uiAcc = 0, saveAcc = 0, tSec = 0;
 function frame(now) {
   const raw = Math.min(0.1, (now - last) / 1000); last = now; tSec += raw;
-  if (MODE === 'term') {
+  if (MODE === 'stn') stnFrame(raw);
+  else if (MODE === 'term') {
     let rem = raw * tstate.speed * TRATE;
     while (rem > 1e-6) { const d = Math.min(0.25, rem); tStep(d); rem -= d; }
     tVisuals(raw); tFxUpdate(tSec, raw); fxRender(tScene);
@@ -5922,7 +6535,7 @@ function start(data) {
   setInterval(metaTick, 1000);
   requestAnimationFrame(t => { last = t; frame(t); });
 }
-if (location.hash.startsWith('#rtdebug')) window.__rt = { meta: () => M_(), gainXP, openFleet, openPlanner, openCtrlModal, metaPick, openGS, openContracts, genOffer, stars: () => [netStars(), termStars()], tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }), hit: () => MAP2D.hit, heldRect: () => worldRect(termHeldPos()), platRect: () => worldRect(termPlatformPos()), readyRect: () => worldRect(termReadyPos()), routes: () => tstate.routes.map(r => r.kind + ':' + r.state), fx: () => ({ q: FX.quality, composer: !!FX.composer, lamp: FX.lamp }) };
+if (location.hash.startsWith('#rtdebug')) window.__rt = { meta: () => M_(), gainXP, openFleet, openPlanner, openCtrlModal, metaPick, stnEnter, stn: () => stnState(), stnStep: dt => stnStep(stnState(), dt), stnRelease: s => stnRelease(stnState(), s), openGS, openContracts, genOffer, stars: () => [netStars(), termStars()], tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }), hit: () => MAP2D.hit, heldRect: () => worldRect(termHeldPos()), platRect: () => worldRect(termPlatformPos()), readyRect: () => worldRect(termReadyPos()), routes: () => tstate.routes.map(r => r.kind + ':' + r.state), fx: () => ({ q: FX.quality, composer: !!FX.composer, lamp: FX.lamp }) };
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
 })();
