@@ -1047,6 +1047,7 @@ function drawMap2d(time) {
   g.textAlign = 'left'; g.font = `500 11px ${cssVar('--f-body')}`; g.fillStyle = C.muted;
   g.fillText('□ ปลายทาง  ◇ ชุมทาง  ⬡ ICD/ชายแดน  ┅ ทางรถไฟจริง  ● ขบวนรถ · แตะสถานี 2 แห่งเพื่อเปิดเส้นทาง · ลากเพื่อเลื่อน หมุนล้อ/บีบเพื่อซูม', 16, h - (narrow() ? 104 : 92));
   g.font = `500 9.5px ${cssVar('--f-body')}`; g.fillText('แผนที่: Natural Earth 1:10m (พรมแดนและแนวทางรถไฟ)', 16, h - (narrow() ? 90 : 78));
+  drawTTTrains(g, C);
   drawPreview2d(g, time);
 }
 { // pan / zoom / tap on the 2D map

@@ -37,7 +37,7 @@ const regStat = s => { const reg = ROUTE_REGION[origCode(s)] || 'ขบวนพ
 function phaseText(s) {
   const c = s.cid && tCons(s.cid);
   switch (s.phase) {
-    case 'sched': return ['ตามกำหนด', `กำหนดเข้า ${tClock(s.schedArr)}${s.plan ? ` · วางแผนราง ${s.plan}` : ''}`];
+    case 'sched': return [s.lateIn ? `ล่าช้า ${s.lateIn} นาที` : 'ตามกำหนด', `กำหนดเข้า ${tClock(s.schedArr)}${s.lateIn ? ` · คาดว่าถึง ${tClock(s.schedArr + s.lateIn * 60)}` : ''}${s.plan ? ` · วางแผนราง ${s.plan}` : ''}`];
     case 'approach': return ['กำลังเข้าเขต', c ? `ห่างสัญญาณ H ${Math.max(0, Math.round(c.stopS - c.s))} ม. · ${Math.round(c.v * 3.6)} กม./ชม.` : 'กำลังเข้าเขตสถานี'];
     case 'held': return ['รอสัญญาณ H', `หยุดรอที่สัญญาณ H มา ${Math.floor(s.hold / 60)}:${String(Math.floor(s.hold % 60)).padStart(2, '0')} นาที`];
     case 'entering': return ['เข้าชานชาลา', `กำลังเข้าราง ${s.track}${c ? ` · ${Math.round(c.v * 3.6)} กม./ชม.` : ''}`];

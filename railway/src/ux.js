@@ -21,6 +21,7 @@ function setSel(s) { sel = s; RT.tlDirty = true; }
 function map2dClick(hit) {
   if (!hit) { RT.routeFrom = null; RT.preview = null; setSel(null); renderRouteCard(); return; }
   if (hit.type === 'train') { select({ type: 'train', id: hit.id }); return; }
+  if (hit.type === 'tt') { ttHitInfo(hit); return; }
   const st = state.stations[hit.id];
   if (!st.unlocked) { RT.routeFrom = null; RT.preview = null; select({ type: 'station', id: hit.id }); renderRouteCard(); return; }
   if (RT.routeFrom && RT.routeFrom !== hit.id) { RT.preview = { a: RT.routeFrom, b: hit.id }; RT.routeFrom = null; }

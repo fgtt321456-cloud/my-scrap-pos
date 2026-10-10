@@ -68,6 +68,7 @@ function boot(saved) {
 let last = performance.now(), uiAcc = 0, saveAcc = 0, tSec = 0;
 function frame(now) {
   const raw = Math.min(0.1, (now - last) / 1000); last = now; tSec += raw;
+  worldTick(raw);
   if (MODE === 'stn') stnFrame(raw);
   else if (MODE === 'term') {
     let rem = raw * tstate.speed * TRATE;
@@ -116,7 +117,7 @@ function start(data) {
   setInterval(metaTick, 1000);
   requestAnimationFrame(t => { last = t; frame(t); });
 }
-if (location.hash.startsWith('#rtdebug')) window.__rt = { meta: () => M_(), gainXP, openFleet, openPlanner, openCtrlModal, metaPick, stnEnter, perf: () => Object.assign({ fps: PERF.ema, q: FX.quality, px: renderer.getPixelRatio() }, renderer.info.render, { geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), thumb: (c, w, h) => trainThumb(c, w, h), stn: () => stnState(), stnStep: dt => stnStep(stnState(), dt), stnRelease: s => stnRelease(stnState(), s), openGS, openContracts, genOffer, stars: () => [netStars(), termStars()], tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }), hit: () => MAP2D.hit, heldRect: () => worldRect(termHeldPos()), platRect: () => worldRect(termPlatformPos()), readyRect: () => worldRect(termReadyPos()), routes: () => tstate.routes.map(r => r.kind + ':' + r.state), fx: () => ({ q: FX.quality, composer: !!FX.composer, lamp: FX.lamp }) };
+if (location.hash.startsWith('#rtdebug')) window.__rt = { meta: () => M_(), gainXP, openFleet, openPlanner, openCtrlModal, metaPick, stnEnter, perf: () => Object.assign({ fps: PERF.ema, q: FX.quality, px: renderer.getPixelRatio() }, renderer.info.render, { geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), thumb: (c, w, h) => trainThumb(c, w, h), stn: () => stnState(), world: () => WORLD, ttRunning: n => ttRunning(n), catchUp: () => worldCatchUp(stnState()), rush: rushFactor, rain: wxRain, stnStep: dt => stnStep(stnState(), dt), stnRelease: s => stnRelease(stnState(), s), openGS, openContracts, genOffer, stars: () => [netStars(), termStars()], tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }), hit: () => MAP2D.hit, heldRect: () => worldRect(termHeldPos()), platRect: () => worldRect(termPlatformPos()), readyRect: () => worldRect(termReadyPos()), routes: () => tstate.routes.map(r => r.kind + ':' + r.state), fx: () => ({ q: FX.quality, composer: !!FX.composer, lamp: FX.lamp }) };
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
 })();

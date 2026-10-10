@@ -135,7 +135,7 @@ const rint = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 function makeService(arrT, kind) {
   kind = kind || (Math.random() < 0.5 ? 'LH' : 'PP');
   const id = 'S' + (tstate.nextId++);
-  const base = { id, kind, schedArr: arrT, phase: 'sched', track: 0, prio: 0, hold: 0, state: '', pax: rint(160, 420), paxOut: rint(160, 420) };
+  const base = { id, kind, schedArr: arrT, lateIn: rollDelay(arrT), phase: 'sched', track: 0, prio: 0, hold: 0, state: '', pax: rint(160, 420), paxOut: rint(160, 420) };
   if (kind === 'LH') {
     const [out, from] = pickOne(HLP_LH);
     return Object.assign(base, { name: `ธรรมดา ${out + 1}`, outName: `ธรรมดา ${out}`, from, coaches: rint(6, 9), pax: rint(300, 560), paxOut: rint(280, 560), schedDep: arrT + 45 * 60 });
@@ -385,7 +385,9 @@ function throwSwitch(id) {
 }
 function trackFree(T) { return !OCC['pw' + T] && !OCC['pe' + T] && !tstate.elock['pw' + T] && !tstate.elock['pe' + T] && !trackSvc(T); }
 function arsTick() {
-  if (tstate.ars.arr && !tstate.routes.some(r => r.from === 'HA') && tstate.consists.some(c => c.job === 'approach')) {
+  const waiting = tstate.ars.arr && !tstate.routes.some(r => r.from === 'HA') && tstate.consists.some(c => c.job === 'approach');
+  if (!waiting) TRT.arsAt = null; else if (TRT.arsAt == null) TRT.arsAt = tstate.now + arsReact();   // ARS reacts with a short delay
+  if (waiting && tstate.now >= TRT.arsAt) {
     const svc = nextArrivalSvc(), cand = [];
     for (let T = 1; T <= 14; T++) {
       if (!trackFree(T) || arrivalRule(T, svc)) continue;
@@ -398,7 +400,7 @@ function arsTick() {
     for (const { T } of cand) if (requestArrival(T, true)) break;
   }
   if (tstate.ars.dep) for (const s of tstate.services) {
-    if (s.phase === 'dwell' && s.state === 'ready' && tstate.now >= s.schedDep - 30 && !tstate.routes.some(r => r.from === 'ST' + s.track)) requestDeparture(s.track, true);
+    if (s.phase === 'dwell' && s.state === 'ready' && tstate.now >= s.schedDep - 30 + (s.lag == null ? (s.lag = arsLag()) : s.lag) && !tstate.routes.some(r => r.from === 'ST' + s.track)) requestDeparture(s.track, true);
   }
 }
 
@@ -516,8 +518,9 @@ function allocRes() {
 function tSpawnTick() {
   let last = Math.max(tstate.now, ...tstate.services.map(s => s.schedArr));
   const ramp = Math.max(0.55, 1 - (tstate.now - tstate.t0) / (6 * 3600));
-  while (tstate.services.filter(s => s.phase === 'sched').length < 6) { last += (5 + Math.random() * 4) * 60 * ramp; tstate.services.push(makeService(last)); }
-  const svc = tstate.services.filter(s => s.phase === 'sched' && tstate.now >= s.schedArr - 40).sort((a, b) => a.schedArr - b.schedArr)[0];
+  while (tstate.services.filter(s => s.phase === 'sched').length < 6) { last += (5 + Math.random() * 4) * 60 * ramp * (tstate.now - tstate.t0 > 3600 ? rushFactor(last) : 1); tstate.services.push(makeService(last)); }   // no peak in the first game hour
+  const due = s => s.schedArr + (s.lateIn || 0) * 60;
+  const svc = tstate.services.filter(s => s.phase === 'sched' && tstate.now >= due(s) - 40).sort((a, b) => due(a) - due(b))[0];
   if (!svc || (OCC.aFar || []).some(o => o.d0 < 260)) return;
   const veh = vehOf(svc), len = veh.length * VL;
   const c = newConsist(veh, [{ e: 'aFar', dir: 1 }], len + 2, svc.id);
@@ -565,7 +568,7 @@ function newTStateSeeded() {
   const d = makeService(tstate.now - 1500, 'PP'); const cd = place(d, 13, 1500);
   ['alight', 'turn', 'clean', 'fuel', 'board'].forEach(n => done(d.tasks[n])); reverseConsist(cd);
   d.state = 'ready'; d.schedDep = tstate.now + 120;
-  tstate.services.push(makeService(tstate.now + 30, 'LH'));
+  tstate.services.push(Object.assign(makeService(tstate.now + 30, 'LH'), { lateIn: 0 }));
   tstate.stats.arr = 3;
   return tstate;
 }

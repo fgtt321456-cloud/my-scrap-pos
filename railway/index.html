@@ -2286,6 +2286,7 @@ function drawMap2d(time) {
   g.textAlign = 'left'; g.font = `500 11px ${cssVar('--f-body')}`; g.fillStyle = C.muted;
   g.fillText('□ ปลายทาง  ◇ ชุมทาง  ⬡ ICD/ชายแดน  ┅ ทางรถไฟจริง  ● ขบวนรถ · แตะสถานี 2 แห่งเพื่อเปิดเส้นทาง · ลากเพื่อเลื่อน หมุนล้อ/บีบเพื่อซูม', 16, h - (narrow() ? 104 : 92));
   g.font = `500 9.5px ${cssVar('--f-body')}`; g.fillText('แผนที่: Natural Earth 1:10m (พรมแดนและแนวทางรถไฟ)', 16, h - (narrow() ? 90 : 78));
+  drawTTTrains(g, C);
   drawPreview2d(g, time);
 }
 { // pan / zoom / tap on the 2D map
@@ -3128,6 +3129,7 @@ function setSel(s) { sel = s; RT.tlDirty = true; }
 function map2dClick(hit) {
   if (!hit) { RT.routeFrom = null; RT.preview = null; setSel(null); renderRouteCard(); return; }
   if (hit.type === 'train') { select({ type: 'train', id: hit.id }); return; }
+  if (hit.type === 'tt') { ttHitInfo(hit); return; }
   const st = state.stations[hit.id];
   if (!st.unlocked) { RT.routeFrom = null; RT.preview = null; select({ type: 'station', id: hit.id }); renderRouteCard(); return; }
   if (RT.routeFrom && RT.routeFrom !== hit.id) { RT.preview = { a: RT.routeFrom, b: hit.id }; RT.routeFrom = null; }
@@ -4381,6 +4383,33 @@ $('#zoneBar').addEventListener('click', e => {
 TOOLS.term.splice(TOOLS.term.findIndex(t => t[0] === 'tcrew'), 0, ['gs', 'รถบริการ'], ['contracts', 'สัญญา']);
 TOOLS.term.unshift(['sinfo', 'ข้อมูลจริง']);
 ICONS.gs = '<path d="M3 20V9l9-5 9 5v11"/><path d="M7 20v-7h10v7M7 16h10"/>';
+// =================== Difficulty: rush hours, inbound delays, faults, weather, imperfect automation ===================
+// One tuning table shared by Hua Lamphong and the timetable stations (and exported for the Unity port).
+// Pressure grows with player level so the first hours stay gentle.
+const DIFF = {
+  rush: [[6.5, 9, 0.55], [16.5, 19, 0.6]],         // [from h, to h, headway factor]
+  delay: { p: 0.22, pLv: 0.012, pMax: 0.45, mean: 7, max: 40 },   // chance a train arrives late (no ledger entry) and the size of the delay
+  fault: { p: 0.05, pLv: 0.004, pMax: 0.12, min: 4, max: 11, kinds: ['ประตูขัดข้อง', 'ระบบปรับอากาศขัดข้อง', 'เบรกต้องตรวจซ้ำ', 'รอพนักงานขบวนเปลี่ยนกะ'] },
+  rain: { p: 0.3, approach: 0.75, dwellMin: 2, delayP: 0.15 },     // rainy-day share, approach speed factor, extra dwell, extra late chance
+  ars: { reactArr: [20, 70], lagDep: [0, 90], pickWrong: 0.1 },    // automation reaction (game s) and the chance ARS takes a worse platform
+};
+const diffLv = () => { try { return Math.max(1, M_().lv || 1); } catch (e) { return 1; } };
+const diffP = o => Math.min(o.pMax, o.p + o.pLv * (diffLv() - 1));
+/** Headway factor at hour-of-day h: < 1 during the morning and evening peaks. */
+function rushFactor(sec) { const h = (sec / 3600) % 24; for (const [a, b, f] of DIFF.rush) if (h >= a && h < b) return f; return 1; }
+const isRush = sec => rushFactor(sec) < 1;
+/** Deterministic weather per game day, so every station sees the same sky on the same day. */
+function wxRain(sec) { const d = Math.floor(sec / 86400) + 1; const x = Math.sin(d * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x) < DIFF.rain.p; }
+/** Random inbound delay in minutes (0 most of the time), larger and likelier in rain. */
+function rollDelay(sec) {
+  const p = diffP(DIFF.delay) + (wxRain(sec) ? DIFF.rain.delayP : 0);
+  if (Math.random() >= p) return 0;
+  return Math.min(DIFF.delay.max, Math.max(2, Math.round(-Math.log(1 - Math.random()) * DIFF.delay.mean)));
+}
+/** A fault at dwell start: [text, extra minutes] or null. */
+function rollFault() { if (Math.random() >= diffP(DIFF.fault)) return null; return [pickOne(DIFF.fault.kinds), rint(DIFF.fault.min, DIFF.fault.max)]; }
+const arsReact = () => rint(DIFF.ars.reactArr[0], DIFF.ars.reactArr[1]);
+const arsLag = () => rint(DIFF.ars.lagDep[0], DIFF.ars.lagDep[1]);
 // =================== Hua Lamphong: train classes, origins, contracts and view helpers ===================
 const CLS = 'ABCD';
 // consist length class: A ≤4 vehicles, B ≤6, C ≤8, D 9–10; platforms 1–6 take D, 7–10 take C, 11–14 take B
@@ -4420,7 +4449,7 @@ const regStat = s => { const reg = ROUTE_REGION[origCode(s)] || 'ขบวนพ
 function phaseText(s) {
   const c = s.cid && tCons(s.cid);
   switch (s.phase) {
-    case 'sched': return ['ตามกำหนด', `กำหนดเข้า ${tClock(s.schedArr)}${s.plan ? ` · วางแผนราง ${s.plan}` : ''}`];
+    case 'sched': return [s.lateIn ? `ล่าช้า ${s.lateIn} นาที` : 'ตามกำหนด', `กำหนดเข้า ${tClock(s.schedArr)}${s.lateIn ? ` · คาดว่าถึง ${tClock(s.schedArr + s.lateIn * 60)}` : ''}${s.plan ? ` · วางแผนราง ${s.plan}` : ''}`];
     case 'approach': return ['กำลังเข้าเขต', c ? `ห่างสัญญาณ H ${Math.max(0, Math.round(c.stopS - c.s))} ม. · ${Math.round(c.v * 3.6)} กม./ชม.` : 'กำลังเข้าเขตสถานี'];
     case 'held': return ['รอสัญญาณ H', `หยุดรอที่สัญญาณ H มา ${Math.floor(s.hold / 60)}:${String(Math.floor(s.hold % 60)).padStart(2, '0')} นาที`];
     case 'entering': return ['เข้าชานชาลา', `กำลังเข้าราง ${s.track}${c ? ` · ${Math.round(c.v * 3.6)} กม./ชม.` : ''}`];
@@ -4797,12 +4826,12 @@ function stnEvents(id) {
   for (const t of TT) {
     if (t.no === '45') continue;   // runs attached to train 37 out of Krung Thep Aphiwat
     const dep = toSec(t.dep), arr0 = toSec(t.arr), arr = arr0 < dep ? arr0 + 86400 : arr0, name = `${t.cls} ${t.no}${t.no === '37' ? '/45' : ''}`;
-    if (t.from === id) out.push({ name, cls: t.cls, mode: 'orig', t: dep, other: t.to, real: true });
-    else if (t.to === id) out.push({ name, cls: t.cls, mode: 'term', t: arr0, other: t.from, real: true });
-    else if (id === 'NKI' && (t.to === 'VTE' || t.from === 'VTE')) out.push({ name, cls: t.cls, mode: 'thru', t: (t.to === 'VTE' ? arr - 2100 : dep + 2100) % 86400, other: t.to === 'VTE' ? t.from : t.to, real: true, est: true, dirE: t.to === 'VTE' });
+    if (t.from === id) out.push({ name, no: t.no, dep, cls: t.cls, mode: 'orig', t: dep, other: t.to, real: true });
+    else if (t.to === id) out.push({ name, no: t.no, dep, cls: t.cls, mode: 'term', t: arr0, other: t.from, real: true });
+    else if (id === 'NKI' && (t.to === 'VTE' || t.from === 'VTE')) out.push({ name, no: t.no, dep, cls: t.cls, mode: 'thru', t: (t.to === 'VTE' ? arr - 2100 : dep + 2100) % 86400, other: t.to === 'VTE' ? t.from : t.to, real: true, est: true, dirE: t.to === 'VTE' });
     else if (GEO.snap[t.from] != null && GEO.snap[t.to] != null && GEO.snap[id] != null) {
       const a = railKm(t.from, id), b = railKm(id, t.to), c = railKm(t.from, t.to);
-      if (a && b && c && Math.abs(a + b - c) < c * 0.03) out.push({ name, cls: t.cls, mode: 'thru', t: Math.round(dep + (arr - dep) * a / c) % 86400, other: `${ttName(t.from)} → ${ttName(t.to)}`, real: true, est: true, dirE: true });
+      if (a && b && c && Math.abs(a + b - c) < c * 0.03) out.push({ name, no: t.no, dep, cls: t.cls, mode: 'thru', t: Math.round(dep + (arr - dep) * a / c) % 86400, other: `${ttName(t.from)} → ${ttName(t.to)}`, real: true, est: true, dirE: true });
     }
   }
   return out;
@@ -4819,6 +4848,7 @@ function stnMakeSvc(S, d, e, day) {
   const east = e.dirE != null ? e.dirE : stnEastOf(d.id, e.other);
   const sideIn = d.kind === 'T' ? 'E' : e.mode === 'thru' ? (east ? 'W' : 'E') : e.mode === 'orig' ? (east ? 'W' : 'E') : (east ? 'E' : 'W');
   const svc = { id: 'V' + (S.nextId++), name: e.name, cls: e.cls, real: !!e.real, est: !!e.est, mode: e.mode, other: e.other, kind: C.kind, veh, rev: C.rev, side: sideIn, phase: 'sched', track: 0, s: 0, hold: 0, lift: Math.random() < 0.25 };
+  if (e.no) { svc.no = e.no; svc.dday = runDay(e, day); }
   if (e.mode === 'orig') { svc.schedArr = base - 45 * 60; svc.schedDep = base; svc.label = `ไป ${ttName(e.other)}`; }
   else if (e.mode === 'term') { svc.schedArr = base; svc.schedDep = base + 25 * 60; svc.label = `จาก ${ttName(e.other)}`; }
   else { svc.schedArr = base - 6 * 60; svc.schedDep = base + 6 * 60; svc.label = typeof e.other === 'string' && e.other.includes('→') ? e.other : `${ttName(e.other)}`; }
@@ -4831,7 +4861,7 @@ function stnGenDay(S, day) {
     const mode = d.kind === 'T' ? (Math.random() < 0.5 ? 'term' : 'orig') : (Math.random() < 0.6 ? 'thru' : Math.random() < 0.5 ? 'term' : 'orig');
     const from = pickOne(L.from), no = pickOne(L.no) + 2 * rint(0, 3);
     ev.push({ name: `${L.prefix} ${no}`, cls: 'ท้องถิ่น', mode, t, other: from, real: false, dirE: d.kind === 'T' ? false : Math.random() < 0.5 });
-    t += rint(L.gap[0], L.gap[1]) * 60;
+    t += Math.round(rint(L.gap[0], L.gap[1]) * rushFactor(t)) * 60;
   }
   ev.forEach(e => { const v = stnMakeSvc(S, d, e, day); if (v.schedArr >= S.now - 120) S.services.push(v); });
   S.genDay = day;
@@ -4859,7 +4889,7 @@ function stnStopS(d, s, P) {
 const lockKey = side => (side === 'E' ? 'lockE' : 'lockW');
 function stnStep(S, dt) {
   const d = STN_DEFS[S.id], B = STN.built[S.id];
-  S.now += dt;
+  S.now += dt; if (S.id === STN.cur) WORLD.now = Math.max(WORLD.now, S.now);
   const day = Math.floor(S.now / 86400);
   if (S.genDay < day) stnGenDay(S, day);
   if (S.genDay === day && S.now % 86400 > 20 * 3600) stnGenDay(S, day + 1);
@@ -4867,13 +4897,15 @@ function stnStep(S, dt) {
   const gr = ctrlOn('ground') ? 1.25 : 1;
   const dwellers = S.services.filter(s => s.phase === 'dwell').sort((a, b) => a.readyAt - b.readyAt);
   dwellers.forEach((s, i) => { if (i >= S.crew) s.readyAt += dt; else s.readyAt -= dt * (gr - 1); });
+  const rain = wxRain(S.now), vMax = 16 * (rain ? DIFF.rain.approach : 1);
   for (const s of S.services) {
-    if (s.phase === 'sched' && S.now >= s.schedArr - 300) { s.phase = 'approach'; s.s = 0; s.v = 16; }
+    if (s.phase === 'sched' && !s.dly && S.now >= s.schedArr - 7200) worldResolveDelay(S, s);
+    if (s.phase === 'sched' && S.now >= (s.eta || s.schedArr) - 300) { s.phase = 'approach'; s.s = 0; s.v = vMax; s.arsAt = S.now + arsReact(); }
     if (s.phase === 'approach' || s.phase === 'held') {
-      if (!s.track && ctrlOn('app') && s.phase !== 'sched') { const t = d.tracks.filter(t => stnTrackInfo(S, d, s, t)[0]).sort((a, b) => a.cls - b.cls)[0]; if (t) s.track = t.n; }
+      if (!s.track && ctrlOn('app') && S.now >= (s.arsAt || 0)) { const ok = d.tracks.filter(t => stnTrackInfo(S, d, s, t)[0]).sort((a, b) => a.cls - b.cls), t = ok.length > 1 && Math.random() < DIFF.ars.pickWrong ? ok[ok.length - 1] : ok[0]; if (t) s.track = t.n; else s.arsAt = S.now + 15; }
       const k = lockKey(s.side), canGo = s.track && S[k] <= S.now;
       if (canGo && s.s > homeS - 260) { S[k] = S.now + 1e9; s.phase = 'entering'; s.lock = k; slog(S, `${s.name} ได้รับอาณัติเข้าราง ${s.track}`); }
-      else if (s.phase === 'approach') { s.v = Math.min(16, Math.sqrt(2 * 0.5 * Math.max(0, homeS - s.s))); s.s = Math.min(homeS, s.s + s.v * dt); if (s.s >= homeS - 0.5) { s.phase = 'held'; slog(S, `${s.name} หยุดรอที่สัญญาณเข้า`, 'bad'); } }
+      else if (s.phase === 'approach') { s.v = Math.min(vMax, Math.sqrt(2 * 0.5 * Math.max(0, homeS - s.s))); s.s = Math.min(homeS, s.s + s.v * dt); if (s.s >= homeS - 0.5) { s.phase = 'held'; slog(S, `${s.name} หยุดรอที่สัญญาณเข้า`, 'bad'); } }
       if (s.phase === 'held') { s.hold += dt; S.stats.holdMin += dt / 60; pay(1.5 * dt, 'penalty'); }
     }
     if (s.phase === 'entering') {
@@ -4883,10 +4915,12 @@ function stnStep(S, dt) {
       if (s.s > 900 - 150 + stnLen(s) && S[s.lock] > S.now + 1e8) S[s.lock] = S.now + 30;
       if (stop - s.s < 0.3) { s.phase = 'dwell'; s.v = 0; s.arrAt = S.now; S[s.lock] = Math.min(S[s.lock], S.now + 20);
         s.readyAt = s.mode === 'term' ? S.now + 18 * 60 : s.mode === 'orig' ? Math.max(S.now + 15 * 60, s.schedDep - 90) : Math.max(S.now + 6 * 60, s.schedDep - 30);
-        if (s.lift) s.readyAt += 3 * 60; }
+        if (s.lift) s.readyAt += 3 * 60;
+        if (rain) s.readyAt += DIFF.rain.dwellMin * 60;
+        const F = rollFault(); if (F) { s.fault = F[0]; s.readyAt += F[1] * 60; slog(S, `${s.name} ${F[0]} ต้องใช้เวลาเพิ่ม ${F[1]} นาที`, 'bad'); } }
     }
     if (s.phase === 'dwell' && S.now >= s.readyAt) { s.phase = 'ready'; slog(S, `${s.name} ${s.mode === 'term' ? 'ส่งผู้โดยสารลงครบ พร้อมเข้าศูนย์ซ่อม' : 'พร้อมออก'} (ราง ${s.track})`, 'good'); }
-    if (s.phase === 'ready' && ctrlOn('dep') && S.now >= s.schedDep - 30) stnRelease(S, s, true);
+    if (s.phase === 'ready' && ctrlOn('dep') && S.now >= s.schedDep - 30 + (s.lag == null ? (s.lag = arsLag()) : s.lag)) stnRelease(S, s, true);
     if (s.phase === 'departing') {
       s.v = Math.min(16, s.v + 0.5 * dt); s.s += s.v * dt;
       if (s.s > s.clearS && S[s.lock] > S.now + 1e8) S[s.lock] = S.now + 20;
@@ -4905,11 +4939,14 @@ function stnRelease(S, s, quiet) {
   s.clearS = d.kind === 'T' ? s.P.len - 900 + 180 + L : s.P.len - 900 + 180 + L;
   S[k] = S.now + 1e9; s.lock = k; s.phase = 'departing'; s.v = 2;
   const late = s.mode === 'term' ? Math.max(0, ((s.arrAt || S.now) - s.schedArr) / 60) : Math.max(0, (S.now - s.schedDep) / 60);
-  const rev = Math.round(s.rev * Math.max(0.3, 1 - late * 0.02) * (s.real ? 1.2 : 1));
-  earn(rev, 'term'); S.stats.dep++; S.stats.rev += rev; if (late <= 3) S.stats.onTime++;
-  gainXP(late <= 3 ? 8 : 4);
-  slog(S, `${s.name} ${s.mode === 'term' ? 'ออกไปศูนย์ซ่อม' : 'ออกจากราง ' + s.track} ${late > 3 ? `ช้า ${Math.round(late)} นาที` : 'ตรงเวลา'} · ${baht(rev)}`, late > 3 ? 'bad' : 'good');
-  if (!quiet) { sfxCoin(); popupStn(s, '+' + baht(rev), late > 3); }
+  worldRecordDeparture(S, s, late);
+  // the player is scored on delay added here; delay inherited from upstream is excused (but still travels on)
+  const own = Math.max(0, late - (s.inDelay || 0));
+  const rev = Math.round(s.rev * Math.max(0.3, 1 - own * 0.02) * (s.real ? 1.2 : 1));
+  earn(rev, 'term'); S.stats.dep++; S.stats.rev += rev; if (own <= 3) S.stats.onTime++;
+  gainXP(own <= 3 ? 8 : 4);
+  slog(S, `${s.name} ${s.mode === 'term' ? 'ออกไปศูนย์ซ่อม' : 'ออกจากราง ' + s.track} ${late > 3 ? `ช้า ${Math.round(late)} นาที${s.inDelay ? ` (จากต้นทาง ${s.inDelay})` : ''}` : 'ตรงเวลา'} · ${baht(rev)}`, own > 3 ? 'bad' : 'good');
+  if (!quiet) { sfxCoin(); popupStn(s, '+' + baht(rev), own > 3); }
   return true;
 }
 function popupStn(s, text, bad) { const B = STN.built[STN.cur]; if (!B) return; const r = B.meshes[s.id]; const p = r && r.vs[0] ? r.vs[0].position : null; if (p) popup(new THREE.Vector3(p.x, p.y + 8, p.z), text, bad); }
@@ -4963,7 +5000,7 @@ const sAlert = (S, s) => s.phase === 'held' || (s.phase === 'approach' && !s.tra
 const sPhase = s => ({ sched: 'ตามกำหนด', approach: 'กำลังเข้าเขต', held: 'รอสัญญาณเข้า', entering: 'เข้าชานชาลา', dwell: s.mode === 'term' ? 'ส่งผู้โดยสารลง' : s.mode === 'orig' ? 'รับผู้โดยสาร' : 'จอดรับส่ง', ready: s.mode === 'term' ? 'พร้อมเข้าศูนย์ซ่อม' : 'พร้อมออก', departing: 'กำลังออก', gone: 'ออกแล้ว' })[s.phase];
 function stnUI() {   // status bar only; the train list/card/sheet are drawn by station_view.js
   const S = stnState(), d = stnDef(); if (!S || MODE !== 'stn') return;
-  $('#ssMoney').textContent = baht(state.money); $('#ssClock').textContent = hm(S.now);
+  $('#ssMoney').textContent = baht(state.money); $('#ssClock').textContent = hm(S.now) + (wxRain(S.now) ? ' · ฝน' : '') + (isRush(S.now) ? ' · ชั่วโมงเร่งด่วน' : '');
   $('#ssOnTime').textContent = S.stats.dep ? Math.round(S.stats.onTime / S.stats.dep * 100) + '%' : '—';
   $('#ssIn').textContent = S.services.filter(s => ['entering', 'dwell', 'ready'].includes(s.phase)).length + '/' + d.tracks.filter(t => hasPlat(d, t)).length;
   const held = S.services.filter(s => s.phase === 'held').length; $('#ssHeld').textContent = held; $('#ssHeld').classList.toggle('neg', held > 0);
@@ -4997,19 +5034,131 @@ Object.assign(ICONS, { sinfo: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M
 
 // ---------- enter / save ----------
 function stnLoad() { try { const o = JSON.parse(localStorage.getItem(STN_SAVE)); if (o && typeof o === 'object') for (const k in o) if (STN_DEFS[k] && o[k].v === 1) STN.st[k] = o[k]; } catch (e) {} }
-function stnSave() { try { localStorage.setItem(STN_SAVE, JSON.stringify(STN.st, (k, v) => (k === 'P' ? undefined : v))); } catch (e) {} }
+function stnSave() { worldSave(); try { localStorage.setItem(STN_SAVE, JSON.stringify(STN.st, (k, v) => (k === 'P' ? undefined : v))); } catch (e) {} }
 function stnEnter(id) {
   if (!STN_DEFS[id]) return;
   if (!STN.st[id]) STN.st[id] = stnNew(id);
   const S = STN.st[id];
   S.services.forEach(s => { if (s.phase === 'departing') s.phase = 'gone', s.goneAt = S.now; });
   STN.cur = id; svSelect(null);
-  stnBuild(id); camStn.home(); camStn.az = camStn.azT;
+  stnBuild(id); worldCatchUp(S); camStn.home(); camStn.az = camStn.azT;
   setMode('stn');
   if (!S.hinted) { S.hinted = true; toast(`${STN_DEFS[id].name}: เลือกชานชาลาให้ขบวนที่มีเครื่องหมาย ! แล้วปล่อยรถเมื่อพร้อม`); }
 }
 const stnStars = id => { const S = STN.st[id]; if (!S) return 1; const s = S.stats; return 1 + (s.dep >= 5) + (s.dep >= 5 && s.onTime / s.dep >= 0.8) + (s.dep >= 30) + (s.dep >= 10 && s.holdMin / s.dep < 2); };
 stnLoad();
+// =================== Network link: one world clock, a delay ledger, real timetable trains on the Thailand map ===================
+// The timetable stations (KRT, CMI, NKI, UBN, HDY) share WORLD.now. A station you leave falls behind and is
+// caught up by its duty crew when you return. A real train that leaves one player station late carries the
+// delay (partly recovered en route) to the next player station on its run, keyed by train number + start day.
+// Hua Lamphong keeps its own clock: it runs ordinary/commuter trains that are not in the long-distance timetable.
+const WORLD_SAVE = 'railtrack-world-v1';
+const WORLD_NET_RATE = 120;     // world seconds per real second on the network map at 1×
+const WORLD = { v: 1, now: 6 * 3600, ledger: {} };
+function worldLoad() { try { const o = JSON.parse(localStorage.getItem(WORLD_SAVE)); if (o && o.v === 1) Object.assign(WORLD, o); } catch (e) {} }
+function worldSave() { try { localStorage.setItem(WORLD_SAVE, JSON.stringify(WORLD)); } catch (e) {} }
+
+// ---------- delay ledger ----------
+/** Start day of a timetable run for an event on `day`: an event earlier in the day than the departure belongs to yesterday's run. */
+const runDay = (e, day) => (e.t >= e.dep ? day : day - 1);
+const ledgerKey = (no, dday) => no + '#' + dday;
+function ledgerPut(no, dday, min, at) {
+  WORLD.ledger[ledgerKey(no, dday)] = { min: Math.max(0, Math.round(min)), at, t: WORLD.now };
+  const old = WORLD.now - 3 * 86400; for (const k in WORLD.ledger) if (WORLD.ledger[k].t < old) delete WORLD.ledger[k];
+}
+const ledgerGet = (no, dday) => WORLD.ledger[ledgerKey(no, dday)];
+/** Upstream delay recovered en route: about 15% plus 2 minutes of timetable slack. */
+const recover = min => Math.max(0, Math.round(min * 0.85 - 2));
+/** Resolve a service's inbound delay once, about two hours before it is due: the ledger first, else a random roll. */
+function worldResolveDelay(S, s) {
+  s.dly = 1;
+  if (s.mode === 'orig') return;    // starts here from the depot: no inbound delay
+  let d = 0;
+  const L = s.real && s.no ? ledgerGet(s.no, s.dday) : null;
+  if (L && L.at !== S.id) { d = recover(L.min); s.delaySrc = L.at; }
+  else d = rollDelay(s.schedArr);
+  if (d) { s.inDelay = d; s.eta = s.schedArr + d * 60; slog(S, `${s.name} แจ้งล่าช้าจากต้นทาง ${d} นาที${s.delaySrc ? ` (จาก${ttName(s.delaySrc)})` : ''}`, 'bad'); }
+}
+/** Record a real train leaving a player station, so the stations further down its run inherit the delay. */
+function worldRecordDeparture(S, s, lateMin) { if (s.real && s.no && s.mode !== 'term') ledgerPut(s.no, s.dday, lateMin, S.id); }
+
+// ---------- catch-up when re-entering a station ----------
+/** Bring a station that was left behind up to WORLD.now: the duty crew handles every train that would have finished. */
+function worldCatchUp(S) {
+  const T = WORLD.now; if (S.now >= T - 60) { WORLD.now = Math.max(WORLD.now, S.now); return 0; }
+  if (T - S.now > 2 * 86400) { S.now = T - 86400; S.services = []; S.genDay = -1; }   // long absence: replay the last day only
+  for (let day = Math.floor(S.now / 86400); day <= Math.floor(T / 86400) + (T % 86400 > 20 * 3600 ? 1 : 0); day++) if (S.genDay < day) stnGenDay(S, day);
+  let n = 0, rev = 0;
+  S.services = S.services.filter(s => {
+    if (s.schedDep + 600 >= T || s.phase === 'gone') return true;
+    const late = rollDelay(s.schedDep);
+    if (s.real && s.no && s.mode !== 'term' && !ledgerGet(s.no, s.dday)) ledgerPut(s.no, s.dday, late, S.id);
+    S.stats.dep++; if (late <= 3) S.stats.onTime++; rev += Math.round(s.rev * 0.5); n++;
+    return false;
+  });
+  S.now = T;
+  for (const k of ['lockE', 'lockW']) if (!S.services.some(s => s.lock === k && ['entering', 'departing'].includes(s.phase))) S[k] = 0;
+  if (n) { S.stats.rev += rev; earn(rev, 'term'); slog(S, `ระหว่างที่ไม่อยู่ ทีมเวรจัดการ ${n} ขบวน (รายได้ครึ่งหนึ่ง ${baht(rev)})`); toast(`ทีมเวรจัดการ ${n} ขบวนระหว่างที่ไม่อยู่ · +${baht(rev)}`); }
+  return n;
+}
+function worldTick(raw) {
+  if (MODE === 'stn') { const S = stnState(); if (S) WORLD.now = Math.max(WORLD.now, S.now); }
+  else if (MODE === 'net') WORLD.now += raw * WORLD_NET_RATE * (state.speed || 0);
+}
+
+// ---------- real timetable trains on the 2D map ----------
+const TT_LINE_COL = { N: '#d4572a', NE: '#2f7fd1', S: '#2a9d6a' };
+const TT_PATHS = {};
+function ttPath(a, b) {
+  const k = a + '>' + b; if (TT_PATHS[k] !== undefined) return TT_PATHS[k];
+  const P = railPath(a, b); if (!P || P.length < 2) return (TT_PATHS[k] = null);
+  const cum = [0]; for (let i = 1; i < P.length; i++) cum.push(cum[i - 1] + Math.hypot(P[i].x - P[i - 1].x, P[i].z - P[i - 1].z));
+  return (TT_PATHS[k] = { P, cum, len: cum[cum.length - 1] });
+}
+function ttAt(R, f) {
+  const s = clamp(f, 0, 1) * R.len; let i = 0; while (i < R.cum.length - 2 && R.cum[i + 1] < s) i++;
+  const a = R.P[i], b = R.P[i + 1], u = (s - R.cum[i]) / ((R.cum[i + 1] - R.cum[i]) || 1);
+  return { x: a.x + (b.x - a.x) * u, z: a.z + (b.z - a.z) * u, tx: b.x - a.x, tz: b.z - a.z };
+}
+/** Real trains running at WORLD.now: [{ t, dday, f, delay, x, z, tx, tz }]. */
+function ttRunning(now = WORLD.now) {
+  const out = [], day = Math.floor(now / 86400);
+  for (const t of TT) {
+    if (t.no === '45') continue;
+    const dep = toSec(t.dep), arr0 = toSec(t.arr), arr = arr0 < dep ? arr0 + 86400 : arr0, R = ttPath(t.from, t.to); if (!R) continue;
+    for (const dday of [day - 1, day]) {
+      const L = ledgerGet(t.no, dday), delay = L ? recover(L.min) : 0, start = dday * 86400 + dep + delay * 60, end = dday * 86400 + arr + delay * 60;
+      if (now < start || now > end) continue;
+      const f = (now - start) / (end - start), p = ttAt(R, f);
+      out.push(Object.assign({ t, dday, f, delay }, p));
+    }
+  }
+  return out;
+}
+function drawTTTrains(g, C) {
+  const run = ttRunning(), k = MAP2D.view.k;
+  g.textAlign = 'center';
+  for (const r of run) {
+    const q = map2dPt(r.x, r.z), col = TT_LINE_COL[r.t.line] || C.fg;
+    const a = Math.atan2(r.tz, r.tx);
+    g.save(); g.translate(q.x, q.y); g.rotate(a);
+    g.fillStyle = col; g.strokeStyle = C.panel; g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(8, 0); g.lineTo(4, -4); g.lineTo(-7, -4); g.lineTo(-7, 4); g.lineTo(4, 4); g.closePath(); g.fill(); g.stroke();
+    g.restore();
+    if (k >= 1.2 || r.delay) { g.font = `600 10px ${cssVar('--f-mono')}`; g.fillStyle = r.delay > 3 ? C.bad : C.fg; g.fillText(`${r.t.no}${r.delay > 3 ? ` +${r.delay}′` : ''}`, q.x, q.y - 8); }
+    MAP2D.hit.push({ type: 'tt', id: r.t.no + '#' + r.dday, x: q.x, y: q.y, r: 10, info: r });
+  }
+  // world clock badge (top-right of the map)
+  const w = $('#map2d').clientWidth;
+  g.textAlign = 'right'; g.font = `600 12px ${cssVar('--f-mono')}`; g.fillStyle = C.fg;
+  g.fillText(`เวลาเครือข่าย ${hm(WORLD.now)} · ขบวนจริงกำลังวิ่ง ${run.length}`, w - 72, narrow() ? 132 : 84);
+  g.textAlign = 'left';
+}
+function ttHitInfo(hit) {
+  const r = hit.info, t = r.t, ETA = toSec(t.arr) + r.delay * 60;
+  toast(`${t.cls} ${t.no} ${ttName(t.from)} → ${ttName(t.to)} · ${Math.round(r.f * 100)}% ของเส้นทาง · ถึง ${hm(ETA)}${r.delay ? ` (ช้า ${r.delay} นาที)` : ' ตรงเวลา'}`);
+}
+worldLoad();
 // =================== Shared station UI: live train list, train card, platform sheet ===================
 // Every playable station exposes the same adapter, so one UI serves Hua Lamphong (full interlocking engine)
 // and the timetable-driven stations. The Unity port mirrors this split (IStationAdapter + TrainViewModel).
@@ -5332,7 +5481,7 @@ const rint = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 function makeService(arrT, kind) {
   kind = kind || (Math.random() < 0.5 ? 'LH' : 'PP');
   const id = 'S' + (tstate.nextId++);
-  const base = { id, kind, schedArr: arrT, phase: 'sched', track: 0, prio: 0, hold: 0, state: '', pax: rint(160, 420), paxOut: rint(160, 420) };
+  const base = { id, kind, schedArr: arrT, lateIn: rollDelay(arrT), phase: 'sched', track: 0, prio: 0, hold: 0, state: '', pax: rint(160, 420), paxOut: rint(160, 420) };
   if (kind === 'LH') {
     const [out, from] = pickOne(HLP_LH);
     return Object.assign(base, { name: `ธรรมดา ${out + 1}`, outName: `ธรรมดา ${out}`, from, coaches: rint(6, 9), pax: rint(300, 560), paxOut: rint(280, 560), schedDep: arrT + 45 * 60 });
@@ -5582,7 +5731,9 @@ function throwSwitch(id) {
 }
 function trackFree(T) { return !OCC['pw' + T] && !OCC['pe' + T] && !tstate.elock['pw' + T] && !tstate.elock['pe' + T] && !trackSvc(T); }
 function arsTick() {
-  if (tstate.ars.arr && !tstate.routes.some(r => r.from === 'HA') && tstate.consists.some(c => c.job === 'approach')) {
+  const waiting = tstate.ars.arr && !tstate.routes.some(r => r.from === 'HA') && tstate.consists.some(c => c.job === 'approach');
+  if (!waiting) TRT.arsAt = null; else if (TRT.arsAt == null) TRT.arsAt = tstate.now + arsReact();   // ARS reacts with a short delay
+  if (waiting && tstate.now >= TRT.arsAt) {
     const svc = nextArrivalSvc(), cand = [];
     for (let T = 1; T <= 14; T++) {
       if (!trackFree(T) || arrivalRule(T, svc)) continue;
@@ -5595,7 +5746,7 @@ function arsTick() {
     for (const { T } of cand) if (requestArrival(T, true)) break;
   }
   if (tstate.ars.dep) for (const s of tstate.services) {
-    if (s.phase === 'dwell' && s.state === 'ready' && tstate.now >= s.schedDep - 30 && !tstate.routes.some(r => r.from === 'ST' + s.track)) requestDeparture(s.track, true);
+    if (s.phase === 'dwell' && s.state === 'ready' && tstate.now >= s.schedDep - 30 + (s.lag == null ? (s.lag = arsLag()) : s.lag) && !tstate.routes.some(r => r.from === 'ST' + s.track)) requestDeparture(s.track, true);
   }
 }
 
@@ -5713,8 +5864,9 @@ function allocRes() {
 function tSpawnTick() {
   let last = Math.max(tstate.now, ...tstate.services.map(s => s.schedArr));
   const ramp = Math.max(0.55, 1 - (tstate.now - tstate.t0) / (6 * 3600));
-  while (tstate.services.filter(s => s.phase === 'sched').length < 6) { last += (5 + Math.random() * 4) * 60 * ramp; tstate.services.push(makeService(last)); }
-  const svc = tstate.services.filter(s => s.phase === 'sched' && tstate.now >= s.schedArr - 40).sort((a, b) => a.schedArr - b.schedArr)[0];
+  while (tstate.services.filter(s => s.phase === 'sched').length < 6) { last += (5 + Math.random() * 4) * 60 * ramp * (tstate.now - tstate.t0 > 3600 ? rushFactor(last) : 1); tstate.services.push(makeService(last)); }   // no peak in the first game hour
+  const due = s => s.schedArr + (s.lateIn || 0) * 60;
+  const svc = tstate.services.filter(s => s.phase === 'sched' && tstate.now >= due(s) - 40).sort((a, b) => due(a) - due(b))[0];
   if (!svc || (OCC.aFar || []).some(o => o.d0 < 260)) return;
   const veh = vehOf(svc), len = veh.length * VL;
   const c = newConsist(veh, [{ e: 'aFar', dir: 1 }], len + 2, svc.id);
@@ -5762,7 +5914,7 @@ function newTStateSeeded() {
   const d = makeService(tstate.now - 1500, 'PP'); const cd = place(d, 13, 1500);
   ['alight', 'turn', 'clean', 'fuel', 'board'].forEach(n => done(d.tasks[n])); reverseConsist(cd);
   d.state = 'ready'; d.schedDep = tstate.now + 120;
-  tstate.services.push(makeService(tstate.now + 30, 'LH'));
+  tstate.services.push(Object.assign(makeService(tstate.now + 30, 'LH'), { lateIn: 0 }));
   tstate.stats.arr = 3;
   return tstate;
 }
@@ -6809,6 +6961,7 @@ function boot(saved) {
 let last = performance.now(), uiAcc = 0, saveAcc = 0, tSec = 0;
 function frame(now) {
   const raw = Math.min(0.1, (now - last) / 1000); last = now; tSec += raw;
+  worldTick(raw);
   if (MODE === 'stn') stnFrame(raw);
   else if (MODE === 'term') {
     let rem = raw * tstate.speed * TRATE;
@@ -6857,7 +7010,7 @@ function start(data) {
   setInterval(metaTick, 1000);
   requestAnimationFrame(t => { last = t; frame(t); });
 }
-if (location.hash.startsWith('#rtdebug')) window.__rt = { meta: () => M_(), gainXP, openFleet, openPlanner, openCtrlModal, metaPick, stnEnter, perf: () => Object.assign({ fps: PERF.ema, q: FX.quality, px: renderer.getPixelRatio() }, renderer.info.render, { geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), thumb: (c, w, h) => trainThumb(c, w, h), stn: () => stnState(), stnStep: dt => stnStep(stnState(), dt), stnRelease: s => stnRelease(stnState(), s), openGS, openContracts, genOffer, stars: () => [netStars(), termStars()], tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }), hit: () => MAP2D.hit, heldRect: () => worldRect(termHeldPos()), platRect: () => worldRect(termPlatformPos()), readyRect: () => worldRect(termReadyPos()), routes: () => tstate.routes.map(r => r.kind + ':' + r.state), fx: () => ({ q: FX.quality, composer: !!FX.composer, lamp: FX.lamp }) };
+if (location.hash.startsWith('#rtdebug')) window.__rt = { meta: () => M_(), gainXP, openFleet, openPlanner, openCtrlModal, metaPick, stnEnter, perf: () => Object.assign({ fps: PERF.ema, q: FX.quality, px: renderer.getPixelRatio() }, renderer.info.render, { geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), thumb: (c, w, h) => trainThumb(c, w, h), stn: () => stnState(), world: () => WORLD, ttRunning: n => ttRunning(n), catchUp: () => worldCatchUp(stnState()), rush: rushFactor, rain: wxRain, stnStep: dt => stnStep(stnState(), dt), stnRelease: s => stnRelease(stnState(), s), openGS, openContracts, genOffer, stars: () => [netStars(), termStars()], tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }), hit: () => MAP2D.hit, heldRect: () => worldRect(termHeldPos()), platRect: () => worldRect(termPlatformPos()), readyRect: () => worldRect(termReadyPos()), routes: () => tstate.routes.map(r => r.kind + ':' + r.state), fx: () => ({ q: FX.quality, composer: !!FX.composer, lamp: FX.lamp }) };
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
 })();
