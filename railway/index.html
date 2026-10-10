@@ -719,6 +719,81 @@ select{width:100%;font:inherit;background:var(--panel);color:var(--fg);border:1p
   .cfg-row small{grid-column:1}
   .fgrid{grid-template-columns:1fr}
 }
+
+/* area chip */
+.meta-hud .area{gap:7px;padding:0 10px;border-radius:9px;height:34px;background:var(--navy-2)}
+.meta-hud .area b{font-family:var(--f-display);font-size:13px;letter-spacing:.04em}
+.meta-hud .area .stars i{width:10px;height:10px}
+.meta-hud .area .stars i:not(.on){background:rgba(255,255,255,.25)}
+.meta-hud .area .tmp{color:var(--on-navy-muted);font-size:12px}
+@media (max-width:820px){.meta-hud .area .tmp,.meta-hud .area .stars{display:none}}
+/* terminal zone buttons */
+.zones{position:absolute;right:16px;top:212px;display:flex;flex-direction:column;gap:6px;z-index:4;transition:right .25s}
+.zones button{width:38px;height:38px;border-radius:50%;border:0;background:var(--hud);color:var(--fg);box-shadow:var(--shadow);font-family:var(--f-display);font-weight:700;font-size:14px;display:grid;place-items:center}
+.zones button[aria-pressed="true"]{background:var(--navy-2);color:#fff}
+.zones svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
+#app.drawer-open .zones{right:412px}
+@media (max-width:820px){.zones{top:300px;right:8px;gap:4px}.zones button{width:32px;height:32px;font-size:12px}#app.drawer-open .zones{right:8px}}
+/* ground-service hangar */
+.mmodal[data-kind="gs"] .sheet{width:min(980px,100%)}
+.gswrap{display:grid;grid-template-columns:320px minmax(0,1fr);gap:14px;align-items:start}
+.gsdet{position:sticky;top:0;border-radius:14px;background:var(--navy);color:var(--on-navy);padding:16px;display:grid;gap:14px}
+.gsdet header{display:flex;gap:12px;align-items:center}
+.gsdet header .gsic{width:76px;flex:none;background:rgba(255,255,255,.08);border-radius:10px;padding:6px}
+.gsdet header b{font-family:var(--f-display);font-size:18px;display:block}
+.gsdet header small{color:var(--on-navy-muted);font-size:12.5px}
+.gs-st{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12);padding:10px 0}
+.gs-st span{display:block;font-size:11px;color:var(--on-navy-muted)}
+.gs-st b{font-size:20px}
+.gs-st b.good{color:#6EE7A8}.gs-st b.bad{color:#FF8A94}
+.stepper.big{justify-content:space-between}
+.stepper.big button{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.12);border:0;color:#fff;font-size:22px}
+.stepper.big button:disabled{opacity:.35}
+.stepper.big div{text-align:center}
+.stepper.big small{display:block;color:var(--on-navy-muted);font-size:11px}
+.stepper.big b{font-size:22px}
+.gs-cost{text-align:center;font-size:18px;font-weight:600}
+.gslist{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.gsrow{display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:8px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:10px 12px}
+.gsrow.on{border-color:var(--select);box-shadow:0 0 0 3px var(--navy-1)}
+.gsrow b{font-family:var(--f-display);font-size:14.5px}
+.gsrow small{display:block;color:var(--muted);font-family:var(--f-mono);font-size:10.5px}
+.gsrow dl{display:grid;grid-template-columns:auto 1fr;gap:1px 10px;margin:6px 0 0;font-size:12px}
+.gsrow dt{color:var(--muted)}.gsrow dd{margin:0;text-align:right;font-weight:600}
+.gsic{width:100%;height:auto}
+@media (max-width:820px){.gswrap{grid-template-columns:1fr}.gsdet{position:static}}
+/* contract offers */
+.mmodal[data-kind="cg"] .sheet{width:min(1080px,100%)}
+.cgcards{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(190px,1fr);gap:10px;overflow-x:auto;padding-bottom:6px}
+.cgcard{background:var(--navy);color:var(--on-navy);border-radius:14px;overflow:hidden;display:grid;grid-template-rows:auto 1fr auto auto;min-height:280px}
+.cgcard header{background:rgba(0,0,0,.25);padding:11px 14px}
+.cgcard header b{font-family:var(--f-display);font-size:15px}
+.cg-ic{display:grid;justify-items:center;align-content:center;gap:8px;padding:14px}
+.cg-ic svg{width:86px;height:70px}
+.stars.s3 i{width:18px;height:18px}
+.stars.s3 i:not(.on){background:rgba(255,255,255,.22)}
+.cgcard p{margin:0;padding:0 14px;text-align:center;color:var(--on-navy-muted);font-size:12.5px;min-height:38px}
+.cgcard .btn{margin:12px 14px 14px;padding:10px;font-size:14px;position:relative}
+.cgcard.locked .cg-ic{opacity:.55}
+.cgcard .btn:disabled{background:rgba(255,194,14,.35);color:rgba(15,34,64,.7);opacity:1}
+.free{position:absolute;top:-8px;right:-6px;background:var(--good);color:#fff;font-style:normal;font-size:10px;padding:1px 6px;border-radius:99px}
+.cg-cd{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:12px 14px 14px;font-family:var(--f-mono);font-size:12.5px}
+.cg-cd button{border:0;border-radius:8px;background:rgba(255,255,255,.12);color:#fff;padding:7px 10px;display:inline-flex;gap:4px;align-items:center;font-size:12px}
+.cgrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+.cgrow.done,.cgrow.failed{opacity:.6}
+.cg-tx b{display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cg-tx small{color:var(--muted);font-size:12px}
+.cg-tx small em{color:var(--amber);font-style:normal;font-weight:600}
+.cg-tx .bar{height:5px;border-radius:9px;background:var(--panel-2);overflow:hidden;margin-top:4px}
+.cg-tx .bar i{display:block;height:100%;background:var(--good)}
+.cg-rw{font-weight:700}
+.cg-act{display:flex;gap:6px}
+.cg-act button{border:1px solid var(--line);background:var(--panel-2);border-radius:8px;padding:6px 10px;font-size:12.5px;font-weight:600}
+.cg-act button.action{border:0}
+@media (max-width:820px){.cgrow{grid-template-columns:auto minmax(0,1fr) auto}.cgrow .pill{grid-column:2}.cg-act{grid-column:1/-1;justify-content:flex-end}.cgcards{grid-auto-columns:170px}}
+.btn.action:hover:not(:disabled){background:#FFD24D}
+.cgcards{min-height:300px;overflow-y:hidden}
+.mhead .stars i:not(.on),.hubs-head .stars i:not(.on){background:rgba(255,255,255,.25)}
 </style>
 </head>
 <body>
@@ -1747,7 +1822,7 @@ function acceptContract(id) {
 }
 function completeContract(c) {
   c.status = 'done'; c.endDay = state.day; state.stats.contractsDone++;
-  gainXP(c.cls === 'X' ? 45 : c.cls === 'R' ? 30 : 20); if (c.cls === 'X') addCoins(3, 'สัญญาระหว่างประเทศ');
+  gainXP(c.cls === 'X' ? 45 : c.cls === 'R' ? 30 : 20); if (c.cls === 'X') addCoins(3, 'สัญญาข้ามภาค');
   earn(c.reward, 'contract'); state.rep = Math.min(100, state.rep + 4);
   log(`สัญญาสำเร็จ ${SMAP[c.from].name} → ${SMAP[c.to].name} รับ ${baht(c.reward)}`, 'good'); toast(`สัญญาสำเร็จ +${baht(c.reward)}`); sfxCoin();
   RT.contractsDirty = true;
@@ -2439,6 +2514,8 @@ $('#toolbar').addEventListener('click', e => {
   else if (k === 'timeline') { $('#tl').classList.toggle('show'); }
   else if (k === 'nx') { $('#nx').classList.toggle('collapsed'); }
   else if (k === 'fleet') openFleet();
+  else if (k === 'contracts') openContracts();
+  else if (k === 'gs') openGS();
   else if (k === 'plan') openPlanner();
   else if (k === 'ctrl') openCtrlModal();
   else if (drawerTab === k && $('#panel').classList.contains('open')) closeDrawer();
@@ -2973,9 +3050,10 @@ const TIER_SKIN = {
 const CCLASS = {
   L: { name: 'ท้องถิ่น', en: 'Local', stars: 1, mul: 1, desc: 'สายสั้นใกล้กรุงเทพ' },
   R: { name: 'ภูมิภาค', en: 'Regional', stars: 2, mul: 1.35, desc: 'สายยาว 220 กม. ขึ้นไป' },
-  X: { name: 'ระหว่างประเทศ', en: 'International', stars: 3, mul: 1.9, desc: 'ต่อเนื่องลาว มาเลเซีย หรือส่งออกทางเรือ' },
+  X: { name: 'ข้ามภาค', en: 'Inter-regional', stars: 3, mul: 1.9, desc: 'ขนส่งไกลถึงเมืองปลายทางภูมิภาค: เชียงใหม่ หนองคาย อุบลราชธานี สุไหงโก-ลก' },
 };
-const BORDER = { NKI: 'ต่อเนื่องลาว (ท่านาแล้ง)', SGK: 'ต่อเนื่องมาเลเซีย (รันเตาปันจัง)', LCB: 'ส่งออกทางเรือ' };
+// the game map covers Thailand only: the top contract class is long-haul to the regional end-of-line cities
+const FAR = { CMI: 'ภาคเหนือ', NKI: 'ภาคอีสานตอนบน', UBN: 'ภาคอีสานตอนล่าง', SGK: 'ภาคใต้ตอนล่าง' };
 const REWARDS = [
   { lv: 2, k: 'money', v: 20000 }, { lv: 3, k: 'coins', v: 10 }, { lv: 4, k: 'cap', v: 1 }, { lv: 5, k: 'liv', v: 'royal' },
   { lv: 6, k: 'crew', v: 1 }, { lv: 7, k: 'money', v: 60000 }, { lv: 8, k: 'liv', v: 'heritage' }, { lv: 9, k: 'coins', v: 20 },
@@ -3044,8 +3122,9 @@ const STAR_TIPS = {
 const starRow = n => `<span class="stars" aria-label="${n} ดาว">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</span>`;
 
 // ---------- contract classes ----------
+const rawClass = (from, to, km) => FAR[from] || FAR[to] ? 'X' : km >= 220 ? 'R' : 'L';
 function contractClass(from, to, km) {
-  let c = BORDER[from] || BORDER[to] ? 'X' : km >= 220 ? 'R' : 'L';
+  let c = rawClass(from, to, km);
   const s = netStars();
   if (c === 'X' && s < CCLASS.X.stars) c = km >= 220 ? 'R' : 'L';
   if (c === 'R' && s < CCLASS.R.stars) c = 'L';
@@ -3108,6 +3187,8 @@ function metaTick() {
   if (!$('#mmodal').hidden && MOD.live) MOD.render();
   cdTick();
   if (!$('#hubs').hidden) renderHubs();
+  areaHud(); cgTick();
+  $('#zoneBar').hidden = MODE !== 'term';
 }
 ['hLvl', 'hCoins', 'hCap', 'hCrew'].forEach(id => $('#' + id).addEventListener('click', () => ({ hLvl: openRewards, hCoins: openShop, hCap: openCapModal, hCrew: openCrewModal })[id]()));
 $('#homeBtn').addEventListener('click', () => showHubs());
@@ -3156,7 +3237,7 @@ function renderRewards() {
   mSet(`เลเวล ${m.lv}`, `XP ${fmt(m.xp)} / ${fmt(need)} · เลื่อนเลเวลรับ 3 เหรียญทอง`,
     `<div class="xpbar"><i style="width:${m.xp / need * 100}%"></i></div>
      <h4 class="msec">เส้นทางรางวัล</h4><div class="rwtrack">${nodes}</div>
-     <h4 class="msec">ดาวของแต่ละพื้นที่</h4><p class="info">ดาวปลดล็อกสัญญาระดับภูมิภาค (2★) และระหว่างประเทศ (3★)</p><div class="starboxes">${st('net', netStars())}${tstate ? st('term', termStars()) : ''}</div>
+     <h4 class="msec">ดาวของแต่ละพื้นที่</h4><p class="info">ดาวปลดล็อกสัญญาระดับภูมิภาค (2★) และข้ามภาค (3★)</p><div class="starboxes">${st('net', netStars())}${tstate ? st('term', termStars()) : ''}</div>
      <h4 class="msec">ได้ XP จาก</h4><p class="info">ขบวนถึงปลายทาง +2 (ตรงเวลา +3) · สัญญาสำเร็จ +20/+30/+45 · เปิดสถานีใหม่ +40 · ปล่อยรถออกจากหัวลำโพง +4 (ตรงเวลา +8) · รับรถเข้าตามแผนชานชาลา +2</p>`);
 }
 const rwLabel = r => r.k === 'money' ? baht(r.v) : r.k === 'coins' ? `${r.v} เหรียญ` : r.k === 'cap' ? `+${r.v} ความจุสัญญา` : r.k === 'crew' ? `+${r.v} ลูกเรือ` : `ลาย${LIVERIES[r.v].name}`;
@@ -3187,7 +3268,7 @@ function renderShop() {
       <div class="scard"><span class="sbig">👷</span><b>+1 ลูกเรือ</b><small>ตอนนี้ ${m.crew} คน</small><button class="primary" data-hirecoin ${m.crew >= CREW_MAX ? 'disabled' : ''}><i class="coin"></i> 15</button></div>
       <div class="scard"><span class="sbig">฿</span><b>แลกเงินทุน</b><small>10 เหรียญ → ${baht(40000)}</small><button class="primary" data-exch><i class="coin"></i> 10</button></div>
       <div class="scard"><span class="sbig">🎛</span><b>ห้องควบคุม</b><small>เปิดผู้ควบคุม ${CTRL_MIN} นาที</small><button class="primary" data-goctrl>ดูผู้ควบคุม</button></div>
-    </div><p class="info">เหรียญทองได้จากการเลื่อนเลเวล เส้นทางรางวัล ของขวัญรายวัน และสัญญาระหว่างประเทศ (ไม่มีการซื้อด้วยเงินจริง)</p>`;
+    </div><p class="info">เหรียญทองได้จากการเลื่อนเลเวล เส้นทางรางวัล ของขวัญรายวัน สัญญาข้ามภาค และขบวนพิเศษ (ไม่มีการซื้อด้วยเงินจริง)</p>`;
   }
   mSet('ร้านค้า', `<i class="coin"></i> <b class="num">${fmt(m.coins)}</b> เหรียญทอง`, body, tabs);
 }
@@ -3415,7 +3496,7 @@ $('#mmodal').addEventListener('click', e => {
   else if (d.buyliv) { const L = LIVERIES[d.buyliv]; if (!m.liv[d.buyliv] && spendCoins(L.coins)) { m.liv[d.buyliv] = true; toast(`ปลดล็อกลาย${L.name}`); sfxCoin(); } MOD.render(); }
   else if ('goctrl' in d) openCtrlModal();
   else if ('gocrew' in d) openCrewModal();
-  else if ('gocontracts' in d) { closeModal(); if (MODE !== 'net') setMode('net'); openDrawer('contracts'); }
+  else if ('gocontracts' in d) openContracts('off');
   else if ('goterm' in d) { closeModal(); setMode('term'); openPlanner(); }
   else if (d.ctrl) activateCtrl(d.ctrl, d.pay);
   else if (d.psel) { MOD.sel = MOD.sel === d.psel ? null : d.psel; if (!MOD.sel && MOD.draft[d.psel]) delete MOD.draft[d.psel]; renderPlanner(); }
@@ -3531,6 +3612,200 @@ TOOLS.net.splice(TOOLS.net.findIndex(t => t[0] === 'trains') + 1, 0, ['fleet', '
 TOOLS.net.splice(TOOLS.net.findIndex(t => t[0] === 'depot') + 1, 0, ['ctrl', 'ห้องควบคุม']);
 TOOLS.term.splice(TOOLS.term.findIndex(t => t[0] === 'tsvc') + 1, 0, ['plan', 'แผนชานชาลา'], ['ctrl', 'ห้องควบคุม']);
 window.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#mmodal').hidden) closeModal(); });
+
+// ---------- ground-service hangar (Hua Lamphong) ----------
+const GS = {
+  staff:  { name: 'พนักงานชานชาลา', en: 'Boarding', start: 4, price: 12000, max: 30, ic: 'staff', desc: 'ส่งลงและรับขึ้นผู้โดยสาร ทุกขบวนต้องใช้ 2 รอบ' },
+  parcel: { name: 'รถลากพัสดุ', en: 'Parcel', start: 1, price: 15000, max: 20, ic: 'cart', desc: 'ขนพัสดุและสัมภาระของขบวนทางไกล' },
+  crew:   { name: 'ทีมทำความสะอาด', en: 'Cleaning', start: 3, price: 20000, max: 30, ic: 'van', desc: 'ทำความสะอาดตู้โดยสารหลังส่งผู้โดยสารลง' },
+  cater:  { name: 'รถเสบียง', en: 'Catering', start: 1, price: 22000, max: 20, ic: 'box', desc: 'ขึ้นเสบียงตู้เสบียงขบวนด่วนและด่วนพิเศษ' },
+  truck:  { name: 'รถเติมน้ำมัน', en: 'Fuel', start: 2, price: 35000, max: 20, ic: 'tank', desc: 'เติมน้ำมันหัวรถจักรและดีเซลราง' },
+  lav:    { name: 'รถดูดสิ่งปฏิกูล', en: 'Lavatory', start: 1, price: 15000, max: 20, ic: 'tank2', desc: 'ดูดถังสุขาของขบวนทางไกล' },
+  water:  { name: 'รถเติมน้ำ', en: 'Water', start: 2, price: 15000, max: 20, ic: 'tank3', desc: 'เติมน้ำใช้ในตู้โดยสาร ทุกขบวน' },
+  lift:   { name: 'ลิฟต์วีลแชร์', en: 'Ambulift', start: 1, price: 30000, max: 10, ic: 'lift', desc: 'ช่วยผู้โดยสารวีลแชร์ขึ้นรถก่อนเริ่มรับขึ้น (ราว 1 ใน 4 ขบวน)' },
+  repair: { name: 'ทีมช่างซ่อมด่วน', en: 'Repair', start: 1, price: 20000, max: 10, ic: 'van2', desc: 'แก้ไขข้อขัดข้องที่พบระหว่างจอด (ราว 1 ใน 8 ขบวน)' },
+};
+function gsIcon(ic) {
+  const W = '#F4F1E8', N = '#1B355E', Y = '#FFC20E', D = '#2b313a';
+  const wheels = xs => xs.map(x => `<circle cx="${x}" cy="31" r="3.6" fill="${D}"/>`).join('');
+  const cab = x => `<path d="M${x} 29V14q0-3 3-3h9l5 8v10z" fill="${W}" stroke="${N}" stroke-width="1"/><path d="M${x + 4} 14h7l3 5h-10z" fill="#24324a"/>`;
+  const body = {
+    staff: `<circle cx="32" cy="9" r="5" fill="${N}"/><path d="M22 34v-10q0-8 10-8t10 8v10z" fill="${N}"/><path d="M27 17l5 9 5-9" fill="${Y}"/>`,
+    cart: `<rect x="4" y="14" width="14" height="13" rx="2" fill="${Y}"/><rect x="24" y="12" width="36" height="15" rx="1" fill="${W}" stroke="${N}"/><path d="M18 24h6" stroke="${D}" stroke-width="2"/>${wheels([10, 30, 52])}`,
+    van: `<path d="M6 29V12q0-4 4-4h34l12 10v11z" fill="${W}" stroke="${N}"/><path d="M42 11h4l8 7h-12z" fill="#24324a"/><rect x="6" y="20" width="50" height="3" fill="${N}"/>${wheels([16, 46])}`,
+    van2: `<path d="M6 29V12q0-4 4-4h34l12 10v11z" fill="${W}" stroke="${N}"/><path d="M42 11h4l8 7h-12z" fill="#24324a"/><rect x="6" y="20" width="50" height="3" fill="#C9353A"/><path d="M18 11h8v4h-8z" fill="${Y}"/>${wheels([16, 46])}`,
+    box: `<rect x="4" y="6" width="36" height="22" rx="1" fill="${W}" stroke="${N}"/><rect x="4" y="18" width="36" height="3" fill="${Y}"/>${cab(41)}${wheels([12, 30, 50])}`,
+    tank: `<rect x="4" y="11" width="36" height="16" rx="8" fill="${W}" stroke="${N}"/><rect x="4" y="18" width="36" height="3" fill="#E2772B"/>${cab(41)}${wheels([12, 30, 50])}`,
+    tank2: `<rect x="4" y="11" width="36" height="16" rx="8" fill="${W}" stroke="${N}"/><rect x="4" y="18" width="36" height="3" fill="#6B7A90"/>${cab(41)}${wheels([12, 30, 50])}`,
+    tank3: `<rect x="4" y="11" width="36" height="16" rx="8" fill="${W}" stroke="${N}"/><rect x="4" y="18" width="36" height="3" fill="#3A7BD5"/>${cab(41)}${wheels([12, 30, 50])}`,
+    lift: `<rect x="6" y="2" width="32" height="14" rx="1" fill="${W}" stroke="${N}"/><path d="M10 16l8 10M34 16l-8 10M10 26l8-10M34 26l-8-10" stroke="${N}" stroke-width="1.5"/><rect x="4" y="25" width="38" height="3" fill="${N}"/>${cab(41)}${wheels([12, 30, 50])}`,
+  }[ic];
+  return `<svg class="gsic" viewBox="0 0 64 36" aria-hidden="true">${body}</svg>`;
+}
+const gsBusy = k => (TRT.busy && TRT.busy[k]) || 0;
+function openGS(k) { MOD.gsSel = k || MOD.gsSel || 'staff'; MOD.gsQty = 1; modal('gs', renderGS, true); }
+function renderGS() {
+  if (!tstate) { mSet('โรงรถบริการ', '', '<p class="info">ยังไม่มีข้อมูลสถานี</p>'); return; }
+  const res = tstate.res, k = MOD.gsSel, G = GS[k], have = res[k] != null ? res[k] : G.start;
+  MOD.gsQty = clamp(MOD.gsQty, 1, Math.max(1, G.max - have));
+  const cost = G.price * MOD.gsQty, full = have >= G.max;
+  const queued = tstate.services.reduce((a, s) => a + (s.phase === 'dwell' && s.tasks ? Object.values(s.tasks).filter(t => t.res === k && t.st === 'queue').length : 0), 0);
+  const list = Object.keys(GS).map(id => { const g = GS[id], h = res[id] != null ? res[id] : g.start, b = gsBusy(id);
+    return `<button class="gsrow${id === k ? ' on' : ''}" data-gs="${id}"><div class="gs-tx"><b>${g.name}</b><small>${g.en}</small><dl><dt>ว่าง</dt><dd class="num">${h - b}</dd><dt>มีทั้งหมด</dt><dd class="num">${h}/${g.max}</dd><dt>ราคา</dt><dd class="num">${baht(g.price)}</dd></dl></div>${gsIcon(g.ic)}</button>`; }).join('');
+  const detail = `<div class="gsdet"><header>${gsIcon(G.ic)}<div><b>${G.name}</b><small>${G.desc}</small></div></header>
+    <div class="gs-st"><div><span>ว่าง</span><b class="num good">${have - gsBusy(k)}</b></div><div><span>กำลังทำงาน</span><b class="num">${gsBusy(k)}</b></div><div><span>รอคิว</span><b class="num${queued ? ' bad' : ''}">${queued}</b></div><div><span>ซื้อแล้ว</span><b class="num">${have}/${G.max}</b></div></div>
+    <div class="stepper big"><button data-gsq="-1" ${MOD.gsQty <= 1 ? 'disabled' : ''} aria-label="ลดจำนวน">−</button><div><small>จำนวน</small><b class="num">${MOD.gsQty}</b></div><button data-gsq="1" ${full || have + MOD.gsQty >= G.max ? 'disabled' : ''} aria-label="เพิ่มจำนวน">+</button></div>
+    <div class="gs-cost num">${baht(cost)}</div>
+    <button class="btn action big" data-gsbuy ${full || state.money < cost ? 'disabled' : ''}>${full ? 'ครบจำนวนสูงสุดแล้ว' : 'ซื้อ'}</button></div>`;
+  mSet('โรงรถบริการ · หัวลำโพง', `ทีมและรถบริการที่ใช้กลับขบวนระหว่างจอด · ${baht(state.money)}`, `<div class="gswrap">${detail}<div class="gslist">${list}</div></div>`);
+}
+$('#mmodal').addEventListener('click', e => {
+  if (MOD.kind !== 'gs') return;
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.gs) { MOD.gsSel = b.dataset.gs; MOD.gsQty = 1; renderGS(); }
+  else if (b.dataset.gsq) { MOD.gsQty += +b.dataset.gsq; renderGS(); }
+  else if ('gsbuy' in b.dataset) {
+    const k = MOD.gsSel, G = GS[k], n = MOD.gsQty;
+    if (spend(G.price * n)) { tstate.res[k] = (tstate.res[k] != null ? tstate.res[k] : G.start) + n; tlog(`ซื้อ${G.name}เพิ่ม ${n} (รวม ${tstate.res[k]})`); toast(`${G.name} เพิ่มเป็น ${tstate.res[k]}`); sfxCoin(); MOD.gsQty = 1; renderGS(); }
+  }
+});
+
+// ---------- contract offers screen ----------
+const CG_COOL = 90;   // วินาทีจริงก่อนสร้างข้อเสนอใบถัดไปฟรี
+const CG_CARDS = [
+  { k: 'L', title: 'สัญญาท้องถิ่น', btn: 'สร้างข้อเสนอ' },
+  { k: 'R', title: 'สัญญาภูมิภาค', btn: 'สร้างข้อเสนอ' },
+  { k: 'X', title: 'สัญญาข้ามภาค', btn: 'สร้างข้อเสนอ' },
+  { k: 'SP', title: 'ขบวนพิเศษ', btn: 'ค้นหาขบวน', desc: 'ขบวนจากผู้เล่นอื่นหรือขบวนเช่าเหมา เข้าหัวลำโพง รายได้ 2 เท่า' },
+  { k: 'MAP', title: 'สัญญาบนแผนที่', btn: 'ค้นหา', desc: 'งานไปยังสถานีที่ยังไม่มีรางตรง ต้องวางรางใหม่ในประเทศไทย' },
+];
+const CHARTER = [['หัวหิน', 'รถไฟท่องเที่ยวชายทะเล'], ['กาญจนบุรี', 'รถไฟนำเที่ยวน้ำตก'], ['อยุธยา', 'รถจักรไอน้ำนำเที่ยว'], ['ลพบุรี', 'ขบวนเช่าเหมาคณะทัวร์'], ['นครปฐม', 'ขบวนพิเศษงานเทศกาล']];
+const cgLeft = k => Math.max(0, Math.ceil((((M_().cg || {})[k] || 0) + CG_COOL * 1000 - Date.now()) / 1000));
+function openContracts(tab) { MOD.tab = tab || (MOD.tab === 'act' ? 'act' : 'off'); modal('cg', renderContractsModal, true); }
+function cgIcon(k) {
+  if (k === 'SP') return `<svg viewBox="0 0 80 64" aria-hidden="true"><path d="M14 52V22q0-12 14-12h24q14 0 14 12v30z" fill="#F4F1E8"/><rect x="20" y="18" width="40" height="14" rx="3" fill="#24324a"/><rect x="14" y="38" width="52" height="4" fill="#FFC20E"/><circle cx="26" cy="46" r="3" fill="#FFF6D8"/><circle cx="54" cy="46" r="3" fill="#FFF6D8"/><path d="M8 58h64" stroke="#8f99a6" stroke-width="3"/></svg>`;
+  if (k === 'MAP') return `<svg viewBox="0 0 80 64" aria-hidden="true"><circle cx="40" cy="32" r="27" fill="#13294B" stroke="#4FD1A5" stroke-width="2.5"/><path d="M40 5v54M13 32h54" stroke="#4FD1A5" stroke-opacity=".5"/><circle cx="40" cy="32" r="16" fill="none" stroke="#4FD1A5" stroke-opacity=".5"/><path d="M33 12l12 2 8 10 3 8-6 2-4 6 1 10-4 6-2-12-6-8z" fill="#4FD1A5"/><path d="M40 32 L62 18" stroke="#4FD1A5" stroke-width="2"/></svg>`;
+  return `<svg viewBox="0 0 80 64" aria-hidden="true"><path d="M22 6h30l10 10v42H22z" fill="#F4F1E8"/><path d="M52 6v10h10" fill="#D9DFE8"/><rect x="30" y="16" width="16" height="12" rx="3" fill="#1B355E"/><rect x="32" y="18" width="12" height="4" fill="#24324a" stroke="#F4F1E8" stroke-width=".6"/><path d="M30 34h24M30 40h24M30 46h16" stroke="#8f99a6" stroke-width="2"/><path d="M58 30l8-8 4 4-8 8-6 2z" fill="#FFC20E"/></svg>`;
+}
+function renderContractsModal() {
+  const s = netStars(), m = M_(), act = state.contracts.filter(c => c.status === 'active').length;
+  const tabs = [['off', `ข้อเสนอ (${state.contracts.filter(c => c.status === 'offer').length})`], ['act', `ที่รับไว้ (${act}/${m.cap})`]];
+  const row = c => {
+    const unit = c.kind === 'P' ? 'คน' : 'ตัน', st = c.status;
+    const left = st === 'active' ? `เหลือ ${c.deadline - state.day + 1} วัน` : st === 'offer' ? `หมดอายุวันที่ ${c.expires}` : st === 'done' ? 'สำเร็จ' : 'ล้มเหลว';
+    const needLine = !state.lines.some(l => (l.a === c.from && l.b === c.to) || (l.a === c.to && l.b === c.from));
+    return `<div class="cgrow ${st}"><span class="ccls c-${c.cls || 'L'}">${CCLASS[c.cls || 'L'].name}</span>
+      <div class="cg-tx"><b>${esc(SMAP[c.from].name)} → ${esc(SMAP[c.to].name)}</b><small>${c.kind === 'P' ? 'ผู้โดยสาร' : 'สินค้า'} ${fmt(c.amount)} ${unit} · ${c.days} วัน${needLine ? ' · <em>ต้องวางรางตรง</em>' : ''}</small>
+      ${st === 'active' ? `<div class="bar"><i style="width:${c.progress / c.amount * 100}%"></i></div>` : ''}</div>
+      <span class="cg-rw num">${baht(c.reward)}</span><span class="pill ${st === 'done' ? 'good' : st === 'failed' ? 'bad' : st === 'active' ? 'warn' : 'mute'}">${left}</span>
+      <span class="cg-act">${needLine && st !== 'done' && st !== 'failed' ? `<button data-cgmap="${c.id}">ดูบนแผนที่</button>` : ''}${st === 'offer' ? `<button class="action" data-cgacc="${c.id}" ${act >= m.cap ? 'disabled' : ''}>รับสัญญา</button>` : ''}</span></div>`;
+  };
+  let body;
+  if (MOD.tab === 'act') {
+    const list = state.contracts.filter(c => c.status !== 'offer');
+    body = list.map(row).join('') || '<p class="info">ยังไม่มีสัญญาที่รับไว้ ไปที่แท็บข้อเสนอเพื่อเลือกงาน</p>';
+  } else {
+    const cards = CG_CARDS.map(cd => {
+      const C = CCLASS[cd.k], locked = C && s < C.stars, left = cgLeft(cd.k);
+      const desc = locked ? `ปลดล็อกเมื่อเครือข่ายได้ ${C.stars} ดาว` : cd.desc || C.desc;
+      return `<div class="cgcard${locked ? ' locked' : ''}"><header><b>${cd.title}</b></header><div class="cg-ic">${cgIcon(cd.k)}${C ? `<span class="stars s3">${[1, 2, 3].map(i => `<i class="${i <= C.stars ? 'on' : ''}"></i>`).join('')}</span>` : ''}</div>
+        <p>${desc}</p>${locked ? `<button class="btn" disabled>${cd.btn}</button>` : left > 0 ? `<div class="cg-cd"><span data-cgcd="${cd.k}">รอ…</span><button data-cgskip="${cd.k}">ข้ามรอ <i class="coin"></i> 1</button></div>` : `<button class="btn action" data-cggen="${cd.k}">${cd.btn}<em class="free">ฟรี</em></button>`}</div>`;
+    }).join('');
+    const offers = state.contracts.filter(c => c.status === 'offer');
+    body = `<div class="cgcards">${cards}</div><h4 class="msec">ข้อเสนอที่มีอยู่</h4>${offers.map(row).join('') || '<p class="info">ยังไม่มีข้อเสนอ กดสร้างข้อเสนอจากการ์ดด้านบน</p>'}`;
+  }
+  mSet('สัญญาว่าจ้าง', `เครือข่าย ${starRow(s)} · ชื่อเสียง ${Math.round(state.rep)} · ค่าตอบแทน ×${repMul().toFixed(2)}`, body, tabs);
+}
+function makeOffer(from, to, km, cls, x = {}) {
+  const fd = SMAP[from], kinds = [];
+  if (fd.cargo >= 1.5) kinds.push('C'); if (fd.pax >= 1) kinds.push('P'); if (!kinds.length) kinds.push('P');
+  const kind = kinds[Math.floor(Math.random() * kinds.length)];
+  const size = (0.6 + state.rep / 100 * 0.9) * (0.7 + Math.random() * 0.6);
+  const amount = Math.round((kind === 'P' ? 420 : 260) * size / 10) * 10;
+  const reward = Math.round(amount * (kind === 'P' ? FARE_P : FARE_C) * km * 1.6 * repMul() * CCLASS[cls].mul * (x.mul || 1) / 100) * 100;
+  const c = { id: 'K' + (state.nextId++), cls, kind, from, to, amount, reward, days: 2 + Math.floor(Math.random() * 3) + (x.days || 0), expires: state.day + 2 + (x.days || 0), status: 'offer', progress: 0, map: !!x.map };
+  state.contracts.push(c); RT.contractsDirty = true; return c;
+}
+function genOffer(k) {
+  if (state.contracts.filter(c => c.status === 'offer').length >= 8) { toast('ข้อเสนอเต็ม 8 ใบ รับหรือรอให้หมดอายุก่อน'); return false; }
+  if (k === 'SP') return genSpecial();
+  if (k === 'MAP') {
+    const open = STATIONS.filter(d => state.stations[d.id].unlocked && stationLines(d.id).length);
+    const pairs = [];
+    for (const a of open) for (const b of STATIONS) if (a !== b && !state.lines.some(l => (l.a === a.id && l.b === b.id) || (l.a === b.id && l.b === a.id)) && Math.hypot(a.x - b.x, a.z - b.z) < 70) pairs.push([a, b]);
+    if (!pairs.length) { toast('ไม่พบงานบนแผนที่ในตอนนี้'); return false; }
+    const [a, b] = pairs[Math.floor(Math.random() * pairs.length)], km = Math.hypot(a.x - b.x, a.z - b.z) * UNIT_KM * 1.2;
+    const c = makeOffer(a.id, b.id, km, contractClass(a.id, b.id, km), { mul: 1.4, days: 3, map: true });
+    toast(`พบงานบนแผนที่: ${a.name} → ${b.name}`); return c;
+  }
+  if (netStars() < CCLASS[k].stars) return false;
+  const cand = state.lines.filter(l => rawClass(l.a, l.b, lineKm(l)) === k);
+  if (!cand.length) { toast(k === 'X' ? 'ยังไม่มีรางไปเชียงใหม่ หนองคาย อุบลราชธานี หรือสุไหงโก-ลก' : k === 'R' ? 'ยังไม่มีเส้นทางยาว 220 กม. ขึ้นไป' : 'ยังไม่มีเส้นทางระยะสั้น (ต่ำกว่า 220 กม.)'); return false; }
+  const l = cand[Math.floor(Math.random() * cand.length)], ab = Math.random() < 0.5;
+  return makeOffer(ab ? l.a : l.b, ab ? l.b : l.a, lineKm(l), k);
+}
+function genSpecial() {
+  if (!tstate) { toast('ยังไม่ได้เปิดสถานีหัวลำโพง'); return false; }
+  const peer = typeof CO !== 'undefined' && CO.peers ? CO.peers.find(p => !p.isMe && p.by) : null;
+  const ch = CHARTER[Math.floor(Math.random() * CHARTER.length)];
+  const who = peer ? `ขบวนของ${(CO.names && CO.names[peer.by]) || 'เพื่อนร่วมเล่น'}` : ch[1], from = peer ? `${ch[0]} (ผู้เล่นอื่น)` : `${ch[0]} · ${ch[1]}`;
+  const last = Math.max(tstate.now + 6 * 60, ...tstate.services.filter(s => s.phase === 'sched').map(s => s.schedArr).slice(0, 1));
+  const s = makeService(last + 120);
+  const no = 900 + Math.floor(Math.random() * 99);
+  Object.assign(s, { special: true, name: `พิเศษ ${no}`, outName: `พิเศษ ${no + 1}`, from });
+  tstate.services.push(s);
+  tlog(`${who} (พิเศษ ${no}) ขอเข้าหัวลำโพง เวลา ${tClock(s.schedArr)}`, 'good');
+  toast(`${who} จะเข้าหัวลำโพง ${tClock(s.schedArr)} · รายได้ 2 เท่า`); sfxPing();
+  return s;
+}
+$('#mmodal').addEventListener('click', e => {
+  if (MOD.kind !== 'cg') return;
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  const d = b.dataset, m = M_(); m.cg = m.cg || {};
+  if (d.cggen) { if (cgLeft(d.cggen) <= 0 && genOffer(d.cggen)) m.cg[d.cggen] = Date.now(); renderContractsModal(); }
+  else if (d.cgskip) { if (spendCoins(1)) { m.cg[d.cgskip] = 0; } renderContractsModal(); }
+  else if (d.cgacc) { acceptContract(d.cgacc); renderContractsModal(); }
+  else if (d.cgmap) {
+    const c = state.contracts.find(x => x.id === d.cgmap); if (!c) return;
+    closeModal(); if (MODE !== 'net') setMode('net'); setMap2d(true); syncToolbar();
+    const lock = [c.from, c.to].find(id => !state.stations[id].unlocked);
+    if (lock) { RT.preview = null; select({ type: 'station', id: lock }); renderRouteCard(); toast(`เปิด${SMAP[lock].name}ก่อน (${baht(SMAP[lock].cost)}) แล้ววางรางตรง`); }
+    else { RT.routeFrom = null; RT.preview = { a: c.from, b: c.to }; setSel({ type: 'station', id: c.to }); renderRouteCard(); }
+  }
+});
+function cgTick() { document.querySelectorAll('[data-cgcd]').forEach(el => { const l = cgLeft(el.dataset.cgcd); el.textContent = `รอ ${l} วิ`; if (l <= 0 && MOD.kind === 'cg') { MCACHE.body = null; renderContractsModal(); } }); }
+
+// ---------- area chip (code · stars · temperature) and terminal zone buttons ----------
+$('#metaHud').insertAdjacentHTML('afterbegin', '<button class="area" id="hArea" aria-label="พื้นที่ ดาว และสภาพอากาศ"><b id="hAreaN">TH</b><span id="hAreaS"></span><span class="tmp" id="hAreaT"></span></button>');
+$('#hArea').addEventListener('click', openRewards);
+function areaTemp(mode) {
+  const h = mode === 'term' ? (tstate ? tstate.now / 3600 % 24 : 7) : state.t / DAY_LEN * 24;
+  const rain = mode === 'net' && state.event && state.event.type === 'rain';
+  return Math.round(28 + 6 * Math.sin((h - 9) / 24 * Math.PI * 2) - (rain ? 4 : 0));
+}
+function areaHud() {
+  const term = MODE === 'term';
+  $('#hAreaN').textContent = term ? 'HLP' : 'TH';
+  const n = term ? termStars() : netStars(), sig = MODE + n;
+  if ($('#hAreaS').dataset.k !== sig) { $('#hAreaS').dataset.k = sig; $('#hAreaS').innerHTML = starRow(n); }
+  $('#hAreaT').textContent = areaTemp(MODE) + '°C';
+}
+const ZONES = [
+  { k: 'all', l: '⌂', t: 'ทั้งสถานี' }, { k: 'A', l: 'A', t: 'ปลายราง / กันชน', x: 0, z: 43, zoom: 2.2 },
+  { k: 'B', l: 'B', t: 'ชานชาลา 1–6', x: 150, z: 17, zoom: 2.4 }, { k: 'C', l: 'C', t: 'ชานชาลา 7–10', x: 150, z: 51, zoom: 2.4 },
+  { k: 'D', l: 'D', t: 'ชานชาลา 11–14', x: 150, z: 80, zoom: 2.4 }, { k: 'E', l: 'E', t: 'คอขวดและประแจสลับคู่', x: 450, z: 43, zoom: 2.4 },
+  { k: 'F', l: 'F', t: 'สัญญาณเข้า H / ทางออก', x: 640, z: 43, zoom: 2.6 },
+];
+$('#stage').insertAdjacentHTML('beforeend', `<div class="zones" id="zoneBar" hidden aria-label="มุมกล้องสถานี">${ZONES.map(z => `<button data-zone="${z.k}" title="${z.t}" aria-label="${z.t}">${z.l}</button>`).join('')}<button data-zone="gs" title="โรงรถบริการ" aria-label="โรงรถบริการ"><svg viewBox="0 0 24 24"><path d="M3 20V9l9-5 9 5v11"/><path d="M7 20v-7h10v7M7 16h10"/></svg></button></div>`);
+$('#zoneBar').addEventListener('click', e => {
+  const b = e.target.closest('[data-zone]'); if (!b || MODE !== 'term') return;
+  if (b.dataset.zone === 'gs') { openGS(); return; }
+  const z = ZONES.find(x => x.k === b.dataset.zone); camTerm.follow = null;
+  if (z.k === 'all') camTerm.home(); else { camTerm.tx = z.x; camTerm.tz = z.z; camTerm.zoom = clamp(narrow() ? z.zoom * 0.7 : z.zoom, camTerm.zmin, camTerm.zmax); }
+  document.querySelectorAll('#zoneBar [data-zone]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+});
+TOOLS.term.splice(TOOLS.term.findIndex(t => t[0] === 'tcrew'), 0, ['gs', 'รถบริการ'], ['contracts', 'สัญญา']);
+ICONS.gs = '<path d="M3 20V9l9-5 9 5v11"/><path d="M7 20v-7h10v7M7 16h10"/>';
 
 // =====================================================================
 // สถานีหัวลำโพง: คอขวด ประแจ อาณัติสัญญาณ NX/รีเลย์ ETCS และการกลับขบวน
@@ -3648,14 +3923,14 @@ function findPath(start, isGoal, allowRev, blocked) {
 
 // ---------- terminal state ----------
 let tstate = null;
-const TRT = { cons: {}, sel: null, nxSel: null, busy: { crew: 0, truck: 0 }, arsAcc: 0 };
+const TRT = { cons: {}, sel: null, nxSel: null, busy: {}, arsAcc: 0 };
 let OCC = {};
 const tCons = id => tstate.consists.find(c => c.id === id);
 const tSvc = id => tstate.services.find(s => s.id === id);
 const tClock = t => { const m = Math.floor(t / 60); return String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
 function tlog(text, kind = '') { tstate.log.unshift({ t: tClock(tstate.now), text, kind }); tstate.log.length = Math.min(tstate.log.length, 60); TRT.logDirty = true; }
 function tNew() {
-  const ts = { v: 1, now: 6.5 * 3600, t0: 6.5 * 3600, speed: 1, nextId: 1, ars: { arr: false, dep: false }, res: { crew: 3, truck: 2 },
+  const ts = { v: 1, now: 6.5 * 3600, t0: 6.5 * 3600, speed: 1, nextId: 1, ars: { arr: false, dep: false }, res: { staff: 4, crew: 3, truck: 2, water: 2, lav: 1, cater: 1, parcel: 1, lift: 1, repair: 1 },
     nodes: {}, elock: {}, nlock: {}, routes: [], consists: [], services: [], log: [], hinted: false,
     stats: { arr: 0, dep: 0, onTime: 0, delayMin: 0, rev: 0, holdMin: 0 } };
   Object.keys(G.nodes).forEach(id => { ts.nodes[id] = { pos: 0, mv: 0 }; });
@@ -3819,7 +4094,8 @@ function tryAssign(r) {
     const c = tCons(svc.cid); assignRoute(r, c); c.job = 'dep'; c.mode = 'FS'; c.stopS = pcum(c)[c.steps.length] + 60;
     svc.phase = 'departing';
     const late = Math.max(0, (tstate.now - svc.schedDep) / 60);
-    const rev = Math.max(1000, Math.round((svc.kind === 'LH' ? 12000 : 7000) - late * 400));
+    const rev = Math.round(Math.max(1000, Math.round((svc.kind === 'LH' ? 12000 : 7000) - late * 400)) * (svc.special ? 2 : 1));
+    if (svc.special) { gainXP(10); addCoins(1); }
     earn(rev, 'term'); tstate.stats.dep++; gainXP(late <= 3 ? 8 : 4); tstate.stats.rev += rev; tstate.stats.delayMin += late; if (late <= 3) tstate.stats.onTime++;
     const p = pAt(c, c.s); popup(new THREE.Vector3(p.x, 9, p.z), '+' + baht(rev), late > 3);
     tlog(`${svc.outName} ออกจากราง ${svc.track} ไป${svc.from} ${late > 3 ? `ช้า ${Math.round(late)} นาที` : 'ตรงเวลา'} · ${baht(rev)}`, late > 3 ? 'bad' : 'good');
@@ -3936,13 +4212,21 @@ function arsTick() {
 const RA_P = { detach: 0.08, leg1: 0.25, leg2: 0.5, leg3: 0.75, couple: 0.92, done: 1 };
 function newTasks(svc) {
   const lh = svc.kind === 'LH';
-  return {
-    alight: { st: 'run', p: 0, dur: svc.pax / 150 * 60 },
+  const q = tstate.now, k = {
+    alight: { st: 'queue', p: 0, dur: svc.pax / 150 * 60, res: 'staff', q },
     turn: { st: 'run', p: 0, dur: lh ? 1 : 180 },
     clean: { st: 'wait', p: 0, dur: lh ? 600 : 360, res: 'crew', q: 0 },
-    fuel: { st: lh ? 'wait' : 'queue', p: 0, dur: lh ? 420 : 300, res: 'truck', q: tstate.now },
-    board: { st: 'wait', p: 0, dur: svc.paxOut / 150 * 60 },
+    fuel: { st: lh ? 'wait' : 'queue', p: 0, dur: lh ? 420 : 300, res: 'truck', q },
+    water: { st: 'wait', p: 0, dur: lh ? 300 : 180, res: 'water', q: 0 },
+    board: { st: 'wait', p: 0, dur: svc.paxOut / 150 * 60, res: 'staff', q: 0 },
   };
+  // long-haul extras: toilets, dining car stores and parcels; random wheelchair lift / defects on any service
+  if (lh) k.lav = { st: 'wait', p: 0, dur: 360, res: 'lav', q: 0 };
+  if (lh && !/รถเร็ว/.test(svc.name)) k.cater = { st: 'queue', p: 0, dur: 420, res: 'cater', q };
+  if (lh && Math.random() < 0.6) k.parcel = { st: 'queue', p: 0, dur: 300, res: 'parcel', q };
+  if (Math.random() < 0.25) k.lift = { st: 'wait', p: 0, dur: 180, res: 'lift', q: 0 };
+  if (Math.random() < 0.12) k.repair = { st: 'queue', p: 0, dur: 600, res: 'repair', q };
+  return k;
 }
 function finishLeg(L) {
   const svc = tSvc(L.sid);
@@ -4012,22 +4296,24 @@ function svcTick(svc, dt) {
   const k = svc.tasks, lh = svc.kind === 'LH';
   const gr = ctrlOn('ground') ? 1.25 : 1, sr = ctrlOn('shunt') ? 1.3 : 1;
   const run = (t, m = gr) => { t.p = Math.min(1, t.p + dt * m / t.dur); if (t.p >= 1) t.st = 'done'; return t.st === 'done'; };
+  const qd = n => { const t = k[n]; if (t && t.st === 'wait') { t.st = 'queue'; t.q = tstate.now; } };
   if (k.alight.st === 'run') run(k.alight);
   if (lh) { raTick(svc, dt); k.turn.p = RA_P[svc.ra.st]; if (svc.ra.st === 'done') k.turn.st = 'done'; }
   else if (k.turn.st === 'run' && run(k.turn, sr)) { const c = tCons(svc.cid); if (c) reverseConsist(c); tlog(`${svc.name}: พนักงานขับย้ายไปห้องขับอีกด้าน (push-pull)`); }
-  if (k.clean.st === 'wait' && k.alight.st === 'done') { k.clean.st = 'queue'; k.clean.q = tstate.now; }
-  if (k.clean.st === 'run') run(k.clean);
-  if (k.fuel.st === 'wait' && (!lh || svc.ra.st === 'done')) { k.fuel.st = 'queue'; k.fuel.q = tstate.now; }
-  if (k.fuel.st === 'run') run(k.fuel);
-  if (k.board.st === 'wait' && k.clean.st === 'done' && k.turn.st === 'done') k.board.st = 'run';
+  if (k.alight.st === 'done') { qd('clean'); qd('water'); qd('lav'); }
+  if (!lh || svc.ra.st === 'done') qd('fuel');
+  if (k.clean.st === 'done') qd('lift');
+  for (const n in k) if (n !== 'alight' && n !== 'turn' && n !== 'board' && k[n].st === 'run') run(k[n]);
+  if (k.board.st === 'wait' && k.clean.st === 'done' && k.turn.st === 'done' && (!k.lift || k.lift.st === 'done')) { k.board.st = k.board.res ? 'queue' : 'run'; k.board.q = tstate.now; }
   if (k.board.st === 'run') run(k.board);
-  if (svc.state !== 'ready' && ['alight', 'turn', 'clean', 'fuel', 'board'].every(n => k[n].st === 'done')) { svc.state = 'ready'; tlog(`${svc.outName} พร้อมออกจากราง ${svc.track} (กำหนด ${tClock(svc.schedDep)})`, 'good'); }
+  if (svc.state !== 'ready' && Object.keys(k).every(n => k[n].st === 'done')) { svc.state = 'ready'; tlog(`${svc.outName} พร้อมออกจากราง ${svc.track} (กำหนด ${tClock(svc.schedDep)})`, 'good'); }
 }
 function allocRes() {
-  const busy = { crew: 0, truck: 0 }, q = [];
+  const busy = {}, q = [];
+  for (const k in GS) { busy[k] = 0; if (tstate.res[k] == null) tstate.res[k] = GS[k].start; }
   for (const s of tstate.services) {
     if (s.phase !== 'dwell') continue;
-    for (const n of ['clean', 'fuel']) { const t = s.tasks[n]; if (t.st === 'run') busy[t.res]++; else if (t.st === 'queue') q.push({ s, t }); }
+    for (const n in s.tasks) { const t = s.tasks[n]; if (!t.res) continue; if (t.st === 'run') busy[t.res]++; else if (t.st === 'queue') q.push({ s, t }); }
   }
   q.sort((a, b) => (b.s.prio - a.s.prio) || (a.t.q - b.t.q));
   for (const { t } of q) if (busy[t.res] < tstate.res[t.res]) { busy[t.res]++; t.st = 'run'; }
@@ -4465,19 +4751,20 @@ function tSwitchTabRaw(n) {
   document.querySelectorAll('#termPanel [data-ttab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.ttab === n)));
   document.querySelectorAll('#termPanel [data-tbody]').forEach(b => { b.hidden = b.dataset.tbody !== n; });
 }
-const TASKS = ['alight', 'turn', 'clean', 'fuel', 'board'];
-const taskName = (n, svc) => ({ alight: 'ส่งลง', turn: svc.kind === 'LH' ? 'สับหลีก' : 'สลับห้องขับ', clean: 'ทำความสะอาด', fuel: 'เติมน้ำมัน', board: 'รับขึ้น' }[n]);
+const TASKS = ['alight', 'turn', 'clean', 'fuel', 'water', 'lav', 'cater', 'parcel', 'repair', 'lift', 'board'];
+const svcTasks = s => TASKS.filter(n => s.tasks && s.tasks[n]);
+const taskName = (n, svc) => ({ alight: 'ส่งลง', turn: svc.kind === 'LH' ? 'สับหลีก' : 'สลับห้องขับ', clean: 'ทำความสะอาด', fuel: 'เติมน้ำมัน', water: 'เติมน้ำ', lav: 'ดูดสิ่งปฏิกูล', cater: 'ขึ้นเสบียง', parcel: 'ขนพัสดุ', repair: 'ซ่อมด่วน', lift: 'ลิฟต์วีลแชร์', board: 'รับขึ้น' }[n]);
 const taskState = t => ({ wait: 'รอ', queue: 'รอทีม', run: 'กำลังทำ', done: 'เสร็จ' }[t.st]);
 let tSvcSig = '';
 function tRenderSvcList() {
   const list = tstate.services.filter(s => ['entering', 'dwell', 'departing'].includes(s.phase)).sort((a, b) => a.track - b.track);
-  const sig = list.map(s => s.id + s.kind).join(',');
+  const sig = list.map(s => s.id + s.kind + svcTasks(s).length).join(',');
   if (sig !== tSvcSig) {
     tSvcSig = sig;
     $('#tSvcList').innerHTML = list.map(s => `<article class="card" data-sid="${s.id}">
       <header><span class="chip" style="--c:${s.kind === 'LH' ? '#e2772b' : '#1f4fd1'}">ราง ${s.track}</span><b>${s.name}</b><span class="pill" data-f="st"></span></header>
       <div class="meta"><span>${s.kind === 'LH' ? 'ลากจูงด้วยหัวรถจักร' : 'ดีเซลราง push-pull'}</span><span>จาก${s.from}</span><span>กลับเป็น ${s.outName} ออก ${tClock(s.schedDep)}</span></div>
-      <div class="tasks">${TASKS.map(n => `<div class="task" data-t="${n}"><span>${taskName(n, s)}</span><div class="bar"><i></i></div><small></small></div>`).join('')}</div>
+      <div class="tasks">${svcTasks(s).map(n => `<div class="task" data-t="${n}"><span>${taskName(n, s)}</span><div class="bar"><i></i></div><small></small></div>`).join('')}</div>
       ${s.kind === 'LH' ? '<ol class="ra" data-f="ra"><li>ปลดหัวรถจักร</li><li>ไปปลายรางคู่</li><li>กลับรถที่คอขวด</li><li>ต่อท้ายขบวน</li></ol><div class="info" data-f="why"></div>' : ''}
       <div class="acts"><button data-a="view">ดูบนแผนที่</button><button data-a="prio" data-f="prio"></button><button data-a="dep" data-f="dep">ปล่อยรถ</button></div>
     </article>`).join('') || '<div class="info">ยังไม่มีขบวนในสถานี</div>';
@@ -4492,8 +4779,8 @@ function tRenderSvcList() {
     else if (s.state === 'ready') st = tstate.now < s.schedDep - 30 ? [`พร้อม · รอเวลา ${tClock(s.schedDep)}`, 'good'] : [late > 0 ? `พร้อม · ช้า ${late} นาที` : 'พร้อมออก', late > 3 ? 'bad' : 'good'];
     else if (late > 0) st = [`ล่าช้า ${late} นาที`, 'bad'];
     setF(card, 'st', el => { el.textContent = st[0]; el.className = 'pill ' + st[1]; });
-    if (s.tasks) TASKS.forEach(n => {
-      const t = s.tasks[n], el = card.querySelector(`[data-t="${n}"]`);
+    if (s.tasks) svcTasks(s).forEach(n => {
+      const t = s.tasks[n], el = card.querySelector(`[data-t="${n}"]`); if (!el) return;
       el.className = 'task ' + t.st; el.querySelector('i').style.width = (t.p * 100) + '%'; el.querySelector('small').textContent = taskState(t);
     });
     if (s.ra) {
@@ -4530,8 +4817,8 @@ function tRenderCrew() {
     ['ล่าช้าเฉลี่ย', s.dep ? (s.delayMin / s.dep).toFixed(1) + ' นาที' : '—'], ['รายได้สถานี', baht(s.rev)],
     ['เวลารอสัญญาณรวม', Math.round(s.holdMin) + ' นาที'], ['ขบวนเข้าแล้ว', fmt(s.arr)],
   ].map(([k, v]) => `<div><span>${k}</span><b class="num">${v}</b></div>`).join('');
-  $('#tCrew').textContent = `${TRT.busy.crew}/${tstate.res.crew} ทีมกำลังทำงาน`;
-  $('#tTruck').textContent = `${TRT.busy.truck}/${tstate.res.truck} คันกำลังเติม`;
+  $('#tCrew').textContent = `${TRT.busy.crew || 0}/${tstate.res.crew} ทีมกำลังทำงาน`;
+  $('#tTruck').textContent = `${TRT.busy.truck || 0}/${tstate.res.truck} คันกำลังเติม`;
   $('#buyCrew').disabled = state.money < 20000; $('#buyTruck').disabled = state.money < 35000;
   if (TRT.logDirty) { TRT.logDirty = false; $('#tLog').innerHTML = tstate.log.slice(0, 14).map(e => `<li class="${e.kind}"><time>${e.t}</time><span>${e.text}</span></li>`).join(''); }
 }
@@ -4915,6 +5202,7 @@ function setMode(m, quiet) {
   document.querySelectorAll('#modeSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
   $('#netStatus').hidden = m !== 'net'; $('#termStatus').hidden = m !== 'term';
   $('#nx').hidden = m !== 'term'; $('#dmi').hidden = m !== 'term' || !TRT.sel;
+  if ($('#zoneBar')) $('#zoneBar').hidden = m !== 'term'; if (typeof areaHud === 'function' && state) areaHud();
   $('#netPanel').hidden = m !== 'net'; $('#termPanel').hidden = m !== 'term';
   $('#tlBody').hidden = m !== 'net'; $('#tArrivals').hidden = m !== 'term';
   $('#tlTitle').textContent = m === 'net' ? 'ตารางเดินรถ' : 'กำลังจะเข้าหัวลำโพง';
@@ -5012,7 +5300,7 @@ function start(data) {
   setInterval(metaTick, 1000);
   requestAnimationFrame(t => { last = t; frame(t); });
 }
-if (location.hash.startsWith('#rtdebug')) window.__rt = { meta: () => M_(), gainXP, openFleet, openPlanner, openCtrlModal, metaPick, stars: () => [netStars(), termStars()], tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }), hit: () => MAP2D.hit, heldRect: () => worldRect(termHeldPos()), platRect: () => worldRect(termPlatformPos()), readyRect: () => worldRect(termReadyPos()), routes: () => tstate.routes.map(r => r.kind + ':' + r.state), fx: () => ({ q: FX.quality, composer: !!FX.composer, lamp: FX.lamp }) };
+if (location.hash.startsWith('#rtdebug')) window.__rt = { meta: () => M_(), gainXP, openFleet, openPlanner, openCtrlModal, metaPick, openGS, openContracts, genOffer, stars: () => [netStars(), termStars()], tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }), hit: () => MAP2D.hit, heldRect: () => worldRect(termHeldPos()), platRect: () => worldRect(termPlatformPos()), readyRect: () => worldRect(termReadyPos()), routes: () => tstate.routes.map(r => r.kind + ':' + r.state), fx: () => ({ q: FX.quality, composer: !!FX.composer, lamp: FX.lamp }) };
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
 })();
