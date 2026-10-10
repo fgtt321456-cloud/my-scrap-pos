@@ -22,6 +22,10 @@ namespace ThaiRail.Data
         public float deck;
         public float P0, P1, bz, bw, bd;
         public string[] extras, real, eastOf;
+        /// <summary>Krung Thep Aphiwat: z of the Red Line tracks (full length) and high-speed tracks (inside the hall).</summary>
+        public float[] red, hsr;
+        /// <summary>Hat Yai: a second main line branches off east of the yard (Padang Besar / Sungai Kolok).</summary>
+        public bool split;
         public TrackDef[] tracks;
         public PlatformDef[] platforms;
         public LocalTrains locals;

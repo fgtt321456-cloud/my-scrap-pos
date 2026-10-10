@@ -27,6 +27,7 @@ static class T {
     Check("ledger round trip + recovery", L.TryGet("31", 0, out e2) && e2.minutes == 25 && DelayLedger.Recover(25) == 19);
     Check("run day of 31 at HDY (06:40 next morning)", DelayLedger.RunDay(Clock.ToSec("06:40"), Clock.ToSec("16:45"), 1) == 0);
     StationSimCheck.Run(db, a.Length > 1 ? a[1] : ".", Check);
+    SceneryCheck.Run(db, Check, a.Length > 2 ? a[2] : null);
     return fail;
   }
 }

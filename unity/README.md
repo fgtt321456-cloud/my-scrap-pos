@@ -21,15 +21,32 @@ Assets/Scripts/
   Simulation/  Difficulty, WorldClock + DelayLedger, RailGraph (เส้นทางตามรางจริง), TimetableEvents,
                TimetableStationSim + StationService + StationTrackPath (จำลองสถานีตามตาราง, C# ล้วน)
   Game/        RailTrackWorld (นาฬิกาโลก, สถานีทุกแห่ง, กระเป๋าเงินชั่วคราว, บันทึกเกม)
-  Stations/    IStationAdapter + TrainViewModel, TimetableStationAdapter, TimetableStationRunner (วางตู้รถตามราง)
-  Trains/      RollingStockCatalog (รหัสรุ่นรถ → prefab ใน pool)
+  Stations/    IStationAdapter + TrainViewModel, TimetableStationAdapter, TimetableStationRunner (วางตู้รถตามราง),
+               StationCameraRig (กล้องไอโซเมตริก เมาส์/สัมผัส)
+  Scenery/     MeshData + StationSceneModel (ฉากสถานีจากผังจริง, C# ล้วน), TrainMeshModel (รถจำลองจากสีลายรถ),
+               StationSceneBuilder (สร้าง Mesh 2 ชิ้น = 2 draw call + ป้ายชื่อ)
+  UI/          StationHud (HUD สร้างด้วยโค้ด อ่านจาก adapter อย่างเดียว)
+  Game/        StationSceneBootstrap (ฉากเปล่า → สถานีที่เล่นได้)
+  Trains/      RollingStockCatalog (รหัสรุ่นรถ → prefab ใน pool), CarSources (prefab จริง หรือรถจำลอง)
+Assets/Resources/RailTrack/  shader สีตามจุดยอด (ทึบ/โปร่งใส)
 tools/check/   คอมไพล์สคริปต์ทั้งหมดและตรวจข้อมูลโดยไม่ต้องเปิด Unity: sh unity/tools/check/check.sh
+               ดูภาพฉากที่สร้าง: DUMP=<dir> sh unity/tools/check/check.sh && node unity/tools/check/render_scenery.js <dir>
 ```
 
 - อัปเดต JSON: `node railway/tools/export_unity.js` (อย่าแก้ไฟล์ JSON ด้วยมือ ให้แก้ที่ `railway/src` แล้วส่งออกใหม่)
 - ระบบใน `Simulation/` เป็น C# ล้วน รับ `System.Random` จากภายนอกเพื่อให้ทดสอบซ้ำได้
 
-### ตั้งฉากสถานีตามตาราง
+### เริ่มเร็วที่สุด: ฉากเปล่า + คอมโพเนนต์เดียว
+1. สร้าง scene ใหม่ → GameObject เปล่า → เพิ่ม `StationSceneBootstrap` → กด Play
+2. ได้สถานีเชียงใหม่ที่สร้างจากผังจริงทันที: ราง ชานชาลา หลังคา อาคารทรงล้านนา โรงรถจักร วงเวียนกลับรถจักร ดอยสุเทพ
+   พร้อมขบวนรถตามตารางจริง (ใช้รถจำลองจากสีลายรถจริงใน rolling_stock.json จนกว่าจะใส่ prefab), กล้องไอโซเมตริก, HUD และกลางวัน/กลางคืน
+3. ปุ่มมุมขวาบน: หยุด/1×/2×/4× และสลับสถานี CMI NKI UBN HDY KRT · ตั้ง `font` เป็นฟอนต์ไทย (เช่น IBM Plex Sans Thai) เพื่อให้ตัวอักษรไทยสวย
+4. ควบคุม: ลากเพื่อเลื่อน, ล้อเมาส์/บีบนิ้วเพื่อซูม, คลิกขวาลาก/หมุนสองนิ้วเพื่อหมุน, แตะขบวนเพื่อเลือก
+
+ข้อกำหนด: Built-in Render Pipeline (shader อยู่ที่ `Assets/Resources/RailTrack/`), Active Input Handling = "Input Manager" หรือ "Both"
+ถ้าใช้ URP ให้ทำ Shader Graph ที่คูณ Base Color ด้วย Vertex Color แล้วใส่ให้ `StationSceneBuilder` และ `TimetableStationRunner`
+
+### ตั้งฉากสถานีตามตาราง (แบบประกอบเอง)
 1. Bootstrap scene: `RailTrackDataLoader`, `RailTrackWorld`, `PoolManager` (DontDestroyOnLoad)
 2. `Create > Thai Railway > Rolling Stock Catalog`: เพิ่มแถว `HID`, `ALS`, `GEK`, `cnr`, `coach`, `THN`, `THN_car`, `NKF`, `NKF_car`, `ASR`, `ASR_car`, `APD`, `APD_car` → PoolId ของ prefab (รุ่นที่ยังไม่มีโมเดลจะใช้ `fallback`)
 3. ฉากสถานี: GameObject ที่มี `TimetableStationRunner` ตั้ง `stationId` (CMI/NKI/UBN/HDY/KRT) และ catalog

@@ -6897,6 +6897,7 @@ function perfTick(raw) {
 function rtExport() {
   const pick = (o, ks) => { const r = {}; ks.forEach(k => { if (o[k] !== undefined) r[k] = o[k]; }); return r; };
   const stations = Object.values(STN_DEFS).map(d => Object.assign(pick(d, ['id', 'name', 'en', 'kind', 'km', 'line', 'style', 'deck', 'P0', 'P1', 'bz', 'bw', 'bd', 'eastLabel', 'extras', 'real']), {
+    split: !!d.split, red: d.red || [], hsr: d.hsr || [],
     tracks: d.tracks.map(t => ({ n: t.n, z: t.z, cls: t.cls, siding: !!t.siding, thru: !!t.thru, platform: hasPlat(d, t) })),
     platforms: d.platforms.map(p => ({ z: p.z, w: p.w })),
     locals: { from: d.locals.from, prefix: d.locals.prefix, no: d.locals.no, gapMin: d.locals.gap[0], gapMax: d.locals.gap[1] },

@@ -33,7 +33,9 @@
 | จำลองการเดินรถในสถานีตามตาราง | `stations.js` (`stnGenDay`, `stnStep`, `stnRelease`), `world.js` (`worldCatchUp`) | `Scripts/Simulation/TimetableStationSim.cs`, `StationService.cs`, `StationTrackPath.cs` |
 | adapter ของสถานีตามตาราง | `station_view.js` (`STN_ADAPTER`) | `Scripts/Stations/TimetableStationAdapter.cs` |
 | ตัวจัดการโลก + บันทึกเกม, วางตู้รถในฉาก | `boot.js`, `stations.js` (`stnFrame`, `stnSync`) | `Scripts/Game/RailTrackWorld.cs`, `Scripts/Stations/TimetableStationRunner.cs`, `Scripts/Trains/RollingStockCatalog.cs` |
-| กราฟิกสถานี/รถ, interlocking หัวลำโพง | `stations.js` (`stnBuild`), `rolling_stock.js`, `hlp_*.js` | ยังไม่ย้าย: ใช้ซอร์สเว็บเป็นข้อกำหนด (ดูหัวข้อ 6) |
+| ฉากสถานีจากผังจริง (ราง ชานชาลา อาคารตามรูปแบบ สถานที่สำคัญ) | `stations.js` (`stnBuild`, `build*`, `stnExtras`) | `Scripts/Scenery/StationSceneModel.cs`, `StationSceneBuilder.cs` |
+| กล้อง, HUD, กลางวัน/กลางคืน, ฉากเริ่มต้น | `stations.js` (`camStn`), `station_view.js`, `fx.js` | `StationCameraRig`, `StationHud`, `StationSceneBootstrap` |
+| โมเดลรถไฟแบบละเอียด, interlocking หัวลำโพง | `rolling_stock.js`, `hlp_*.js` | ยังไม่ย้าย: Unity ใช้รถจำลองจากสีลายรถจริงไปก่อน (ดูหัวข้อ 6) |
 
 ## 2. โมเดลโดเมน
 
@@ -114,9 +116,9 @@ sched ──(ถึงเวลา eta−5 นาที)──► approach ─�
    ของทั้ง 5 สถานี (จำนวนขบวนออก, อัตราตรงเวลา) ใกล้เคียงกับเว็บ รวมถึงกรณีขบวน 31 ช้าจาก KRT ไป HDY
    ในฉาก: วาง `RailTrackDataLoader` + `RailTrackWorld` + `PoolManager` ใน bootstrap แล้วใส่ `TimetableStationRunner`
    (ตั้ง `stationId` และ `RollingStockCatalog`) ในฉากสถานี UI ใช้ `runner.Adapter`
-4. **ฉาก**: สร้างจาก `StationDef` (รางตาม `tracks[].z`, ชานชาลาตาม `platforms[]`, อาคารตาม `style`, ของประกอบตาม `extras`)
+4. **ฉาก** ✅ ย้ายแล้ว (`StationSceneBootstrap` ทำให้ฉากเปล่าเล่นได้ทันที) · เดิม: สร้างจาก `StationDef` (รางตาม `tracks[].z`, ชานชาลาตาม `platforms[]`, อาคารตาม `style`, ของประกอบตาม `extras`)
    ตู้รถดึงจาก pool ตาม `TrainModel.id` และใช้สีจาก `livery`
-5. **UI**: prefab รายการขบวน/การ์ด/แผงชานชาลาที่อ่าน `TrainViewModel` อย่างเดียว
+5. **UI** ✅ มี `StationHud` ที่สร้างด้วยโค้ดแล้ว ขั้นต่อไปคือทำ prefab ที่ออกแบบสวยกว่า · เดิม: prefab รายการขบวน/การ์ด/แผงชานชาลาที่อ่าน `TrainViewModel` อย่างเดียว
 6. **หัวลำโพง**: ย้าย `hlp_engine.js` (กราฟราง, ประแจ, NX, ล็อกเส้นทาง, ETCS, งานกลับขบวน) เป็นลำดับสุดท้าย เพราะซับซ้อนที่สุด
 7. **บันทึกเกม**: `WorldClock` และ `DelayLedger` เป็น `[Serializable]` อยู่แล้ว (ledger เก็บเป็น List เพื่อให้ JsonUtility ใช้ได้)
 
@@ -127,5 +129,5 @@ sched ──(ถึงเวลา eta−5 นาที)──► approach ─�
 | `node railway/tests/smoke.test.js` | เส้นทางหลักของเกมทั้งหมด (12 ข้อ) |
 | `node railway/tests/world.test.js` | นาฬิกาโลก ความล่าช้าข้ามสถานี การไล่เวลา ขบวนจริงบนแผนที่ ความยาก (7 ข้อ) |
 | `node railway/tests/perf.test.js` | draw call ต่อฉาก (ดู `docs/TESTING.md`) |
-| `sh unity/tools/check/check.sh` | สคริปต์ Unity คอมไพล์ผ่าน + ข้อมูล JSON โหลดได้ + ระบบจำลองสถานีให้ผลตรงกับเว็บ (23 ข้อ) |
+| `sh unity/tools/check/check.sh` | สคริปต์ Unity คอมไพล์ผ่าน + ข้อมูล JSON โหลดได้ + ระบบจำลองสถานีให้ผลตรงกับเว็บ + ฉากสถานี/รถจำลองสร้างได้และหันหน้าถูกด้าน (30 ข้อ) |
 | `node railway/tools/export_unity.js` | ส่งออก JSON และสร้างค่าอ้างอิงจากเว็บ (`unity/tools/check/golden_*.json`) ให้ check.sh ใช้เทียบ |

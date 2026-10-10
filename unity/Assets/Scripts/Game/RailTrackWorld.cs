@@ -79,7 +79,12 @@ namespace ThaiRail.Game
             _active = Station(id); if (_active == null) return null;
             _active.Enter(); return _active;
         }
-        public void Leave() { if (_active != null) _active.IsActive = false; _active = null; Save(); }
+        /// <summary>Leave a station. Pass the sim so a late OnDestroy of the previous station cannot close the one just opened.</summary>
+        public void Leave(TimetableStationSim sim = null)
+        {
+            if (sim != null && sim != _active) { sim.IsActive = false; Save(); return; }
+            if (_active != null) _active.IsActive = false; _active = null; Save();
+        }
 
         void Update()
         {
