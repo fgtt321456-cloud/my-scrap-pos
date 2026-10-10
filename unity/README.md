@@ -10,6 +10,23 @@ Assets/Scripts/
   Stations/       StationController (ตัวอย่างการขอ/คืนจาก pool)
 ```
 
+## ข้อมูลเกมและระบบจำลอง (ย้ายมาจากต้นแบบเว็บ)
+
+ภาพรวมระบบและแผนการย้ายอยู่ที่ [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md)
+
+```
+Assets/StreamingAssets/RailTrack/   stations, timetable, rolling_stock, progression, difficulty, network (.json)
+Assets/Scripts/
+  Data/        RailTrackData (โมเดลข้อมูลตรงกับ JSON), RailTrackDataLoader (โหลดตอนเริ่มเกม รองรับ Android)
+  Simulation/  Difficulty, WorldClock + DelayLedger, RailGraph (เส้นทางตามรางจริง), TimetableEvents
+  Stations/    IStationAdapter + TrainViewModel (สัญญา UI ร่วมของทุกสถานี)
+tools/check/   คอมไพล์สคริปต์ทั้งหมดและตรวจข้อมูลโดยไม่ต้องเปิด Unity: sh unity/tools/check/check.sh
+```
+
+- อัปเดต JSON: `node railway/tools/export_unity.js` (อย่าแก้ไฟล์ JSON ด้วยมือ ให้แก้ที่ `railway/src` แล้วส่งออกใหม่)
+- ระบบใน `Simulation/` เป็น C# ล้วน รับ `System.Random` จากภายนอกเพื่อให้ทดสอบซ้ำได้
+
+
 ## ติดตั้ง
 
 1. **Prefab**: ใส่ `TrainCar` ให้ prefab ตู้รถไฟแต่ละแบบ (ตั้ง `role`, `length`, และ `cargoSlots` สำหรับตู้สินค้า) ใส่ `GroundServiceVehicle` ให้รถยก รถน้ำมัน และรถทำความสะอาด ส่วนตู้คอนเทนเนอร์ไม่ต้องใส่สคริปต์ (`PooledObject` ถูกเพิ่มให้อัตโนมัติ)

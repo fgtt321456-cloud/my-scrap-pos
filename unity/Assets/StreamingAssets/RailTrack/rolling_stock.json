@@ -1,0 +1,351 @@
+{
+ "models": [
+  {
+   "id": "GEK",
+   "name": "GE UM12C (GEK)",
+   "kind": "hood",
+   "len": 17,
+   "ac": false,
+   "maker": "General Electric · สหรัฐฯ",
+   "livery": {
+    "body": "#E2602A",
+    "low": "#1F2F5A",
+    "line": "#F4F1E6",
+    "roof": "#6B7380"
+   }
+  },
+  {
+   "id": "ALS",
+   "name": "Alsthom AD24C",
+   "kind": "loco",
+   "len": 17.4,
+   "ac": false,
+   "maker": "",
+   "livery": {
+    "body": "#E2602A",
+    "low": "#1F2F5A",
+    "line": "#F4F1E6",
+    "roof": "#6B7380"
+   }
+  },
+  {
+   "id": "HID",
+   "name": "Hitachi 8FA-36C",
+   "kind": "loco",
+   "len": 18.4,
+   "ac": false,
+   "maker": "",
+   "livery": {
+    "body": "#E2602A",
+    "low": "#1F2F5A",
+    "line": "#F4F1E6",
+    "roof": "#6B7380"
+   }
+  },
+  {
+   "id": "CSR",
+   "name": "CSR SDA3 “Ultraman”",
+   "kind": "loco",
+   "len": 19.2,
+   "ac": false,
+   "maker": "",
+   "livery": {
+    "body": "#F2F3F5",
+    "low": "#C8102E",
+    "line": "#9AA3AE",
+    "roof": "#9AA3AE"
+   }
+  },
+  {
+   "id": "cnr",
+   "name": "CNR sleeper",
+   "kind": "car",
+   "len": 19.6,
+   "ac": true,
+   "maker": "",
+   "livery": {
+    "body": "#F2F3F5",
+    "low": "#C8102E",
+    "line": "#1F2F5A",
+    "roof": "#B9C1CC"
+   }
+  },
+  {
+   "id": "coach",
+   "name": "รถโดยสารมาตรฐาน",
+   "kind": "car",
+   "len": 19.4,
+   "ac": false,
+   "maker": "",
+   "livery": {
+    "body": "#EFE6CF",
+    "low": "#A3262A",
+    "line": "#EFE6CF",
+    "roof": "#7B8390"
+   }
+  },
+  {
+   "id": "THN",
+   "name": "THN DMU",
+   "kind": "dmu",
+   "len": 20,
+   "ac": false,
+   "maker": "",
+   "livery": {
+    "body": "#F1E9D2",
+    "low": "#D2652A",
+    "line": "#7A3B22",
+    "roof": "#9AA3AE"
+   }
+  },
+  {
+   "id": "NKF",
+   "name": "NKF DMU",
+   "kind": "dmu",
+   "len": 20,
+   "ac": false,
+   "maker": "",
+   "livery": {
+    "body": "#F1E9D2",
+    "low": "#D2652A",
+    "line": "#7A3B22",
+    "roof": "#9AA3AE"
+   }
+  },
+  {
+   "id": "APD",
+   "name": "Daewoo APD",
+   "kind": "dmu",
+   "len": 20,
+   "ac": true,
+   "maker": "",
+   "livery": {
+    "body": "#F4F5F8",
+    "low": "#1F4FA8",
+    "line": "#C8102E",
+    "roof": "#A7B0BC"
+   }
+  },
+  {
+   "id": "ASR",
+   "name": "ASR (BR Class 158)",
+   "kind": "dmu",
+   "len": 20,
+   "ac": true,
+   "maker": "",
+   "livery": {
+    "body": "#F4F5F8",
+    "low": "#1F2F5A",
+    "line": "#C8102E",
+    "roof": "#A7B0BC"
+   }
+  },
+  {
+   "id": "red",
+   "name": "Hitachi AT100",
+   "kind": "emu",
+   "len": 20,
+   "ac": true,
+   "maker": "",
+   "livery": {
+    "body": "#F4F5F8",
+    "low": "#C8102E",
+    "line": "#C8102E",
+    "roof": "#C7CDD6"
+   }
+  },
+  {
+   "id": "frt",
+   "name": "แคร่ขนตู้สินค้า",
+   "kind": "flat",
+   "len": 19.4,
+   "ac": false,
+   "maker": "",
+   "livery": {
+    "body": "#EFE6CF",
+    "low": "#A3262A",
+    "line": "#EFE6CF",
+    "roof": "#7B8390"
+   }
+  },
+  {
+   "id": "APD_car",
+   "name": "Daewoo APD",
+   "kind": "car",
+   "len": 20,
+   "ac": true,
+   "maker": "",
+   "livery": {
+    "body": "#F4F5F8",
+    "low": "#1F4FA8",
+    "line": "#C8102E",
+    "roof": "#A7B0BC"
+   }
+  },
+  {
+   "id": "NKF_car",
+   "name": "NKF DMU",
+   "kind": "car",
+   "len": 20,
+   "ac": false,
+   "maker": "",
+   "livery": {
+    "body": "#F1E9D2",
+    "low": "#D2652A",
+    "line": "#7A3B22",
+    "roof": "#9AA3AE"
+   }
+  }
+ ],
+ "aliases": [
+  {
+   "key": "GEA",
+   "model": "GEK"
+  },
+  {
+   "key": "loco",
+   "model": "ALS"
+  },
+  {
+   "key": "coach",
+   "model": "coach"
+  },
+  {
+   "key": "cab",
+   "model": "THN"
+  },
+  {
+   "key": "car",
+   "model": "THN_car"
+  },
+  {
+   "key": "cnr",
+   "model": "cnr"
+  },
+  {
+   "key": "red",
+   "model": "red"
+  },
+  {
+   "key": "frt",
+   "model": "frt"
+  },
+  {
+   "key": "dmu",
+   "model": "APD"
+  }
+ ],
+ "info": [
+  {
+   "id": "HID",
+   "consist": [
+    "HID",
+    "cnr",
+    "cnr"
+   ],
+   "tier": "",
+   "role": "หัวรถจักรดีเซลไฟฟ้า",
+   "note": "Hitachi ประเทศญี่ปุ่น รุ่น 8FA-36C สร้าง 22 คันราวปี 2536 (ซีรีส์ 4500) มีภาพหมายเลข 4507 ลากขบวนรถนอน CNR สายเชียงใหม่"
+  },
+  {
+   "id": "cnr",
+   "consist": [
+    "cnr",
+    "cnr",
+    "cnr"
+   ],
+   "tier": "",
+   "role": "รถนอนปรับอากาศ",
+   "note": "สั่งจาก CNR Changchun (ปัจจุบันคือ CRRC) รวม 115 คัน: รถนอนชั้น 1 9 คัน ชั้น 2 88 คัน รถเสบียง 9 คัน รถไฟฟ้ากำลัง 9 คัน เริ่มวิ่ง 11 พ.ย. 2559 (ขบวน 9/10, 23/24) และ 2 ธ.ค. 2559 (25/26, 31/32)"
+  },
+  {
+   "id": "ALS",
+   "consist": [
+    "ALS",
+    "coach",
+    "coach"
+   ],
+   "tier": "AD24C",
+   "role": "หัวรถจักรดีเซลไฟฟ้า",
+   "note": "Alsthom ประเทศฝรั่งเศส รุ่น AD24C หมายเลขซีรีส์ 4100 และ 4200 เดิมใช้เครื่องยนต์ Pielstick ส่วนใหญ่เปลี่ยนเป็น MTU หรือ Caterpillar ในภายหลัง"
+  },
+  {
+   "id": "GEK",
+   "consist": [
+    "GEK",
+    "coach",
+    "coach"
+   ],
+   "tier": "",
+   "role": "หัวรถจักรดีเซลไฟฟ้า",
+   "note": "General Electric ประเทศสหรัฐฯ รุ่น UM12C (รหัส GEK) แบบห้องเครื่องแคบ (hood unit) ส่งมอบตั้งแต่ปี 2506 จำนวน 50 คัน ราวปี 2556 ยังใช้งานอยู่ 45 คัน"
+  },
+  {
+   "id": "CSR",
+   "consist": [
+    "CSR",
+    "frt",
+    "frt"
+   ],
+   "tier": "QSY",
+   "role": "หัวรถจักรดีเซลไฟฟ้า (สินค้า)",
+   "note": "CSR Qishuyan ประเทศจีน รุ่น SDA3 จำนวน 20 คัน สั่งซื้อปี 2556 ส่งมอบปี 2558 สำหรับขนตู้สินค้า เครื่องยนต์ Caterpillar 2.8 MW วิ่งได้ 100 กม./ชม. · ชื่อ “Ultraman” เป็นชื่อในเกมตามเอกสารออกแบบ ยังไม่พบแหล่งยืนยัน"
+  },
+  {
+   "id": "ASR",
+   "consist": [
+    "ASR",
+    "ASR_car",
+    "ASR"
+   ],
+   "tier": "ASR",
+   "role": "รถดีเซลรางปรับอากาศ",
+   "note": "สร้างโดย BREL ที่ Derby ประเทศอังกฤษ พื้นฐานจาก British Rail Class 158 จำนวน 20 คันในปี 2533–2534"
+  },
+  {
+   "id": "THN",
+   "consist": [
+    "THN",
+    "THN_car",
+    "THN"
+   ],
+   "tier": "THN",
+   "role": "รถดีเซลราง",
+   "note": "Tokyu–Hitachi–Nippon Sharyo ประเทศญี่ปุ่น ปี 2526 จำนวน 40 คัน 235 แรงม้า ความเร็วสูงสุด 105 กม./ชม. (ข้อมูลจากเว็บไซต์ผู้ชื่นชอบรถไฟ)"
+  },
+  {
+   "id": "NKF",
+   "consist": [
+    "NKF",
+    "NKF_car",
+    "NKF"
+   ],
+   "tier": "",
+   "role": "รถดีเซลราง",
+   "note": "พัฒนาต่อจาก THN ผลิตปี 2528 โดยกลุ่มผู้ผลิตญี่ปุ่น (Nippon Sharyo, Hitachi, Fuji, Kawasaki ฯลฯ) 2 ชุด 64 และ 12 คัน (ข้อมูลจากเว็บไซต์ผู้ชื่นชอบรถไฟ)"
+  },
+  {
+   "id": "APD",
+   "consist": [
+    "APD",
+    "APD_car",
+    "APD"
+   ],
+   "tier": "",
+   "role": "รถดีเซลรางปรับอากาศ",
+   "note": "รถดีเซลรางจาก Daewoo ประเทศเกาหลีใต้ · รุ่นย่อยและปีที่ส่งมอบยังหาแหล่งยืนยันไม่ได้"
+  },
+  {
+   "id": "red",
+   "consist": [
+    "red",
+    "red_car",
+    "red_car",
+    "red"
+   ],
+   "tier": "",
+   "role": "รถไฟฟ้าชานเมือง (สายสีแดง)",
+   "note": "Hitachi (AT100) 25 ขบวน: 4 ตู้ 10 ขบวน และ 6 ตู้ 15 ขบวน รวม 130 ตู้ ใช้ไฟ 25 kV 50 Hz เหนือหัว ทดลองวิ่ง 2 ส.ค. 2564 เปิดเชิงพาณิชย์ 29 พ.ย. 2564"
+  }
+ ]
+}

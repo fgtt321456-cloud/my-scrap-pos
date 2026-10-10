@@ -1,0 +1,50 @@
+{
+ "rush": [
+  {
+   "from": 6.5,
+   "to": 9,
+   "factor": 0.55
+  },
+  {
+   "from": 16.5,
+   "to": 19,
+   "factor": 0.6
+  }
+ ],
+ "delay": {
+  "p": 0.22,
+  "pLv": 0.012,
+  "pMax": 0.45,
+  "mean": 7,
+  "max": 40
+ },
+ "fault": {
+  "p": 0.05,
+  "pLv": 0.004,
+  "pMax": 0.12,
+  "min": 4,
+  "max": 11,
+  "kinds": [
+   "ประตูขัดข้อง",
+   "ระบบปรับอากาศขัดข้อง",
+   "เบรกต้องตรวจซ้ำ",
+   "รอพนักงานขบวนเปลี่ยนกะ"
+  ]
+ },
+ "rain": {
+  "p": 0.3,
+  "approach": 0.75,
+  "dwellMin": 2,
+  "delayP": 0.15
+ },
+ "ars": {
+  "reactArrMin": 20,
+  "reactArrMax": 70,
+  "lagDepMin": 0,
+  "lagDepMax": 90,
+  "pickWrong": 0.1
+ },
+ "stationRate": 30,
+ "hlpRate": 6,
+ "worldNetRate": 120
+}
