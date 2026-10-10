@@ -421,91 +421,25 @@ function stnPick(e) {
   const r = canvas.getBoundingClientRect();
   ray.setFromCamera({ x: (e.clientX - r.left) / r.width * 2 - 1, y: -(e.clientY - r.top) / r.height * 2 + 1 }, camera);
   const hit = ray.intersectObject(B.root, true).find(h => h.object.userData.svc);
-  STN.sel = hit ? hit.object.userData.svc : null; STN.cardSig = ''; stnUI();
+  svSelect(hit ? hit.object.userData.svc : null);
 }
 
-// ---------- UI ----------
-$('#stage').insertAdjacentHTML('beforeend', `
-<aside class="live" id="sLive" hidden><div class="live-head"><b id="sLiveT">ขบวนรถ</b></div><div class="live-list" id="sList"></div></aside>
-<section class="tcard" id="sCard" hidden></section>
-<section class="psheet" id="sSheet" hidden><header><div><b>เลือกชานชาลา</b><small id="sSheetSub"></small></div><button class="iconbtn" id="sSheetClose" aria-label="ปิด"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header><div class="ps-list" id="sSheetList"></div></section>`);
+// ---------- UI (list, card and platform sheet are shared: see station_view.js) ----------
 $('#termStatus').insertAdjacentHTML('afterend', `<div class="topstat" id="stnStatus" hidden>
   <div class="stat money"><span>เงินทุน</span><b id="ssMoney">฿0</b></div><div class="stat"><span>เวลาสถานี</span><b id="ssClock">—</b></div>
   <div class="stat"><span>ออกตรงเวลา</span><b id="ssOnTime">—</b></div><div class="stat"><span>ในชานชาลา</span><b id="ssIn">0</b></div>
   <div class="stat"><span>รอสัญญาณเข้า</span><b id="ssHeld">0</b></div><div class="stat"><span>รายได้สถานี</span><b id="ssRev">฿0</b></div></div>`);
 const sAlert = (S, s) => s.phase === 'held' || (s.phase === 'approach' && !s.track) || (s.phase === 'ready' && S.now >= s.schedDep - 60);
 const sPhase = s => ({ sched: 'ตามกำหนด', approach: 'กำลังเข้าเขต', held: 'รอสัญญาณเข้า', entering: 'เข้าชานชาลา', dwell: s.mode === 'term' ? 'ส่งผู้โดยสารลง' : s.mode === 'orig' ? 'รับผู้โดยสาร' : 'จอดรับส่ง', ready: s.mode === 'term' ? 'พร้อมเข้าศูนย์ซ่อม' : 'พร้อมออก', departing: 'กำลังออก', gone: 'ออกแล้ว' })[s.phase];
-function stnUI() {
+function stnUI() {   // status bar only; the train list/card/sheet are drawn by station_view.js
   const S = stnState(), d = stnDef(); if (!S || MODE !== 'stn') return;
   $('#ssMoney').textContent = baht(state.money); $('#ssClock').textContent = hm(S.now);
   $('#ssOnTime').textContent = S.stats.dep ? Math.round(S.stats.onTime / S.stats.dep * 100) + '%' : '—';
-  const usable = d.tracks.filter(t => hasPlat(d, t)).length;
-  $('#ssIn').textContent = S.services.filter(s => ['entering', 'dwell', 'ready'].includes(s.phase)).length + '/' + usable;
+  $('#ssIn').textContent = S.services.filter(s => ['entering', 'dwell', 'ready'].includes(s.phase)).length + '/' + d.tracks.filter(t => hasPlat(d, t)).length;
   const held = S.services.filter(s => s.phase === 'held').length; $('#ssHeld').textContent = held; $('#ssHeld').classList.toggle('neg', held > 0);
   $('#ssRev').textContent = baht(S.stats.rev);
-  const list = S.services.filter(s => s.phase !== 'gone' && s.schedArr - S.now < 3 * 3600).sort((a, b) => (sAlert(S, b) - sAlert(S, a)) || (a.schedArr - b.schedArr)).slice(0, 14);
-  const html = list.map(s => { const al = sAlert(S, s); return `<button class="lv${al ? ' alert' : ''}${STN.sel === s.id ? ' sel' : ''}${s.real ? '' : ' sim'}" data-sv="${s.id}"><span class="lv-st"><svg viewBox="0 0 24 24">${al ? '<circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/>' : ['sched', 'approach', 'held'].includes(s.phase) ? LV_IC.arr : s.phase === 'departing' ? LV_IC.dep : LV_IC.in}</svg></span><span class="lv-ty"><b>${esc(s.name.split(' ').pop())}</b><span><i class="cl">${CLS[stnCls(s)]}</i>${s.lift ? '<i class="wc">♿</i>' : ''}${s.real ? '<i class="rl" title="ขบวนจริงจากตารางเดินรถ">จริง</i>' : ''}</span></span><span class="lv-or"><b>${esc(String(s.cls).split(' ')[0])}</b><small>${s.track ? 'ราง ' + s.track : hm(s.mode === 'orig' ? s.schedDep : s.schedArr)}</small></span></button>`; }).join('');
-  if (html !== STN.sig) { STN.sig = html; $('#sList').innerHTML = html; }
-  stnCard(S, d);
-  if (STN.sheet) stnSheet(S, d);
 }
-function stnCard(S, d) {
-  const s = STN.sel && S.services.find(x => x.id === STN.sel), el = $('#sCard');
-  $('#app').classList.toggle('livecard', !!s);
-  if (!s) { el.hidden = true; STN.cardSig = ''; return; }
-  el.hidden = false;
-  const sig = s.id + s.phase;
-  if (sig !== STN.cardSig) {
-    STN.cardSig = sig;
-    el.innerHTML = `<header><div class="tc-id"><b>${esc(s.name)}</b><small>${esc(s.label)}</small></div><div class="tc-ty"><b>${s.kind === 'LH' ? 'หัวรถจักร' : 'ดีเซลราง'}</b><span><i class="cl">${CLS[stnCls(s)]}</i>${s.lift ? '<i class="wc">♿</i>' : ''}</span></div><span class="tc-al" data-f="al">!</span></header>
-      <div class="tc-body"><div class="tc-main"><div><small>สถานะ</small><b data-f="ph"></b></div><div><small>ชานชาลา</small><b data-f="tr"></b></div><div><small>ข้อมูล</small><span class="tc-op">${s.real ? `ตารางเดินรถจริง${s.est ? ' (เวลาผ่านโดยประมาณ)' : ''}` : 'ขบวนจำลองเสริมตาราง'}</span></div></div>
-      <div class="tc-pic">${thumbImg(s.veh.slice(0, 3))}</div>
-      <div class="tc-sched"><span data-f="sl"></span><b data-f="sv"></b><div class="bar"><i data-f="sb"></i></div></div>
-      <div class="tc-status"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="14" rx="2"/><circle cx="12" cy="7" r="1.3"/><circle cx="12" cy="12" r="1.3"/><path d="M12 17v4"/></svg><span data-f="st"></span></div>
-      <button class="btn action big" data-f="act"></button></div>
-      <nav class="tc-side"><button data-sc="follow" aria-label="ติดตามกล้อง"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button><button data-sc="close" aria-label="ปิด"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></nav>`;
-  }
-  const late = Math.round((s.mode === 'term' ? (s.arrAt || S.now) - s.schedArr : S.now - s.schedDep) / 60);
-  setF(el, 'ph', x => { x.textContent = sPhase(s); }); setF(el, 'tr', x => { x.textContent = s.track ? 'ราง ' + s.track : '—'; });
-  setF(el, 'sl', x => { x.textContent = s.mode === 'term' ? `ถึงตามกำหนด ${hm(s.schedArr)}` : `ออกตามกำหนด ${hm(s.schedDep)}`; });
-  setF(el, 'sv', x => { x.textContent = late > 0 ? `ช้า ${late} นาที` : `อีก ${-late} นาที`; x.className = late > 3 ? 'bad' : 'good'; });
-  setF(el, 'sb', x => { x.style.width = (s.phase === 'dwell' ? clamp(1 - (s.readyAt - S.now) / (20 * 60), 0, 1) : s.phase === 'ready' ? 1 : 0.3) * 100 + '%'; });
-  const c = { sched: `เข้าเขตสถานีเวลา ${hm(s.schedArr - 300)}`, approach: s.track ? `ได้รางที่ ${s.track} แล้ว กำลังรอเปิดสัญญาณ` : 'ยังไม่ได้เลือกชานชาลา', held: `หยุดรอที่สัญญาณเข้า ${Math.floor(s.hold / 60)} นาที · เสียค่าปรับ`, entering: `กำลังเข้าราง ${s.track}`, dwell: `${sPhase(s)} · เสร็จราว ${hm(s.readyAt)}${s.lift ? ' · ใช้ลิฟต์วีลแชร์' : ''}`, ready: s.mode === 'term' ? 'ส่งขบวนเปล่าเข้าศูนย์ซ่อมเพื่อคืนชานชาลา' : 'ผู้โดยสารขึ้นครบ รอปล่อยรถ', departing: 'ออกจากสถานีผ่านคอขวด' }[s.phase] || '';
-  setF(el, 'st', x => { x.textContent = c; });
-  setF(el, 'al', x => { x.hidden = !sAlert(S, s); });
-  let act = ['—', false, ''];
-  if (['sched', 'approach', 'held'].includes(s.phase)) act = [s.track ? `เปลี่ยนชานชาลา (ราง ${s.track})` : 'เลือกชานชาลา', true, 'plat'];
-  else if (s.phase === 'ready') act = [s.mode === 'term' ? 'ส่งเข้าศูนย์ซ่อม' : 'ปล่อยรถ', true, 'go'];
-  else act = [sPhase(s), false, ''];
-  setF(el, 'act', x => { if (x.textContent !== act[0]) x.textContent = act[0]; x.disabled = !act[1]; x.dataset.k = act[2]; });
-}
-$('#sList').addEventListener('click', e => { const b = e.target.closest('[data-sv]'); if (!b) return; STN.sel = STN.sel === b.dataset.sv ? null : b.dataset.sv; STN.cardSig = ''; STN.sig = ''; stnUI(); });
-$('#sCard').addEventListener('click', e => {
-  const S = stnState(), s = STN.sel && S.services.find(x => x.id === STN.sel); if (!s) return;
-  const b = e.target.closest('button'); if (!b || b.disabled) return;
-  if (b.dataset.sc === 'close') { STN.sel = null; stnUI(); return; }
-  if (b.dataset.sc === 'follow') { cam.follow = s.id; return; }
-  if (b.dataset.f === 'act') { if (b.dataset.k === 'plat') { STN.sheet = s.id; $('#sSheet').hidden = false; stnSheet(S, stnDef()); } else if (b.dataset.k === 'go') stnRelease(S, s); STN.cardSig = ''; stnUI(); }
-});
-function stnSheet(S, d) {
-  const s = S.services.find(x => x.id === STN.sheet);
-  if (!s || !['sched', 'approach', 'held'].includes(s.phase)) { STN.sheet = null; $('#sSheet').hidden = true; return; }
-  $('#sSheetSub').textContent = `${s.name} · ขนาด ${CLS[stnCls(s)]} · ${s.veh.length} คัน`;
-  const html = d.tracks.map(t => { const [ok, why] = stnTrackInfo(S, d, s, t); return `<button class="pcard${ok ? '' : ' no'}${s.track === t.n ? ' plan' : ''}" data-st="${t.n}"><b>ราง ${t.n}</b><span class="pc-cl">${[0, 1, 2, 3].map(c => `<i class="${c <= t.cls ? 'on' : ''}">${CLS[c]}</i>`).join('')}</span><small>${s.track === t.n ? 'เลือกแล้ว' : why}</small></button>`; }).join('');
-  const L = $('#sSheetList'); if (L.dataset.h !== html) { L.dataset.h = html; L.innerHTML = html; }
-}
-$('#sSheetClose').addEventListener('click', () => { STN.sheet = null; $('#sSheet').hidden = true; });
-$('#sSheetList').addEventListener('click', e => {
-  const b = e.target.closest('[data-st]'); if (!b) return;
-  const S = stnState(), d = stnDef(), s = S.services.find(x => x.id === STN.sheet); if (!s) return;
-  const t = d.tracks.find(x => x.n === +b.dataset.st), [ok, why] = stnTrackInfo(S, d, s, t);
-  if (!ok) { toast(`ราง ${t.n}: ${why}`); return; }
-  s.track = t.n; STN.sheet = null; $('#sSheet').hidden = true; sfxPing(); toast(`${s.name} เข้าราง ${t.n}`); slog(S, `จัด ${s.name} เข้าราง ${t.n}`); STN.cardSig = ''; stnUI();
-});
-function stnShowUI(on) {
-  ['#sLive', '#stnStatus'].forEach(q => { $(q).hidden = !on; });
-  if (!on) { $('#sCard').hidden = true; $('#sSheet').hidden = true; }
-}
+function stnShowUI(on) { $('#stnStatus').hidden = !on; }
 function stnInfoModal() {
   const d = stnDef();
   modal('sinfo', () => mSet(d.name, `${d.en} · ${d.line}${d.km ? ` · ${fmt(d.km)} กม. จากกรุงเทพ` : ''}`,
@@ -539,7 +473,7 @@ function stnEnter(id) {
   if (!STN.st[id]) STN.st[id] = stnNew(id);
   const S = STN.st[id];
   S.services.forEach(s => { if (s.phase === 'departing') s.phase = 'gone', s.goneAt = S.now; });
-  STN.cur = id; STN.sel = null; STN.sig = ''; STN.cardSig = '';
+  STN.cur = id; svSelect(null);
   stnBuild(id); camStn.home(); camStn.az = camStn.azT;
   setMode('stn');
   if (!S.hinted) { S.hinted = true; toast(`${STN_DEFS[id].name}: เลือกชานชาลาให้ขบวนที่มีเครื่องหมาย ! แล้วปล่อยรถเมื่อพร้อม`); }

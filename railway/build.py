@@ -13,7 +13,7 @@ CSS = ['base.css', 'hlp.css', 'meta.css', 'station_ui.css']
 HTML = ['body.html', 'meta.html']
 # script order matters: later modules use globals defined earlier at runtime
 JS = ['core_net.js', 'fx.js', 'ui_net.js', 'ux.js', 'timetable.js', 'rolling_stock.js', 'meta.js', 'hlp_ui.js',
-      'stations_data.js', 'stations.js', 'hlp_engine.js', 'hlp_fx.js', 'hlp_scenery.js', 'coop.js', 'perf.js', 'boot.js']
+      'stations_data.js', 'stations.js', 'station_view.js', 'hlp_engine.js', 'hlp_fx.js', 'hlp_scenery.js', 'coop.js', 'perf.js', 'boot.js']
 THREE_EX = ['shaders/CopyShader.js', 'shaders/LuminosityHighPassShader.js', 'postprocessing/EffectComposer.js', 'postprocessing/RenderPass.js',
             'postprocessing/ShaderPass.js', 'postprocessing/UnrealBloomPass.js', 'geometries/RoundedBoxGeometry.js']
 HEAD = '''<!DOCTYPE html>

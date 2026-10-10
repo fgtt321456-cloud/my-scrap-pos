@@ -231,12 +231,12 @@ const RS_INFO = [
   { id: 'red', consist: ['red', 'red_car', 'red_car', 'red'], role: 'รถไฟฟ้าชานเมือง (สายสีแดง)', note: 'Hitachi (AT100) 25 ขบวน: 4 ตู้ 10 ขบวน และ 6 ตู้ 15 ขบวน รวม 130 ตู้ ใช้ไฟ 25 kV 50 Hz เหนือหัว ทดลองวิ่ง 2 ส.ค. 2564 เปิดเชิงพาณิชย์ 29 พ.ย. 2564' },
 ];
 // ---------- 3D thumbnails for UI (rendered once, cached as data URLs) ----------
-const THUMB = { r: null, cache: {} };
+const THUMB = { cache: {}, queue: [], busy: false };
+/** Renders a consist side view with the main renderer into an offscreen target (no second WebGL context). */
 function trainThumb(consist, w = 520, h = 130) {
   const key = consist.join(',') + w + 'x' + h; if (THUMB.cache[key]) return THUMB.cache[key];
   try {
-    if (!THUMB.r) { THUMB.r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }); THUMB.r.outputEncoding = renderer.outputEncoding; }
-    const r = THUMB.r; r.setPixelRatio(1); r.setSize(w * 2, h * 2, false);
+    const W = w * 2, H = h * 2, rt = new THREE.WebGLRenderTarget(W, H);
     const sc = new THREE.Scene(); sc.add(new THREE.HemisphereLight(0xffffff, 0x9aa4b3, 0.95)); const dl = new THREE.DirectionalLight(0xffffff, 0.75); dl.position.set(30, 40, 50); sc.add(dl);
     let z = 0; const g = new THREE.Group();
     consist.forEach((t, i) => { const m = trainModel(t), len = RS[rsResolve(t).k].len; z -= i ? len / 2 + 0.6 : 0; m.position.z = z; if (i === consist.length - 1 && i > 0 && /^(THN|NKF|APD|ASR|red)$/.test(t)) m.rotation.y = Math.PI; g.add(m); z -= len / 2; });
@@ -244,10 +244,30 @@ function trainThumb(consist, w = 520, h = 130) {
     const box3 = new THREE.Box3().setFromObject(g), c = box3.getCenter(new THREE.Vector3()), sz = box3.getSize(new THREE.Vector3());
     const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, -200, 200), asp = w / h, half = Math.max(sz.z * 0.47, sz.y * asp * 0.7);
     cam.left = -half; cam.right = half; cam.top = half / asp; cam.bottom = -half / asp; cam.updateProjectionMatrix();
-    cam.position.set(c.x + 40, c.y + 14, c.z + 18); cam.lookAt(c); cam.position.copy(c).add(new THREE.Vector3(40, 12, 14)); cam.lookAt(c);
-    r.setClearColor(0x000000, 0); r.render(sc, cam);
-    return (THUMB.cache[key] = r.domElement.toDataURL('image/png'));
+    cam.position.copy(c).add(new THREE.Vector3(40, 12, 14)); cam.lookAt(c);
+    const prevT = renderer.getRenderTarget(), prevC = renderer.getClearColor(new THREE.Color()), prevA = renderer.getClearAlpha();
+    renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 0); renderer.clear(); renderer.render(sc, cam);
+    const px = new Uint8Array(W * H * 4); renderer.readRenderTargetPixels(rt, 0, 0, W, H, px);
+    renderer.setRenderTarget(prevT); renderer.setClearColor(prevC, prevA); rt.dispose();
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const cx = cv.getContext('2d'), img = cx.createImageData(W, H);
+    for (let y = 0; y < H; y++) img.data.set(px.subarray((H - 1 - y) * W * 4, (H - y) * W * 4), y * W * 4);
+    cx.putImageData(img, 0, 0);
+    return (THUMB.cache[key] = cv.toDataURL('image/png'));
   } catch (e) { return ''; }
 }
-const thumbImg = (consist, cls = '') => { const u = trainThumb(consist); return u ? `<img class="rsimg ${cls}" src="${u}" alt="">` : ''; };
+/** Returns an <img>; uncached thumbnails render a moment later so the UI never blocks on them. */
+function thumbImg(consist, cls = '') {
+  const key = consist.join(',') + '520x130', url = THUMB.cache[key];
+  if (url) return `<img class="rsimg ${cls}" src="${url}" alt="">`;
+  if (!THUMB.queue.includes(key)) THUMB.queue.push(key);
+  if (!THUMB.busy) { THUMB.busy = true; setTimeout(thumbPump, 30); }
+  return `<img class="rsimg ${cls}" data-thumb="${key}" alt="" style="aspect-ratio:4/1">`;
+}
+function thumbPump() {
+  const key = THUMB.queue.shift();
+  if (!key) { THUMB.busy = false; return; }
+  const url = trainThumb(key.replace('520x130', '').split(','));
+  document.querySelectorAll(`img[data-thumb="${CSS.escape(key)}"]`).forEach(im => { im.src = url; im.removeAttribute('data-thumb'); im.style.aspectRatio = ''; });
+  setTimeout(thumbPump, 16);
+}
 const TIER_CONSIST = { THN: ['THN', 'THN_car', 'THN'], AD24C: ['ALS', 'coach', 'coach'], ASR: ['ASR', 'ASR_car', 'ASR'], QSY: ['CSR', 'frt', 'frt'] };

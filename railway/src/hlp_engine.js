@@ -808,7 +808,7 @@ function tPick(e) {
   tSelect(c && c.sid ? { sid: c.sid } : null);
 }
 function tSelect(s) {
-  TRT.sel = s;
+  TRT.sel = s; SV.sel = s ? s.sid : null; SV.cardSig = '';
   $('#dmi').hidden = !s || MODE !== 'term';
   document.querySelectorAll('#tSvcList .card').forEach(el => el.classList.toggle('sel', !!s && el.dataset.sid === s.sid));
   if (s && $('#panel').classList.contains('open') && drawerTab === 'tsvc') { const el = document.querySelector(`#tSvcList .card[data-sid="${s.sid}"]`); if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
