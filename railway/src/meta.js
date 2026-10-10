@@ -453,6 +453,7 @@ function renderSettings() {
   mSet('ตั้งค่า', '', `<div class="cfg">
     <div class="cfg-row"><span>เสียง</span><div class="segm"><button data-sset="sound" aria-pressed="${state.sound}">${state.sound ? 'เปิด' : 'ปิด'}</button></div></div>
     <div class="cfg-row"><span>กราฟิก</span><div class="segm"><button data-sset="q-high" aria-pressed="${FX.quality === 'high'}">สูง</button><button data-sset="q-eco" aria-pressed="${FX.quality !== 'high'}">ประหยัดแบต</button></div></div>
+    <div class="cfg-row"><span>ประสิทธิภาพ</span><div class="segm"><button data-sset="perf-auto" aria-pressed="${PERF.auto}">ปรับอัตโนมัติ</button><button data-sset="perf-fps" aria-pressed="${PERF.shown}">แสดง FPS</button></div></div>
     <div class="cfg-row"><span>ธีม</span><div class="segm">${[['auto', 'ตามระบบ'], ['light', 'สว่าง'], ['dark', 'มืด']].map(([k, l]) => `<button data-sset="th-${k}" aria-pressed="${th === k}">${l}</button>`).join('')}</div></div>
     <div class="cfg-row"><span>วิธีเล่น</span><div class="segm"><button data-sset="tut">ดูวิธีเล่นอีกครั้ง</button></div></div>
   </div>`);
@@ -493,8 +494,10 @@ $('#mmodal').addEventListener('click', e => {
   else if ('rapply' in d) { const tr = trainById(MOD.repaint); if (tr && spend(5000)) { tr.livery = MOD.rliv; makeTrain(tr); if (offLine(tr)) RT.trains[tr.id].group.visible = false; toast(`${tr.name} ทาสีลาย${LIVERIES[tr.livery].name}แล้ว`); MOD.repaint = null; renderFleet(); } }
   else if (d.sset) {
     const k = d.sset;
-    if (k === 'sound') $('#soundBtn').click();
-    else if (k === 'q-high' || k === 'q-eco') { fxSetQuality(k.slice(2)); state.quality = k.slice(2); }
+    if (k === 'perf-auto') { PERF.auto = !PERF.auto; perfSave(); }
+    else if (k === 'perf-fps') { PERF.shown = !PERF.shown; perfSave(); perfOverlay(); }
+    else if (k === 'sound') $('#soundBtn').click();
+    else if (k === 'q-high' || k === 'q-eco') { fxSetQuality(k.slice(2)); state.quality = k.slice(2); if (k === 'q-high' && PERF.ultra) { PERF.ultra = false; renderer.shadowMap.enabled = true; } }
     else if (k.startsWith('th-')) { const t = k.slice(3); if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t); try { localStorage.setItem('railtrack-theme', t); } catch (e) {} }
     else if (k === 'tut') { closeModal(); hideMenus(); $('#tutBtn').click(); return; }
     renderSettings();

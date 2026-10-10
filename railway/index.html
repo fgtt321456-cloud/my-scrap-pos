@@ -939,6 +939,7 @@ select{width:100%;font:inherit;background:var(--panel);color:var(--fg);border:1p
 .realnotes{margin:0;padding-left:18px;display:grid;gap:6px;font-size:13.5px}
 .hub .go.alt{background:var(--navy-2);color:#fff}
 .mode-stn #edgeArrows,.mode-net #edgeArrows{display:none}
+#perfHud{position:absolute;left:8px;bottom:6px;z-index:9;font:600 11px var(--f-mono);color:#fff;background:rgba(8,14,26,.72);padding:3px 8px;border-radius:6px;pointer-events:none}
 </style>
 </head>
 <body>
@@ -4003,6 +4004,7 @@ function renderSettings() {
   mSet('ตั้งค่า', '', `<div class="cfg">
     <div class="cfg-row"><span>เสียง</span><div class="segm"><button data-sset="sound" aria-pressed="${state.sound}">${state.sound ? 'เปิด' : 'ปิด'}</button></div></div>
     <div class="cfg-row"><span>กราฟิก</span><div class="segm"><button data-sset="q-high" aria-pressed="${FX.quality === 'high'}">สูง</button><button data-sset="q-eco" aria-pressed="${FX.quality !== 'high'}">ประหยัดแบต</button></div></div>
+    <div class="cfg-row"><span>ประสิทธิภาพ</span><div class="segm"><button data-sset="perf-auto" aria-pressed="${PERF.auto}">ปรับอัตโนมัติ</button><button data-sset="perf-fps" aria-pressed="${PERF.shown}">แสดง FPS</button></div></div>
     <div class="cfg-row"><span>ธีม</span><div class="segm">${[['auto', 'ตามระบบ'], ['light', 'สว่าง'], ['dark', 'มืด']].map(([k, l]) => `<button data-sset="th-${k}" aria-pressed="${th === k}">${l}</button>`).join('')}</div></div>
     <div class="cfg-row"><span>วิธีเล่น</span><div class="segm"><button data-sset="tut">ดูวิธีเล่นอีกครั้ง</button></div></div>
   </div>`);
@@ -4043,8 +4045,10 @@ $('#mmodal').addEventListener('click', e => {
   else if ('rapply' in d) { const tr = trainById(MOD.repaint); if (tr && spend(5000)) { tr.livery = MOD.rliv; makeTrain(tr); if (offLine(tr)) RT.trains[tr.id].group.visible = false; toast(`${tr.name} ทาสีลาย${LIVERIES[tr.livery].name}แล้ว`); MOD.repaint = null; renderFleet(); } }
   else if (d.sset) {
     const k = d.sset;
-    if (k === 'sound') $('#soundBtn').click();
-    else if (k === 'q-high' || k === 'q-eco') { fxSetQuality(k.slice(2)); state.quality = k.slice(2); }
+    if (k === 'perf-auto') { PERF.auto = !PERF.auto; perfSave(); }
+    else if (k === 'perf-fps') { PERF.shown = !PERF.shown; perfSave(); perfOverlay(); }
+    else if (k === 'sound') $('#soundBtn').click();
+    else if (k === 'q-high' || k === 'q-eco') { fxSetQuality(k.slice(2)); state.quality = k.slice(2); if (k === 'q-high' && PERF.ultra) { PERF.ultra = false; renderer.shadowMap.enabled = true; } }
     else if (k.startsWith('th-')) { const t = k.slice(3); if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t); try { localStorage.setItem('railtrack-theme', t); } catch (e) {} }
     else if (k === 'tut') { closeModal(); hideMenus(); $('#tutBtn').click(); return; }
     renderSettings();
@@ -6683,6 +6687,33 @@ $('#coopBody').addEventListener('click', e => {
   const ls = t.closest('[data-lease]'); if (ls) { const [uid, tid] = ls.dataset.lease.split('|'); const f = CO.fleets[uid]; const tr = f && (f.trains || []).find(x => x.id === tid); if (tr) coopLease(uid, tr); }
 });
 setInterval(() => { if (drawerTab === 'coop' && $('#panel').classList.contains('open')) coopRender(); }, 4000);
+// =================== Performance: FPS overlay, automatic quality fallback ===================
+const PERF = { ema: 60, slow: 0, shown: false, auto: true, ultra: false, acc: 0, el: null };
+try { const p = JSON.parse(localStorage.getItem('railtrack-perf') || '{}'); PERF.shown = !!p.shown || location.hash.startsWith('#rtdebug'); PERF.auto = p.auto !== false; } catch (e) {}
+function perfSave() { try { localStorage.setItem('railtrack-perf', JSON.stringify({ shown: PERF.shown, auto: PERF.auto })); } catch (e) {} }
+function perfOverlay() {
+  if (!PERF.el) { PERF.el = document.createElement('div'); PERF.el.id = 'perfHud'; $('#stage').appendChild(PERF.el); }
+  PERF.el.hidden = !PERF.shown;
+}
+/** Called once per frame with the real frame time. Steps graphics down when the device cannot keep up. */
+function perfTick(raw) {
+  if (raw <= 0) return;
+  PERF.ema += ((1 / raw) - PERF.ema) * 0.05;
+  PERF.acc += raw;
+  if (PERF.auto && !document.hidden && $('#menu').hidden && $('#hubs').hidden) {
+    if (PERF.ema < (FX.quality === 'high' ? 34 : 22)) PERF.slow += raw; else PERF.slow = Math.max(0, PERF.slow - raw * 0.5);
+    if (PERF.slow > 5) {
+      PERF.slow = 0;
+      if (FX.quality === 'high') { fxSetQuality('eco'); toast('ลดคุณภาพกราฟิกอัตโนมัติเพื่อให้ลื่นขึ้น (เปลี่ยนได้ในตั้งค่า)'); }
+      else if (!PERF.ultra) { PERF.ultra = true; renderer.setPixelRatio(1); renderer.shadowMap.enabled = false; resize(); toast('โหมดประหยัดสูงสุด: ปิดเงาและลดความละเอียด'); }
+    }
+  }
+  if (PERF.shown && PERF.acc > 0.5) {
+    PERF.acc = 0; perfOverlay();
+    const i = renderer.info.render;
+    PERF.el.textContent = `${Math.round(PERF.ema)} FPS · ${i.calls} draw · ${(i.triangles / 1000).toFixed(0)}k tri · ${FX.quality}${PERF.ultra ? '+ultra' : ''} · px ${renderer.getPixelRatio().toFixed(1)}`;
+  }
+}
 
 // =================== mode switch, save/load, main loop ===================
 function setMode(m, quiet) {
@@ -6768,6 +6799,7 @@ function frame(now) {
   }
   if (MODE === 'term') updateEmotes();
   tutTick();
+  perfTick(raw);
   saveAcc += raw; if (saveAcc > 5) { saveAcc = 0; save(); }
   requestAnimationFrame(frame);
 }
@@ -6800,7 +6832,7 @@ function start(data) {
   setInterval(metaTick, 1000);
   requestAnimationFrame(t => { last = t; frame(t); });
 }
-if (location.hash.startsWith('#rtdebug')) window.__rt = { meta: () => M_(), gainXP, openFleet, openPlanner, openCtrlModal, metaPick, stnEnter, thumb: (c, w, h) => trainThumb(c, w, h), stn: () => stnState(), stnStep: dt => stnStep(stnState(), dt), stnRelease: s => stnRelease(stnState(), s), openGS, openContracts, genOffer, stars: () => [netStars(), termStars()], tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }), hit: () => MAP2D.hit, heldRect: () => worldRect(termHeldPos()), platRect: () => worldRect(termPlatformPos()), readyRect: () => worldRect(termReadyPos()), routes: () => tstate.routes.map(r => r.kind + ':' + r.state), fx: () => ({ q: FX.quality, composer: !!FX.composer, lamp: FX.lamp }) };
+if (location.hash.startsWith('#rtdebug')) window.__rt = { meta: () => M_(), gainXP, openFleet, openPlanner, openCtrlModal, metaPick, stnEnter, perf: () => Object.assign({ fps: PERF.ema, q: FX.quality, px: renderer.getPixelRatio() }, renderer.info.render, { geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), thumb: (c, w, h) => trainThumb(c, w, h), stn: () => stnState(), stnStep: dt => stnStep(stnState(), dt), stnRelease: s => stnRelease(stnState(), s), openGS, openContracts, genOffer, stars: () => [netStars(), termStars()], tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }), hit: () => MAP2D.hit, heldRect: () => worldRect(termHeldPos()), platRect: () => worldRect(termPlatformPos()), readyRect: () => worldRect(termReadyPos()), routes: () => tstate.routes.map(r => r.kind + ':' + r.state), fx: () => ({ q: FX.quality, composer: !!FX.composer, lamp: FX.lamp }) };
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
 })();
