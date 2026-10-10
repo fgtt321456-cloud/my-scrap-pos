@@ -794,6 +794,106 @@ select{width:100%;font:inherit;background:var(--panel);color:var(--fg);border:1p
 .btn.action:hover:not(:disabled){background:#FFD24D}
 .cgcards{min-height:300px;overflow-y:hidden}
 .mhead .stars i:not(.on),.hubs-head .stars i:not(.on){background:rgba(255,255,255,.25)}
+/* ===== Hua Lamphong live list / train card / platform sheet ===== */
+.live{position:absolute;right:12px;top:12px;bottom:96px;width:208px;z-index:4;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.live-head{display:flex;align-items:center;justify-content:space-between;background:var(--navy);color:var(--on-navy);border-radius:10px;padding:4px 6px 4px 12px;pointer-events:auto}
+.live-head b{font-family:var(--f-display);font-size:13px}
+.live-head .iconbtn{color:var(--on-navy)}
+.live-list{display:flex;flex-direction:column;gap:5px;overflow-y:auto;scrollbar-width:none;pointer-events:auto;min-height:0}
+.live-list::-webkit-scrollbar{display:none}
+.lv{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:6px;background:var(--navy);color:var(--on-navy);border:0;border-radius:10px;padding:7px 10px 7px 7px;text-align:left;position:relative;box-shadow:0 3px 10px rgba(0,0,0,.25);border-left:4px solid transparent}
+.lv:hover{background:var(--navy-2)}
+.lv.sel{border-left-color:var(--select);background:var(--navy-2)}
+.lv.sp{border-left-color:#B48CF0}
+.lv-st svg{width:24px;height:24px;fill:none;stroke:var(--on-navy-muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.lv.alert .lv-st svg{stroke:var(--accent);animation:lvBlink 1.2s ease-in-out infinite}
+@keyframes lvBlink{50%{opacity:.35}}
+.lv-ty b,.lv-or b{display:block;font-family:var(--f-display);font-size:15px;letter-spacing:.02em;line-height:1.1}
+.lv-ty span{display:flex;gap:4px;margin-top:2px}
+.cl{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:#fff;color:var(--navy);font-style:normal;font-weight:700;font-size:10.5px;font-family:var(--f-mono)}
+.wc{font-style:normal;font-size:13px;line-height:17px}
+.lv-or{text-align:right;border-left:1px solid rgba(255,255,255,.14);padding-left:8px}
+.lv-or small{display:block;font-family:var(--f-mono);font-size:10.5px;color:var(--on-navy-muted)}
+.mode-term .hud-cam,.mode-term .zones{right:232px}
+.mode-term.drawer-open .live{display:none}
+.mode-term.drawer-open .hud-cam{right:412px}
+.livecard .dmi{left:396px}
+
+.tcard{position:absolute;left:12px;top:12px;width:316px;z-index:5;background:var(--navy);color:var(--on-navy);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.35);overflow:visible;max-height:calc(100% - 110px);display:flex;flex-direction:column}
+.tcard header{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 12px;background:rgba(0,0,0,.25);border-radius:14px 14px 0 0}
+.tc-id b,.tc-ty b{display:block;font-family:var(--f-display);font-size:16px;line-height:1.1}
+.tc-id small{font-size:11px;color:var(--on-navy-muted);display:block;max-width:190px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tc-ty{border-left:3px solid #2EE08A;padding-left:8px}
+.tc-ty span{display:flex;gap:4px;margin-top:2px}
+.tc-op{font-size:12.5px;line-height:1.25}
+.tc-al{width:30px;height:30px;border-radius:50%;border:3px solid var(--accent);color:var(--accent);display:grid;place-items:center;font-weight:800;font-family:var(--f-display)}
+.tc-body{padding:12px 14px 14px;display:grid;gap:10px;overflow-y:auto}
+.tc-main{display:grid;gap:4px;grid-column:1;grid-row:1;align-content:start}
+.tc-main small,.tc-ct small{display:block;color:var(--on-navy-muted);font-size:11px}
+.tc-main b{font-family:var(--f-display);font-size:16px}
+.tc-body{grid-template-columns:1fr 128px}
+.tc-pic{grid-column:2;grid-row:1;align-self:center}
+.tc-pic .tsvg{width:100%}
+.tc-sched,.tc-ct,.tc-status,.tc-body>.btn{grid-column:1/-1}
+.tc-sched{display:grid;grid-template-columns:1fr auto;gap:4px;border-top:1px solid rgba(255,255,255,.12);padding-top:8px;font-family:var(--f-display);font-size:15px}
+.tc-sched b.bad{color:#FF8A94}.tc-sched b.good{color:#6EE7A8}
+.tc-sched .bar{grid-column:1/-1;height:4px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
+.tc-sched .bar i{display:block;height:100%;background:var(--accent)}
+.tc-sched .bar i.bad{background:#FF6B78}.tc-sched .bar i.good{background:#3FC58B}
+.tc-ct{display:grid;grid-template-columns:40px 1fr auto auto;gap:8px;align-items:center;border-top:1px solid rgba(255,255,255,.12);padding-top:8px}
+.ct-ic svg{width:40px;height:34px}
+.tc-ct b{font-family:var(--f-display);font-size:16px}
+.thumbs{display:flex;gap:8px;font-family:var(--f-mono);font-size:12.5px}
+.face{display:inline-block;width:22px;height:22px}
+.face svg{width:22px;height:22px;fill:none;stroke-width:1.6;stroke-linecap:round}
+.face.good svg{stroke:#3FC58B}.face.mid svg{stroke:var(--accent)}.face.bad svg{stroke:#FF6B78}
+.face .e{fill:currentColor}
+.face.good .e{fill:#3FC58B}.face.mid .e{fill:var(--accent)}.face.bad .e{fill:#FF6B78}
+.tc-status{display:flex;align-items:center;gap:8px;border-top:1px solid rgba(255,255,255,.12);padding-top:8px;font-size:13px}
+.tc-status svg{width:22px;height:22px;fill:none;stroke:#6EE7A8;stroke-width:1.6;flex:none}
+.tcard .btn.big{font-size:18px;padding:11px}
+.tcard .btn.big:disabled{background:rgba(255,194,14,.35);color:rgba(15,34,64,.75);opacity:1}
+.tc-side{position:absolute;right:-50px;top:56px;display:flex;flex-direction:column;gap:8px}
+.tc-side button{width:40px;height:40px;border-radius:50%;border:0;background:var(--hud);color:var(--fg);box-shadow:var(--shadow);display:grid;place-items:center}
+.tc-side svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+
+.psheet{position:absolute;left:396px;right:236px;bottom:96px;z-index:6;background:var(--navy);color:var(--on-navy);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.35);padding:10px 12px 12px}
+.psheet header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.psheet header>div{flex:1}
+.psheet header b{font-family:var(--f-display);font-size:17px;display:block}
+.psheet header small{color:var(--on-navy-muted);font-size:12px}
+.psheet .iconbtn{color:var(--on-navy)}
+.ps-list{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+.pcard{flex:none;width:122px;border:0;border-radius:10px;background:#E9EDF3;color:var(--navy);padding:8px;display:grid;gap:5px;justify-items:center;text-align:center}
+.pcard b{font-family:var(--f-display);font-size:14px}
+.pc-cl{display:flex;gap:3px}
+.pc-cl i{width:17px;height:17px;border-radius:50%;font-style:normal;font-size:10px;font-weight:700;font-family:var(--f-mono);display:grid;place-items:center;color:#9AA8BD;border:1px solid #C5CEDB}
+.pc-cl i.on{background:var(--navy-2);color:#fff;border-color:var(--navy-2)}
+.pcard small{font-size:11.5px;font-weight:600;color:var(--good)}
+.pcard.no{background:#C9D0DA;opacity:.7}
+.pcard.no small{color:var(--bad)}
+.pcard.plan{box-shadow:0 0 0 3px var(--accent)}
+.pcard:not(.no):hover{box-shadow:0 0 0 3px #3A9BFF}
+@media (max-width:820px){
+  .live{width:118px;right:6px;top:6px;bottom:150px}
+  .live-head b{font-size:12px}
+  .lv{grid-template-columns:1fr;padding:6px 8px;gap:2px}
+  .lv-st{display:none}
+  .lv-or{text-align:left;border:0;padding:0}
+  .lv-ty b,.lv-or b{font-size:13px}
+  .lv.alert{border-left-color:var(--accent)}
+  .mode-term .hud-cam,.mode-term .zones{right:130px}
+  .tcard{left:6px;right:130px;width:auto;top:auto;bottom:140px;max-height:none}
+  .tc-side{right:0;top:-48px;flex-direction:row}
+  .tc-side button{width:38px;height:38px}
+  .tc-body{grid-template-columns:1fr;gap:8px;padding:10px 12px 12px}
+  .tc-pic,.tc-ct,.tc-main>div:nth-child(4){display:none}
+  .tc-main{grid-template-columns:repeat(3,auto);justify-content:space-between}
+  .tc-main b{font-size:14px}
+  .tcard .btn.big{font-size:16px;padding:9px}
+  .livecard .dmi{display:none}
+  .psheet{left:6px;right:6px;bottom:140px;z-index:7}
+}
 </style>
 </head>
 <body>
@@ -3336,6 +3436,7 @@ function planBlocks() {
   return out;
 }
 function planConflict(T, s) {
+  if (trainClass(s) > platClass(T)) return { s: { name: `ความยาวชานชาลา (รับถึงขนาด ${CLS[platClass(T)]})` } };
   const a = s.schedArr, b = s.schedDep + 300;
   return planBlocks().find(x => x.T === T && x.s !== s && x.a < b && a < x.b + 300);
 }
@@ -3367,7 +3468,7 @@ function renderPlanner() {
 function planPlace(T) {
   const s = MOD.sel && tSvc(MOD.sel); if (!s || !isPlannable(s)) return;
   const c = planConflict(T, s);
-  if (c) { toast(`ราง ${T} ไม่ว่าง: ชนกับ ${c.s.name}`); return; }
+  if (c) { toast(`ราง ${T} ใช้ไม่ได้: ${c.s.name}`); return; }
   MOD.draft[s.id] = T; MOD.sel = null;
   const p = planBlocks().find(x => x.T === partnerOf(T) && x.s.kind === 'LH' && x.a < s.schedDep && s.schedArr < x.b);
   if (s.kind === 'LH' && p) toast(`ระวัง: ราง ${partnerOf(T)} (รางคู่) มี ${p.s.name} ที่ต้องสับหลีกช่วงเดียวกัน`);
@@ -3807,6 +3908,214 @@ $('#zoneBar').addEventListener('click', e => {
 TOOLS.term.splice(TOOLS.term.findIndex(t => t[0] === 'tcrew'), 0, ['gs', 'รถบริการ'], ['contracts', 'สัญญา']);
 ICONS.gs = '<path d="M3 20V9l9-5 9 5v11"/><path d="M7 20v-7h10v7M7 16h10"/>';
 
+// =================== Hua Lamphong live list, train card and platform selection (WoA-style) ===================
+const CLS = 'ABCD';
+// consist length class: A ≤4 vehicles, B ≤6, C ≤8, D 9–10; platforms 1–6 take D, 7–10 take C, 11–14 take B
+const trainClass = s => { const n = s.kind === 'LH' ? 1 + s.coaches : s.cars + 2; return n <= 4 ? 0 : n <= 6 ? 1 : n <= 8 ? 2 : 3; };
+const platClass = T => (T <= 6 ? 3 : T <= 10 ? 2 : 1);
+const ORIG_CODE = { 'เชียงใหม่': 'CMI', 'อุบลราชธานี': 'UBN', 'หนองคาย': 'NKI', 'สุไหงโก-ลก': 'SGK', 'ชุมทางหาดใหญ่': 'HDY', 'พิษณุโลก': 'PLK', 'สุราษฎร์ธานี': 'SNI', 'ตรัง': 'TRG', 'ศิลาอาสน์': 'SLA',
+  'ลพบุรี': 'LBR', 'อยุธยา': 'AYA', 'ฉะเชิงเทรา': 'CCO', 'ราชบุรี': 'RBR', 'ปราจีนบุรี': 'PCB', 'นครปฐม': 'NPT', 'บ้านภาชี': 'BPC', 'แก่งคอย': 'KKY', 'หัวหิน': 'HHN', 'กาญจนบุรี': 'KAN' };
+const ROUTE_REGION = { CMI: 'สายเหนือ', PLK: 'สายเหนือ', SLA: 'สายเหนือ', LBR: 'สายเหนือ', AYA: 'สายเหนือ', BPC: 'สายเหนือ', UBN: 'สายอีสาน', NKI: 'สายอีสาน', KKY: 'สายอีสาน',
+  SGK: 'สายใต้', HDY: 'สายใต้', SNI: 'สายใต้', TRG: 'สายใต้', RBR: 'สายใต้', NPT: 'สายใต้', HHN: 'สายใต้', KAN: 'สายตะวันตก', CCO: 'สายตะวันออก', PCB: 'สายตะวันออก' };
+const origCode = s => ORIG_CODE[s.from] || ORIG_CODE[String(s.from).split(' ')[0]] || 'SPC';
+const LOCO_T = ['GEA', 'ALS', 'HID', 'CSR'], DMU_T = ['THN', 'NKF', 'APD', 'ASR'];
+const svcType = s => s.ty || (s.ty = (s.kind === 'LH' ? LOCO_T : DMU_T)[Math.floor(Math.random() * 4)]);
+const needsLift = s => !!(s.tasks ? s.tasks.lift : s.lift);
+const svcRev = s => { const late = Math.max(0, (Math.max(tstate.now, s.phase === 'dwell' || s.phase === 'departing' ? tstate.now : s.schedDep) - s.schedDep) / 60); return Math.round(Math.max(1000, Math.round((s.kind === 'LH' ? 12000 : 7000) - late * 400)) * (s.special ? 2 : 1)); };
+const LIVE = { sel: null, filter: 'all', sig: '', cardSig: '', sheet: null };
+const isNextArrival = s => { const n = nextArrivalSvc(); return n && n.id === s.id; };
+function svcAlert(s) {
+  if (s.phase === 'held') return true;
+  if (s.phase === 'approach' && isNextArrival(s) && !tstate.routes.some(r => r.from === 'HA')) return true;
+  if (s.phase === 'dwell' && s.state === 'ready' && tstate.now >= s.schedDep - 30 && !tstate.routes.some(r => r.from === 'ST' + s.track)) return true;
+  return false;
+}
+// per-region operating contracts: every 5 departures is one contract period, scored by on-time thumbs
+function routeContractTick(svc, late) {
+  const reg = ROUTE_REGION[origCode(svc)] || 'ขบวนพิเศษ';
+  const R = (tstate.rstat = tstate.rstat || {})[reg] || (tstate.rstat[reg] = { n: 0, up: 0, down: 0, done: 0 });
+  R.n++; if (late <= 3) R.up++; else R.down++;
+  if (R.n >= 5) {
+    const ok = R.up >= 4;
+    if (ok) { earn(20000, 'term'); gainXP(15); toast(`ต่อสัญญาเดินรถ${reg}สำเร็จ +${baht(20000)}`); tlog(`ต่อสัญญาเดินรถ${reg} (${R.up}/5 ตรงเวลา)`, 'good'); }
+    else { state.rep = Math.max(0, state.rep - 3); toast(`สัญญาเดินรถ${reg}ไม่ผ่าน: ตรงเวลาแค่ ${R.up}/5`); tlog(`สัญญาเดินรถ${reg}ไม่ผ่านเกณฑ์`, 'bad'); }
+    R.done++; R.n = 0; R.up = 0; R.down = 0;
+  }
+}
+const regStat = s => { const reg = ROUTE_REGION[origCode(s)] || 'ขบวนพิเศษ'; return [reg, (tstate.rstat && tstate.rstat[reg]) || { n: 0, up: 0, down: 0 }]; };
+
+// ---------- DOM ----------
+$('#stage').insertAdjacentHTML('beforeend', `
+<aside class="live" id="live" hidden aria-label="ขบวนรถเข้า-ออก">
+  <div class="live-head"><b>ขบวนรถ</b><button class="iconbtn" id="liveFilter" aria-label="ตัวกรอง" title="ตัวกรอง"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 8v5l-4 2v-7z"/></svg></button></div>
+  <div class="live-list" id="liveList"></div>
+</aside>
+<section class="tcard" id="tcard" hidden aria-label="ข้อมูลขบวนรถ"></section>
+<section class="psheet" id="psheet" hidden aria-label="เลือกชานชาลา"><header><div><b id="psTitle">เลือกชานชาลา</b><small id="psSub"></small></div><button class="iconbtn" id="psClose" aria-label="ปิด"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header><div class="ps-list" id="psList"></div></section>`);
+const LV_IC = {
+  arr: '<path d="M3 17h18M6 13l4 2 9-6-2-1-6 3-4-3-2 1 3 3"/>',
+  in: '<rect x="5" y="4" width="14" height="13" rx="3"/><path d="M5 11h14M8 20l2-3M16 20l-2-3"/>',
+  dep: '<path d="M3 19h18M5 15l5-1 9-7-1-2-8 4-4-2-2 1 3 3"/>',
+};
+const FILTERS = [['all', 'ทั้งหมด'], ['arr', 'ขาเข้า'], ['in', 'ในชานชาลา']];
+$('#liveFilter').addEventListener('click', () => { const i = FILTERS.findIndex(f => f[0] === LIVE.filter); LIVE.filter = FILTERS[(i + 1) % FILTERS.length][0]; toast('แสดง: ' + FILTERS[(i + 1) % FILTERS.length][1]); LIVE.sig = ''; liveRender(); });
+$('#liveList').addEventListener('click', e => { const b = e.target.closest('[data-lv]'); if (!b) return; const s = tSvc(b.dataset.lv); if (!s) return; tSelect(TRT.sel && TRT.sel.sid === s.id ? null : { sid: s.id }); });
+const liveIcon = s => (['sched', 'approach', 'held'].includes(s.phase) ? 'arr' : s.phase === 'departing' ? 'dep' : 'in');
+function liveItems() {
+  const ph = { held: 0, approach: 1, entering: 2, dwell: 3, departing: 4, sched: 5 };
+  let list = tstate.services.filter(s => ph[s.phase] !== undefined);
+  if (LIVE.filter === 'arr') list = list.filter(s => ['sched', 'approach', 'held', 'entering'].includes(s.phase));
+  if (LIVE.filter === 'in') list = list.filter(s => s.phase === 'dwell' || s.phase === 'departing');
+  return list.sort((a, b) => (svcAlert(b) - svcAlert(a)) || ((a.phase === 'sched') - (b.phase === 'sched')) || (a.schedArr - b.schedArr)).slice(0, 14);
+}
+function liveRender(force) {
+  if (!tstate || MODE !== 'term') { $('#live').hidden = true; $('#tcard').hidden = true; $('#psheet').hidden = true; $('#app').classList.remove('livecard'); return; }
+  $('#live').hidden = false;
+  const sel = TRT.sel && TRT.sel.sid;
+  const html = liveItems().map(s => {
+    const al = svcAlert(s), t = s.phase === 'dwell' || s.phase === 'departing' ? tClock(s.schedDep) : tClock(s.schedArr);
+    return `<button class="lv${al ? ' alert' : ''}${sel === s.id ? ' sel' : ''}${s.special ? ' sp' : ''}" data-lv="${s.id}"><span class="lv-st"><svg viewBox="0 0 24 24">${al ? '<circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/>' : LV_IC[liveIcon(s)]}</svg></span>
+      <span class="lv-ty"><b>${svcType(s)}</b><span><i class="cl">${CLS[trainClass(s)]}</i>${needsLift(s) ? '<i class="wc" title="ต้องใช้ลิฟต์วีลแชร์">♿</i>' : ''}</span></span>
+      <span class="lv-or"><b>${origCode(s)}</b><small>${s.track ? 'ราง ' + s.track : t}</small></span></button>`;
+  }).join('') || '<p class="info">ไม่มีขบวน</p>';
+  if (html !== LIVE.sig || force) { LIVE.sig = html; $('#liveList').innerHTML = html; }
+  liveCard(force);
+}
+
+// ---------- train card ----------
+function phaseText(s) {
+  const c = s.cid && tCons(s.cid);
+  switch (s.phase) {
+    case 'sched': return ['ตามกำหนด', `กำหนดเข้า ${tClock(s.schedArr)}${s.plan ? ` · วางแผนราง ${s.plan}` : ''}`];
+    case 'approach': return ['กำลังเข้าเขต', c ? `ห่างสัญญาณ H ${Math.max(0, Math.round(c.stopS - c.s))} ม. · ${Math.round(c.v * 3.6)} กม./ชม.` : 'กำลังเข้าเขตสถานี'];
+    case 'held': return ['รอสัญญาณ H', `หยุดรอที่สัญญาณ H มา ${Math.floor(s.hold / 60)}:${String(Math.floor(s.hold % 60)).padStart(2, '0')} นาที`];
+    case 'entering': return ['เข้าชานชาลา', `กำลังเข้าราง ${s.track}${c ? ` · ${Math.round(c.v * 3.6)} กม./ชม.` : ''}`];
+    case 'dwell': { const k = s.tasks ? Object.values(s.tasks) : [], d = k.filter(t => t.st === 'done').length; return [s.state === 'ready' ? 'พร้อมออก' : 'กลับขบวน', s.state === 'ready' ? `พร้อมออกจากราง ${s.track}` : `งานกลับขบวน ${d}/${k.length}${k.some(t => t.st === 'queue') ? ' · มีงานรอทีม' : ''}`]; }
+    case 'departing': return ['กำลังออก', 'ออกจากสถานีผ่านคอขวด'];
+  }
+  return ['—', ''];
+}
+function schedText(s) {
+  if (s.phase === 'dwell' || s.phase === 'departing') {
+    const late = Math.round((tstate.now - s.schedDep) / 60);
+    if (late > 0) return ['ล่าช้า', `${late} นาที`, 'bad', 1];
+    const left = Math.max(0, s.schedDep - tstate.now);
+    return ['ออกตามกำหนด', `${tClock(s.schedDep)} · อีก ${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`, 'good', 1 - left / ((s.schedDep - s.schedArr) || 1)];
+  }
+  if (s.phase === 'held') return ['ค่าปรับรอสัญญาณ', baht(s.hold * 2.5), 'bad', 1];
+  const left = s.schedArr - tstate.now;
+  return ['ถึงสัญญาณ H', left > 0 ? `อีก ${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}` : 'กำลังถึง', '', 0.5];
+}
+function cardAction(s) {
+  if (s.phase === 'approach' || s.phase === 'held') {
+    if (tstate.routes.some(r => r.from === 'HA')) return ['ตั้งเส้นทางเข้าแล้ว', false, ''];
+    return isNextArrival(s) ? ['เลือกชานชาลา', true, 'route'] : ['รอคิวขบวนก่อนหน้า', false, ''];
+  }
+  if (s.phase === 'sched') return [s.plan ? `เปลี่ยนแผน (ราง ${s.plan})` : 'วางแผนชานชาลา', true, 'plan'];
+  if (s.phase === 'dwell') {
+    if (tstate.routes.some(r => r.from === 'ST' + s.track)) return ['ตั้งเส้นทางออกแล้ว', false, ''];
+    if (s.state === 'ready') return ['ปล่อยรถ', true, 'dep'];
+    return [phaseText(s)[1].replace(' · มีงานรอทีม', ''), false, ''];
+  }
+  return [s.phase === 'entering' ? 'กำลังเข้าชานชาลา' : 'กำลังออก', false, ''];
+}
+const face = r => r == null ? '<i class="face"></i>' : `<i class="face ${r >= 0.8 ? 'good' : r >= 0.5 ? 'mid' : 'bad'}"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8.5"/><circle cx="7" cy="8" r="1" class="e"/><circle cx="13" cy="8" r="1" class="e"/><path d="${r >= 0.8 ? 'M6 12q4 4 8 0' : r >= 0.5 ? 'M6.5 13h7' : 'M6 14q4-4 8 0'}"/></svg></i>`;
+function liveCard(force) {
+  const s = TRT.sel && tSvc(TRT.sel.sid), el = $('#tcard');
+  $('#app').classList.toggle('livecard', !!s);
+  if (!s) { el.hidden = true; LIVE.cardSig = ''; closePlatSheet(); return; }
+  el.hidden = false;
+  const sig = s.id + s.phase + (s.state || '') + (s.track || 0);
+  if (sig !== LIVE.cardSig || force) {
+    LIVE.cardSig = sig;
+    const op = s.special ? String(s.from).split(' · ').pop() : 'การรถไฟแห่งประเทศไทย';
+    el.innerHTML = `<header><div class="tc-id"><b>${esc(s.name)}</b><small>${origCode(s)} · ${esc(s.from)}</small></div><div class="tc-ty"><b>${svcType(s)}</b><span><i class="cl">${CLS[trainClass(s)]}</i>${needsLift(s) ? '<i class="wc">♿</i>' : ''}</span></div><span class="tc-al" data-f="al"></span></header>
+      <div class="tc-body">
+        <div class="tc-main"><div><small>สถานะ</small><b data-f="ph"></b></div><div><small>ชานชาลา</small><b data-f="tr"></b></div><div><small>รายได้คาดการณ์</small><b class="num" data-f="rev"></b></div><div><small>ผู้ให้บริการ</small><span class="tc-op">${esc(op)}</span></div></div>
+        <div class="tc-pic">${trainSvg(s.kind === 'LH' ? (svcType(s) === 'ALS' ? 'AD24C' : 'QSY') : (svcType(s) === 'ASR' ? 'ASR' : 'THN'), s.special ? 'royal' : 'std', s.kind === 'LH' ? Math.min(4, s.coaches) : s.cars, 'P')}</div>
+        <div class="tc-sched"><span data-f="sl"></span><b data-f="sv"></b><div class="bar"><i data-f="sb"></i></div></div>
+        <div class="tc-ct"><span class="ct-ic">${cgIcon('L')}</span><div><small data-f="reg"></small><b data-f="ct"></b></div><span class="thumbs" data-f="th"></span><span data-f="face"></span></div>
+        <div class="tc-status"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="14" rx="2"/><circle cx="12" cy="7" r="1.3"/><circle cx="12" cy="12" r="1.3"/><path d="M12 17v4"/></svg><span data-f="st"></span></div>
+        <button class="btn action big" data-f="act"></button>
+      </div>
+      <nav class="tc-side"><button data-tc="follow" title="ติดตามกล้อง" aria-label="ติดตามกล้อง"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button><button data-tc="info" title="รายละเอียดงานกลับขบวน" aria-label="รายละเอียด"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button><button data-tc="close" title="ปิด" aria-label="ปิด"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></nav>`;
+  }
+  const [ph, st] = phaseText(s), [sl, sv, scl, sp] = schedText(s), [reg, R] = regStat(s), [al, en, kind] = cardAction(s);
+  setF(el, 'ph', x => { x.textContent = ph; }); setF(el, 'tr', x => { x.textContent = s.track ? `ราง ${s.track}` : s.plan ? `แผน ${s.plan}` : '—'; });
+  setF(el, 'rev', x => { x.textContent = baht(svcRev(s)); });
+  setF(el, 'sl', x => { x.textContent = sl; }); setF(el, 'sv', x => { x.textContent = sv; x.className = scl; });
+  setF(el, 'sb', x => { x.style.width = clamp(sp, 0, 1) * 100 + '%'; x.className = scl; });
+  setF(el, 'reg', x => { x.textContent = `สัญญาเดินรถ${reg}`; }); setF(el, 'ct', x => { x.textContent = `${R.n}/5`; });
+  setF(el, 'th', x => { x.innerHTML = `<span class="up">👍 ${R.up}</span><span class="dn">👎 ${R.down}</span>`; });
+  setF(el, 'face', x => { const r = R.up + R.down ? R.up / (R.up + R.down) : null; const h = face(r); if (x.innerHTML !== h) x.innerHTML = h; });
+  setF(el, 'st', x => { x.textContent = st; });
+  setF(el, 'al', x => { x.hidden = !svcAlert(s); x.textContent = '!'; });
+  setF(el, 'act', x => { if (x.textContent !== al) x.textContent = al; x.disabled = !en; x.dataset.kind = kind; });
+}
+$('#tcard').addEventListener('click', e => {
+  const s = TRT.sel && tSvc(TRT.sel.sid); if (!s) return;
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.tc === 'close') { tSelect(null); return; }
+  if (b.dataset.tc === 'follow') { if (s.cid) { camTerm.follow = s.cid; toast(`กล้องติดตาม ${s.name}`); } else toast('ขบวนยังไม่เข้าเขตสถานี'); return; }
+  if (b.dataset.tc === 'info') { openDrawer('tsvc'); return; }
+  if (b.dataset.f === 'act') {
+    const k = b.dataset.kind;
+    if (k === 'dep') { if (requestDeparture(s.track, false)) sfxPing(); liveRender(true); }
+    else if (k === 'route' || k === 'plan') openPlatSheet(s, k);
+  }
+});
+
+// ---------- platform selection sheet ----------
+function previewTrack(T) {
+  if (T == null) { TRT.prev = null; return; }
+  const path = findPath({ e: 'aFar', dir: 1 }, x => x.e === 'pw' + T && x.dir === -1, false);
+  TRT.prev = path ? new Set(path.map(x => x.e)) : null;
+}
+function planClash(s, T) {
+  const a = s.schedArr, b = s.schedDep + 300;
+  return tstate.services.find(o => o !== s && ((o.track === T && ['entering', 'dwell', 'departing'].includes(o.phase) && o.schedDep + 300 > a) || (o.plan === T && o.phase === 'sched' && o.schedArr < b && a < o.schedDep + 300)));
+}
+function platInfo(s, T, mode) {
+  const occ = trackSvc(T);
+  if (trainClass(s) > platClass(T)) return [false, 'สั้นเกินไป'];
+  if (mode === 'route') {
+    if (!trackFree(T)) return [false, occ ? `มี ${occ.name}` : 'ทางถูกล็อก'];
+    const why = arrivalRule(T, s); if (why) return [false, /รางคู่/.test(why) ? 'รางคู่กำลังสับหลีก' : /ปลายราง/.test(why) ? 'มีหัวรถจักรที่ปลายราง' : 'ขัดระเบียบ'];
+    return [true, s.plan === T ? 'ตามแผน ✓' : 'ว่าง'];
+  }
+  const c = planClash(s, T); if (c) return [false, `ชนกับ ${c.name}`];
+  return [true, s.plan === T ? 'แผนปัจจุบัน' : 'ว่างช่วงเวลานี้'];
+}
+function openPlatSheet(s, mode) {
+  LIVE.sheet = { sid: s.id, mode };
+  $('#psTitle').textContent = mode === 'route' ? 'เลือกชานชาลา' : 'วางแผนชานชาลา';
+  $('#psSub').textContent = `${s.name} · ขนาด ${CLS[trainClass(s)]} · ${s.kind === 'LH' ? 'หัวรถจักร (ต้องสับหลีก)' : 'push-pull'}`;
+  $('#psheet').hidden = false; renderPlatSheet();
+}
+function closePlatSheet() { LIVE.sheet = null; $('#psheet').hidden = true; previewTrack(null); }
+function renderPlatSheet() {
+  const sh = LIVE.sheet, s = sh && tSvc(sh.sid);
+  if (!s || (sh.mode === 'route' && !['approach', 'held'].includes(s.phase)) || (sh.mode === 'plan' && s.phase !== 'sched')) { closePlatSheet(); return; }
+  const html = Array.from({ length: 14 }, (_, i) => {
+    const T = i + 1, [ok, why] = platInfo(s, T, sh.mode), mx = platClass(T);
+    return `<button class="pcard${ok ? '' : ' no'}${s.plan === T ? ' plan' : ''}" data-pt="${T}" ${ok ? '' : 'aria-disabled="true"'}><b>ชานชาลา ${T}</b><span class="pc-cl">${[0, 1, 2, 3].map(c => `<i class="${c <= mx ? 'on' : ''}">${CLS[c]}</i>`).join('')}</span><small>${why}</small></button>`;
+  }).join('');
+  if ($('#psList').dataset.h !== html) { $('#psList').dataset.h = html; $('#psList').innerHTML = html; }
+}
+$('#psClose').addEventListener('click', closePlatSheet);
+$('#psList').addEventListener('pointerover', e => { const b = e.target.closest('[data-pt]'); if (b && LIVE.sheet && LIVE.sheet.mode === 'route' && !b.classList.contains('no')) previewTrack(+b.dataset.pt); });
+$('#psList').addEventListener('pointerleave', () => previewTrack(null));
+$('#psList').addEventListener('click', e => {
+  const b = e.target.closest('[data-pt]'); if (!b || !LIVE.sheet) return;
+  const s = tSvc(LIVE.sheet.sid), T = +b.dataset.pt; if (!s) return;
+  const [ok, why] = platInfo(s, T, LIVE.sheet.mode);
+  if (!ok) { toast(`ชานชาลา ${T}: ${why}`); previewTrack(null); return; }
+  if (LIVE.sheet.mode === 'route') { if (requestArrival(T, false)) { TRT.assign = false; closePlatSheet(); sfxPing(); } }
+  else { s.plan = T; toast(`วางแผน ${s.name} เข้าราง ${T}${ctrlOn('app') ? '' : ' · เปิดผู้ควบคุมขาเข้าให้ ARS ทำตามแผน หรือเลือกเองเมื่อขบวนมาถึง'}`); closePlatSheet(); }
+  liveRender(true);
+});
+setInterval(() => { if (!state || !tstate) return; liveRender(); if (LIVE.sheet) renderPlatSheet(); }, 300);
+
 // =====================================================================
 // สถานีหัวลำโพง: คอขวด ประแจ อาณัติสัญญาณ NX/รีเลย์ ETCS และการกลับขบวน
 // =====================================================================
@@ -4096,7 +4405,7 @@ function tryAssign(r) {
     const late = Math.max(0, (tstate.now - svc.schedDep) / 60);
     const rev = Math.round(Math.max(1000, Math.round((svc.kind === 'LH' ? 12000 : 7000) - late * 400)) * (svc.special ? 2 : 1));
     if (svc.special) { gainXP(10); addCoins(1); }
-    earn(rev, 'term'); tstate.stats.dep++; gainXP(late <= 3 ? 8 : 4); tstate.stats.rev += rev; tstate.stats.delayMin += late; if (late <= 3) tstate.stats.onTime++;
+    earn(rev, 'term'); tstate.stats.dep++; gainXP(late <= 3 ? 8 : 4); routeContractTick(svc, late); tstate.stats.rev += rev; tstate.stats.delayMin += late; if (late <= 3) tstate.stats.onTime++;
     const p = pAt(c, c.s); popup(new THREE.Vector3(p.x, 9, p.z), '+' + baht(rev), late > 3);
     tlog(`${svc.outName} ออกจากราง ${svc.track} ไป${svc.from} ${late > 3 ? `ช้า ${Math.round(late)} นาที` : 'ตรงเวลา'} · ${baht(rev)}`, late > 3 ? 'bad' : 'good');
   } else if (r.kind === 'shunt') {
@@ -4132,6 +4441,7 @@ function sigAspect(id) {
 const trackSvc = T => tstate.services.find(s => (s.phase === 'dwell' || s.phase === 'entering') && s.track === T);
 const lhPending = s => s && s.kind === 'LH' && (s.phase === 'entering' || !s.ra || s.ra.st !== 'done');
 function arrivalRule(T, svc) {
+  if (svc && trainClass(svc) > platClass(T)) return `ราง ${T} สั้นเกินไป: รับได้ถึงขนาด ${CLS[platClass(T)]} แต่ขบวนนี้ขนาด ${CLS[trainClass(svc)]}`;
   if (!svc || svc.kind !== 'LH') return null;
   const Q = partnerOf(T), o = trackSvc(Q);
   if (lhPending(o)) return `ราง ${Q} (รางคู่) มีขบวนหัวรถจักรที่ยังสับหลีกไม่เสร็จ ถ้ารับเข้าจะติดตายกันทั้งคู่`;
@@ -4617,7 +4927,8 @@ function tSelect(s) {
   TRT.sel = s;
   $('#dmi').hidden = !s || MODE !== 'term';
   document.querySelectorAll('#tSvcList .card').forEach(el => el.classList.toggle('sel', !!s && el.dataset.sid === s.sid));
-  if (s) { tSwitchTab('tsvc'); const el = document.querySelector(`#tSvcList .card[data-sid="${s.sid}"]`); if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+  if (s && $('#panel').classList.contains('open') && drawerTab === 'tsvc') { const el = document.querySelector(`#tSvcList .card[data-sid="${s.sid}"]`); if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+  liveRender(true);
 }
 
 // ---------- ETCS DMI ----------
@@ -4875,7 +5186,7 @@ const tSerialize = () => JSON.stringify(tstate, (k, v) => (k === '_cum' ? undefi
 const BB_TERM = makeBB(new THREE.Group()); tScene.add(BB_TERM.group);
 const TNODE = {}, TEDGE = {}, TNODE_PICK = [];
 let TERM_LAMPS = null, tEdgeAcc = 0;
-const ROUTE_COL = { rt: new THREE.Color(0x2EE08A), sh: new THREE.Color(0xFFB020), occ: new THREE.Color(0xFF4D57) };
+const ROUTE_COL = { rt: new THREE.Color(0x2EE08A), sh: new THREE.Color(0xFFB020), occ: new THREE.Color(0xFF4D57), pv: new THREE.Color(0x3A9BFF) };
 function tFxBuild() {
   TM.ground.color.set(PAL.terrain); TM.ballast.color.set(0x8C8476); TM.sleeper.color.set(0x5B4636); TM.rail.color.set(0x3A3F47);
   TM.plat.color.set(0xC9D0DA); TM.building.color.set(0xF2E6CE); TM.city.color.set(0xffffff);
@@ -4940,7 +5251,8 @@ function tFxUpdate(time, dt) {
     if (OCC[id]) col = r ? ROUTE_COL.occ : null;
     else if (r) col = r.kind === 'shunt' ? ROUTE_COL.sh : ROUTE_COL.rt;
     if (OCC[id] && G.edges[id].kind === 'throat') col = ROUTE_COL.occ;
-    m.visible = !!col; if (col) { m.material.color.copy(col); m.material.opacity = r && r.state === 'setting' ? 0.45 + 0.4 * Math.abs(Math.sin(time * 6)) : 0.9; }
+    const pv = !col && TRT.prev && TRT.prev.has(id); if (pv) col = ROUTE_COL.pv;
+    m.visible = !!col; if (col) { m.material.color.copy(col); m.material.opacity = pv ? 0.5 + 0.35 * Math.abs(Math.sin(time * 4)) : r && r.state === 'setting' ? 0.45 + 0.4 * Math.abs(Math.sin(time * 6)) : 0.9; }
   }
 }
 function tFxPick() {
