@@ -40,7 +40,7 @@ namespace ThaiRail.Simulation
             float p = Chance(_d.delay.p, _d.delay.pLv, _d.delay.pMax) + (IsRain(sec) ? _d.rain.delayP : 0f);
             if (_rng.NextDouble() >= p) return 0;
             double m = -Math.Log(1 - _rng.NextDouble()) * _d.delay.mean;
-            return (int)Math.Min(_d.delay.max, Math.Max(2, Math.Round(m)));
+            return (int)Math.Min(_d.delay.max, Math.Max(2, Clock.JsRound(m)));
         }
 
         /// <summary>A dwell fault: true with its text and extra minutes.</summary>

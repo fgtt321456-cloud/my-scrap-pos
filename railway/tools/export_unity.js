@@ -8,10 +8,31 @@ const { open } = require('../tests/harness');
   const files = await page.evaluate(() => window.__rt.exportData());
   const out = path.join(__dirname, '../../unity/Assets/StreamingAssets/RailTrack');
   fs.mkdirSync(out, { recursive: true });
+  fs.writeFileSync(path.join(__dirname, '../../unity/tools/check/golden_paths.json'), JSON.stringify(files['#golden']) + '\n');
+  delete files['#golden'];
   for (const [name, data] of Object.entries(files)) {
     fs.writeFileSync(path.join(out, name), JSON.stringify(data, null, 1) + '\n');
     console.log('wrote', name, fs.statSync(path.join(out, name)).size, 'bytes');
   }
+  // behaviour reference for the C# port: each station from a fresh 06:00 start, 24 h with both ARS controllers on
+  const ref = await page.evaluate(() => {
+    const R = window.__rt, out = [];
+    for (const id of ['CMI', 'HDY', 'NKI', 'UBN', 'KRT']) {
+      const runs = [];
+      for (let k = 0; k < 4; k++) {
+        const W = R.world(); W.now = 6 * 3600; W.ledger = {};
+        const m = R.meta(); m.lv = 1; m.ctrl = { app: Date.now() + 3600e3, dep: Date.now() + 3600e3 };
+        R.stnReset(id); R.stnEnter(id); const S = R.stn();
+        for (let i = 0; i < 24 * 7200; i++) R.stnStep(0.5);
+        runs.push({ dep: S.stats.dep, onTime: S.stats.onTime, holdMin: S.stats.holdMin });
+      }
+      const avg = f => runs.reduce((a, r) => a + r[f], 0) / runs.length;
+      out.push({ station: id, dep: avg('dep'), onTime: avg('onTime'), holdMin: avg('holdMin') });
+    }
+    return out;
+  });
+  fs.writeFileSync(path.join(__dirname, '../../unity/tools/check/golden_sim.json'), JSON.stringify({ stations: ref }) + '\n');
+  console.log('behaviour reference', JSON.stringify(ref));
   if (errors.length) console.error('page errors:', errors);
   await browser.close();
   process.exit(errors.length ? 1 : 0);

@@ -6896,7 +6896,7 @@ function perfTick(raw) {
 // Unity side: unity/Assets/Scripts/Data/RailTrackData.cs (+ RailTrackDataLoader). Writer: railway/tools/export_unity.js
 function rtExport() {
   const pick = (o, ks) => { const r = {}; ks.forEach(k => { if (o[k] !== undefined) r[k] = o[k]; }); return r; };
-  const stations = Object.values(STN_DEFS).map(d => Object.assign(pick(d, ['id', 'name', 'en', 'kind', 'km', 'line', 'style', 'P0', 'P1', 'bz', 'bw', 'bd', 'eastLabel', 'extras', 'real']), {
+  const stations = Object.values(STN_DEFS).map(d => Object.assign(pick(d, ['id', 'name', 'en', 'kind', 'km', 'line', 'style', 'deck', 'P0', 'P1', 'bz', 'bw', 'bd', 'eastLabel', 'extras', 'real']), {
     tracks: d.tracks.map(t => ({ n: t.n, z: t.z, cls: t.cls, siding: !!t.siding, thru: !!t.thru, platform: hasPlat(d, t) })),
     platforms: d.platforms.map(p => ({ z: p.z, w: p.w })),
     locals: { from: d.locals.from, prefix: d.locals.prefix, no: d.locals.no, gapMin: d.locals.gap[0], gapMax: d.locals.gap[1] },
@@ -6936,7 +6936,13 @@ function rtExport() {
     thailand: GEO.th.map(ring => ({ pts: ring.map(([x, z]) => ({ x, z })) })),
     neighbours: Object.keys(GEO.nb).map(name => ({ name, rings: GEO.nb[name].map(ring => ({ pts: ring.map(([x, z]) => ({ x, z })) })) })),
   };
-  return { 'stations.json': { stations, hualamphong: hlp }, 'timetable.json': timetable, 'rolling_stock.json': rolling, 'progression.json': progression, 'difficulty.json': difficulty, 'network.json': network };
+  // reference numbers for the C# port (unity/tools/check): track path lengths and platform stop points per side
+  const golden = { paths: [] };
+  for (const d of Object.values(STN_DEFS)) for (const t of d.tracks) {
+    const P = stnTrackPath(d, t), R = revPath(P);
+    golden.paths.push({ station: d.id, track: t.n, len: P.len, stopE: stnStopS(d, { track: t.n, side: 'E' }, P), stopW: d.kind === 'T' ? -1 : stnStopS(d, { track: t.n, side: 'W' }, R), mid: pAtS(P, P.len * 0.37) });
+  }
+  return { '#golden': golden, 'stations.json': { stations, hualamphong: hlp }, 'timetable.json': timetable, 'rolling_stock.json': rolling, 'progression.json': progression, 'difficulty.json': difficulty, 'network.json': network };
 }
 
 // =================== mode switch, save/load, main loop ===================
@@ -7057,7 +7063,7 @@ function start(data) {
   setInterval(metaTick, 1000);
   requestAnimationFrame(t => { last = t; frame(t); });
 }
-if (location.hash.startsWith('#rtdebug')) window.__rt = { meta: () => M_(), gainXP, openFleet, openPlanner, openCtrlModal, metaPick, stnEnter, perf: () => Object.assign({ fps: PERF.ema, q: FX.quality, px: renderer.getPixelRatio() }, renderer.info.render, { geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), thumb: (c, w, h) => trainThumb(c, w, h), stn: () => stnState(), exportData: () => rtExport(), world: () => WORLD, ttRunning: n => ttRunning(n), catchUp: () => worldCatchUp(stnState()), rush: rushFactor, rain: wxRain, stnStep: dt => stnStep(stnState(), dt), stnRelease: s => stnRelease(stnState(), s), openGS, openContracts, genOffer, stars: () => [netStars(), termStars()], tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }), hit: () => MAP2D.hit, heldRect: () => worldRect(termHeldPos()), platRect: () => worldRect(termPlatformPos()), readyRect: () => worldRect(termReadyPos()), routes: () => tstate.routes.map(r => r.kind + ':' + r.state), fx: () => ({ q: FX.quality, composer: !!FX.composer, lamp: FX.lamp }) };
+if (location.hash.startsWith('#rtdebug')) window.__rt = { meta: () => M_(), gainXP, openFleet, openPlanner, openCtrlModal, metaPick, stnEnter, perf: () => Object.assign({ fps: PERF.ema, q: FX.quality, px: renderer.getPixelRatio() }, renderer.info.render, { geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), thumb: (c, w, h) => trainThumb(c, w, h), stn: () => stnState(), stnReset: id => { STN.st[id] = stnNew(id); }, exportData: () => rtExport(), world: () => WORLD, ttRunning: n => ttRunning(n), catchUp: () => worldCatchUp(stnState()), rush: rushFactor, rain: wxRain, stnStep: dt => stnStep(stnState(), dt), stnRelease: s => stnRelease(stnState(), s), openGS, openContracts, genOffer, stars: () => [netStars(), termStars()], tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }), hit: () => MAP2D.hit, heldRect: () => worldRect(termHeldPos()), platRect: () => worldRect(termPlatformPos()), readyRect: () => worldRect(termReadyPos()), routes: () => tstate.routes.map(r => r.kind + ':' + r.state), fx: () => ({ q: FX.quality, composer: !!FX.composer, lamp: FX.lamp }) };
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
 })();

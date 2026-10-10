@@ -23,14 +23,14 @@ namespace UnityEngine {
   public struct Color { public float r, g, b, a; public static implicit operator Color(Color32 c) { return default(Color); } }
   public struct Color32 { public byte r, g, b, a; public Color32(byte r, byte g, byte b, byte a) { this.r = r; this.g = g; this.b = b; this.a = a; } }
   public struct Vector3 { public float x, y, z; public Vector3(float x, float y, float z) { this.x = x; this.y = y; this.z = z; }
-    public static Vector3 up; public static float Dot(Vector3 a, Vector3 b) { return 0; } public float magnitude { get { return 0; } }
+    public static Vector3 up, zero; public static float Dot(Vector3 a, Vector3 b) { return 0; } public float magnitude { get { return 0; } }
     public static Vector3 operator -(Vector3 a, Vector3 b) { return a; } public static Vector3 operator +(Vector3 a, Vector3 b) { return a; }
     public static Vector3 operator *(Vector3 a, float d) { return a; } public float x0 { get { return x; } } public static Vector3 operator /(Vector3 a, float d) { return a; } }
   public struct Quaternion { public static Quaternion identity; public static bool operator ==(Quaternion a, Quaternion b) { return true; } public static bool operator !=(Quaternion a, Quaternion b) { return false; } public override bool Equals(object o) { return true; } public override int GetHashCode() { return 0; } public static Quaternion Euler(float x, float y, float z) { return default(Quaternion); }
     public static Quaternion LookRotation(Vector3 f, Vector3 u) { return default(Quaternion); }
     public static Quaternion RotateTowards(Quaternion a, Quaternion b, float d) { return a; }
     public static Quaternion operator *(Quaternion a, Quaternion b) { return a; } }
-  public static class Mathf { public const float Deg2Rad = 0.0174f; public static float Tan(float a) { return a; } public static float Sin(float a) { return a; } public static float Abs(float a) { return a; } public static float Lerp(float a, float b, float t) { return a; } public static float Clamp(float v, float a, float b) { return v; } public static int Max(int a, int b) { return a; } public static float Max(float a, float b) { return a; } public static int Min(int a, int b) { return a; } }
+  public static class Mathf { public const float Deg2Rad = 0.0174f; public static float Tan(float a) { return a; } public static float Sin(float a) { return a; } public static float Abs(float a) { return a; } public static float Lerp(float a, float b, float t) { return a; } public static float Clamp(float v, float a, float b) { return v; } public static int Max(int a, int b) { return a; } public static float Max(float a, float b) { return a; } public static int Min(int a, int b) { return a; } public static float Min(float a, float b) { return a; } }
   public static class Debug { public static void Log(object m, Object c = null) {} public static void LogWarning(object m, Object c = null) {} public static void LogError(object m, Object c = null) {} }
   public static class Time { public static float time, deltaTime, unscaledTime; }
   public class SerializeField : Attribute {} public class DisallowMultipleComponent : Attribute {}

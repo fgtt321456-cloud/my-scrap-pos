@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ThaiRail.Data;
 
 namespace ThaiRail.Simulation
 {
@@ -37,14 +38,14 @@ namespace ThaiRail.Simulation
         /// <summary>Start day of a run for an event on <paramref name="day"/> at second-of-day eventSec.</summary>
         public static int RunDay(int eventSec, int depSec, int day) { return eventSec >= depSec ? day : day - 1; }
         /// <summary>About 15% of an upstream delay plus 2 minutes is recovered before the next player station.</summary>
-        public static int Recover(int minutes) { return Math.Max(0, (int)Math.Round(minutes * 0.85 - 2)); }
+        public static int Recover(int minutes) { return Math.Max(0, (int)Clock.JsRound(minutes * 0.85 - 2)); }
 
         void Reindex() { _index = new Dictionary<string, int>(); for (int i = 0; i < entries.Count; i++) _index[entries[i].key] = i; }
 
         public void Put(string trainNo, int runDay, double lateMinutes, string stationId, double worldNow)
         {
             if (_index == null) Reindex();
-            var e = new Entry { key = Key(trainNo, runDay), minutes = Math.Max(0, (int)Math.Round(lateMinutes)), at = stationId, t = worldNow };
+            var e = new Entry { key = Key(trainNo, runDay), minutes = Math.Max(0, (int)Clock.JsRound(lateMinutes)), at = stationId, t = worldNow };
             int i; if (_index.TryGetValue(e.key, out i)) entries[i] = e; else { _index[e.key] = entries.Count; entries.Add(e); }
             // forget runs older than three days
             int before = entries.Count; entries.RemoveAll(x => x.t < worldNow - 3 * 86400); if (entries.Count != before) Reindex();

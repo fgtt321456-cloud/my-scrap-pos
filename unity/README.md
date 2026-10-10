@@ -18,13 +18,23 @@ Assets/Scripts/
 Assets/StreamingAssets/RailTrack/   stations, timetable, rolling_stock, progression, difficulty, network (.json)
 Assets/Scripts/
   Data/        RailTrackData (โมเดลข้อมูลตรงกับ JSON), RailTrackDataLoader (โหลดตอนเริ่มเกม รองรับ Android)
-  Simulation/  Difficulty, WorldClock + DelayLedger, RailGraph (เส้นทางตามรางจริง), TimetableEvents
-  Stations/    IStationAdapter + TrainViewModel (สัญญา UI ร่วมของทุกสถานี)
+  Simulation/  Difficulty, WorldClock + DelayLedger, RailGraph (เส้นทางตามรางจริง), TimetableEvents,
+               TimetableStationSim + StationService + StationTrackPath (จำลองสถานีตามตาราง, C# ล้วน)
+  Game/        RailTrackWorld (นาฬิกาโลก, สถานีทุกแห่ง, กระเป๋าเงินชั่วคราว, บันทึกเกม)
+  Stations/    IStationAdapter + TrainViewModel, TimetableStationAdapter, TimetableStationRunner (วางตู้รถตามราง)
+  Trains/      RollingStockCatalog (รหัสรุ่นรถ → prefab ใน pool)
 tools/check/   คอมไพล์สคริปต์ทั้งหมดและตรวจข้อมูลโดยไม่ต้องเปิด Unity: sh unity/tools/check/check.sh
 ```
 
 - อัปเดต JSON: `node railway/tools/export_unity.js` (อย่าแก้ไฟล์ JSON ด้วยมือ ให้แก้ที่ `railway/src` แล้วส่งออกใหม่)
 - ระบบใน `Simulation/` เป็น C# ล้วน รับ `System.Random` จากภายนอกเพื่อให้ทดสอบซ้ำได้
+
+### ตั้งฉากสถานีตามตาราง
+1. Bootstrap scene: `RailTrackDataLoader`, `RailTrackWorld`, `PoolManager` (DontDestroyOnLoad)
+2. `Create > Thai Railway > Rolling Stock Catalog`: เพิ่มแถว `HID`, `ALS`, `GEK`, `cnr`, `coach`, `THN`, `THN_car`, `NKF`, `NKF_car`, `ASR`, `ASR_car`, `APD`, `APD_car` → PoolId ของ prefab (รุ่นที่ยังไม่มีโมเดลจะใช้ `fallback`)
+3. ฉากสถานี: GameObject ที่มี `TimetableStationRunner` ตั้ง `stationId` (CMI/NKI/UBN/HDY/KRT) และ catalog
+   พิกัด 1 หน่วย = 1 เมตร แกน x ตามชานชาลา (ฝั่งกันชนของสถานีปลายตันอยู่ด้าน −x) ตรงกับ `StationDef`
+4. UI: อ่าน `runner.Adapter` (`Items`, `ViewModel`, `Platforms`, `Choose`, `Act`) เท่านั้น
 
 
 ## ติดตั้ง

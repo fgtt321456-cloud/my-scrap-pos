@@ -169,20 +169,6 @@
    }
   },
   {
-   "id": "APD_car",
-   "name": "Daewoo APD",
-   "kind": "car",
-   "len": 20,
-   "ac": true,
-   "maker": "",
-   "livery": {
-    "body": "#F4F5F8",
-    "low": "#1F4FA8",
-    "line": "#C8102E",
-    "roof": "#A7B0BC"
-   }
-  },
-  {
    "id": "NKF_car",
    "name": "NKF DMU",
    "kind": "car",

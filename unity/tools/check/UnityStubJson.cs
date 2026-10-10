@@ -1,8 +1,9 @@
 // JsonUtility stand-in: reflection over public fields of [Serializable] types, like the real one (tools/check only).
 using System; using System.Collections; using System.Collections.Generic; using System.Globalization; using System.Reflection; using System.Text;
 namespace UnityEngine {
-  public static class Application { public static string streamingAssetsPath = ""; }
+  public static class Application { public static string streamingAssetsPath = "", persistentDataPath = ""; }
   public static class JsonUtility {
+    public static string ToJson(object o) { return "{}"; }
     public static T FromJson<T>(string s) { int i = 0; var v = Parse(s, ref i); return (T)Map(v, typeof(T)); }
     static void Ws(string s, ref int i) { while (i < s.Length && char.IsWhiteSpace(s[i])) i++; }
     static object Parse(string s, ref int i) {

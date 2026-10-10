@@ -18,6 +18,8 @@ namespace ThaiRail.Data
         public string kind;
         public float km;
         public string line, style, eastLabel;
+        /// <summary>Track level above ground (Krung Thep Aphiwat runs long-distance trains on the 2nd floor, 10 m).</summary>
+        public float deck;
         public float P0, P1, bz, bw, bd;
         public string[] extras, real, eastOf;
         public TrackDef[] tracks;
@@ -159,6 +161,8 @@ namespace ThaiRail.Data
             int c = hhmm.IndexOf(':');
             return int.Parse(hhmm.Substring(0, c)) * 3600 + int.Parse(hhmm.Substring(c + 1)) * 60;
         }
+        /// <summary>JavaScript Math.round (halves round up), so results match the web build; Math.Round is banker's rounding.</summary>
+        public static double JsRound(double x) { return Math.Floor(x + 0.5); }
         public static string HM(double sec)
         {
             int m = (int)Math.Floor((((sec % Day) + Day) % Day) / 60);

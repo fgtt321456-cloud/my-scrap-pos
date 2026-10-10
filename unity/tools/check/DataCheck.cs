@@ -4,6 +4,7 @@ static class T {
   static int fail;
   static void Check(string n, bool ok, string info = "") { Console.WriteLine((ok ? "PASS  " : "FAIL  ") + n + "  " + info); if (!ok) fail++; }
   static int Main(string[] a) {
+    Console.OutputEncoding = new System.Text.UTF8Encoding(false);
     string dir = a[0]; Func<string, string> R = f => File.ReadAllText(Path.Combine(dir, f));
     var db = RailTrackDataLoader.Parse(R("stations.json"), R("timetable.json"), R("rolling_stock.json"), R("progression.json"), R("difficulty.json"), R("network.json"));
     Check("5 timetable stations + HLP", db.stations.stations.Length == 5 && db.stations.hualamphong.platformClass.Length == 14, db.stations.stations.Length.ToString());
@@ -25,6 +26,7 @@ static class T {
     var L = new DelayLedger(); L.Put("31", 0, 25, "KRT", 61000); DelayLedger.Entry e2;
     Check("ledger round trip + recovery", L.TryGet("31", 0, out e2) && e2.minutes == 25 && DelayLedger.Recover(25) == 19);
     Check("run day of 31 at HDY (06:40 next morning)", DelayLedger.RunDay(Clock.ToSec("06:40"), Clock.ToSec("16:45"), 1) == 0);
+    StationSimCheck.Run(db, a.Length > 1 ? a[1] : ".", Check);
     return fail;
   }
 }

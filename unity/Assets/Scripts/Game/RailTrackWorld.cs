@@ -1,0 +1,129 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using ThaiRail.Data;
+using ThaiRail.Simulation;
+using UnityEngine;
+
+namespace ThaiRail.Game
+{
+    /// <summary>
+    /// Owns everything shared between the timetable stations: world clock, delay ledger, difficulty, rail graph,
+    /// one TimetableStationSim per station, and the save file. Lives in the bootstrap scene (DontDestroyOnLoad).
+    /// Money/XP/controllers are kept in a minimal wallet here until the meta layer (levels, shop) is ported.
+    /// </summary>
+    public sealed class RailTrackWorld : MonoBehaviour, IStationHost
+    {
+        public static RailTrackWorld Instance { get; private set; }
+
+        [Tooltip("Player level used by the difficulty curve until the meta layer is ported")] public int playerLevel = 1;
+        [Tooltip("Purchased controllers: app = approach ARS, dep = departure ARS, ground = faster ground crews")] public bool ctrlApp, ctrlDep, ctrlGround;
+        public long money = 90000;
+        public int xp;
+
+        public WorldClock Clock { get; private set; }
+        public DelayLedger Ledger { get; private set; }
+        public Difficulty Difficulty { get; private set; }
+        public RailGraph Graph { get; private set; }
+        public RailTrackDatabase Db { get; private set; }
+        public event Action<string> Notified;
+
+        readonly Dictionary<string, TimetableStationSim> _sims = new Dictionary<string, TimetableStationSim>();
+        readonly System.Random _rng = new System.Random();
+        TimetableStationSim _active;
+
+        [Serializable]
+        sealed class SaveFile
+        {
+            public int v = 1;
+            public WorldClock clock;
+            public DelayLedger ledger;
+            public List<StationState> stations = new List<StationState>();
+            public long money; public int xp;
+        }
+        static string SavePath { get { return Path.Combine(Application.persistentDataPath, "railtrack-stations-v1.json"); } }
+
+        void Awake()
+        {
+            if (Instance != null && Instance != this) { gameObject.SetActive(false); return; }
+            Instance = this;
+            if (RailTrackDataLoader.Ready) Init(RailTrackDataLoader.Db); else RailTrackDataLoader.Loaded += Init;
+        }
+
+        void Init(RailTrackDatabase db)
+        {
+            RailTrackDataLoader.Loaded -= Init;
+            Db = db; Graph = new RailGraph(db);
+            Difficulty = new Difficulty(db.difficulty, _rng) { PlayerLevel = playerLevel };
+            Clock = new WorldClock(); Ledger = new DelayLedger();
+            Load();
+        }
+
+        public bool Ready { get { return Db != null; } }
+
+        /// <summary>The station's simulation (created on first use, restored from the save if present).</summary>
+        public TimetableStationSim Station(string id)
+        {
+            TimetableStationSim sim;
+            if (_sims.TryGetValue(id, out sim)) return sim;
+            var def = Db.Station(id); if (def == null) return null;
+            StationState saved; _pending.TryGetValue(id, out saved);
+            sim = new TimetableStationSim(def, Db, Graph, Difficulty, Clock, Ledger, this, _rng, saved);
+            _sims[id] = sim; return sim;
+        }
+
+        /// <summary>Make a station the active one: it drives the world clock and catches up first.</summary>
+        public TimetableStationSim Enter(string id)
+        {
+            if (_active != null) _active.IsActive = false;
+            _active = Station(id); if (_active == null) return null;
+            _active.Enter(); return _active;
+        }
+        public void Leave() { if (_active != null) _active.IsActive = false; _active = null; Save(); }
+
+        void Update()
+        {
+            if (!Ready) return;
+            Difficulty.PlayerLevel = playerLevel;
+            // on the network map (no active station) the world clock runs on its own
+            if (_active == null && mapOpen) Clock.Advance(Time.deltaTime, Db.difficulty.worldNetRate, mapSpeed);
+        }
+        [NonSerialized] public bool mapOpen;
+        [NonSerialized] public float mapSpeed = 1;
+
+        void OnApplicationPause(bool paused) { if (paused) Save(); }
+        void OnApplicationQuit() { Save(); }
+
+        // ---------- save / load ----------
+        readonly Dictionary<string, StationState> _pending = new Dictionary<string, StationState>();
+        public void Save()
+        {
+            if (!Ready) return;
+            var f = new SaveFile { clock = Clock, ledger = Ledger, money = money, xp = xp };
+            foreach (var kv in _sims) f.stations.Add(kv.Value.State);
+            foreach (var kv in _pending) if (!_sims.ContainsKey(kv.Key)) f.stations.Add(kv.Value);
+            try { File.WriteAllText(SavePath, JsonUtility.ToJson(f)); } catch (Exception e) { Debug.LogWarning("RailTrack save failed: " + e.Message); }
+        }
+        void Load()
+        {
+            try
+            {
+                if (!File.Exists(SavePath)) return;
+                var f = JsonUtility.FromJson<SaveFile>(File.ReadAllText(SavePath));
+                if (f == null || f.v != 1) return;
+                if (f.clock != null) Clock = f.clock;
+                if (f.ledger != null) Ledger = f.ledger;
+                money = f.money; xp = f.xp;
+                foreach (var s in f.stations) if (s != null && s.id != null) _pending[s.id] = s;
+            }
+            catch (Exception e) { Debug.LogWarning("RailTrack save unreadable, starting fresh: " + e.Message); }
+        }
+
+        // ---------- IStationHost ----------
+        public bool ControllerOn(string key) { return key == "app" ? ctrlApp : key == "dep" ? ctrlDep : key == "ground" && ctrlGround; }
+        public void Earn(int amount, string account) { money += amount; }
+        public void Pay(double amount, string account) { money -= (long)Math.Round(amount); }
+        public void GainXP(int n) { xp += n; }
+        public void Notify(string text) { if (Notified != null) Notified(text); }
+    }
+}
