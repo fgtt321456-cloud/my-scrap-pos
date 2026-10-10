@@ -35,7 +35,7 @@ namespace ThaiRail.UI
         float _acc; string _listSig = "", _cardSig = "", _sheetSig = "";
 
         RectTransform _root, _list, _card, _sheetPanel, _sheetGrid;
-        Text _clock, _money, _onTime, _inPlat, _held, _rev, _toast;
+        Text _clock, _money, _onTime, _inPlat, _held, _rev, _toast, _lvl;
         float _toastT;
         readonly List<Row> _rows = new List<Row>();
         readonly List<PlatBtn> _plats = new List<PlatBtn>();
@@ -105,6 +105,7 @@ namespace ThaiRail.UI
             if (_toastT > 0) { _toastT -= Time.unscaledDeltaTime; _toast.transform.parent.gameObject.SetActive(_toastT > 0); }
             _acc += Time.unscaledDeltaTime; if (_acc < 0.25f) return; _acc = 0;
             Refresh(false);
+            RenderModal();
         }
 
         void Refresh(bool force)
@@ -130,6 +131,7 @@ namespace ThaiRail.UI
             _onTime.text = S.dep > 0 ? Mathf.RoundToInt(100f * S.onTime / S.dep) + "%" : "—";
             _inPlat.text = S.inPlatform + "/" + S.platforms; _held.text = S.held.ToString(); _held.color = S.held > 0 ? Hex(0xFF8A8F) : Color.white;
             _rev.text = "฿" + S.revenue.ToString("N0");
+            if (W.Meta != null) _lvl.text = "Lv " + W.Meta.P.lv + " · " + W.Meta.P.xp + "/" + W.Meta.XpNeed(W.Meta.P.lv) + " · " + W.Meta.P.coins + " เหรียญ";
         }
 
         void RenderList(IReadOnlyList<string> ids)
@@ -209,6 +211,62 @@ namespace ThaiRail.UI
             }
         }
 
+        // ---------- modal (control room, rewards, ground teams) ----------
+        RectTransform _modal, _modalContent; Text _modalTitle; Func<List<ModalRow>> _modalRows; string _modalSig = "";
+        public bool ModalOpen { get { return _modal != null && _modal.gameObject.activeSelf; } }
+        /// <summary>Open a modal whose rows are rebuilt (when they change) while it stays open.</summary>
+        public void ShowModal(string title, Func<List<ModalRow>> rows)
+        {
+            if (_modal == null) BuildModal();
+            _modalTitle.text = title; _modalRows = rows; _modalSig = null; _modal.gameObject.SetActive(true); RenderModal();
+        }
+        public void CloseModal() { if (_modal != null) _modal.gameObject.SetActive(false); _modalRows = null; }
+        void BuildModal()
+        {
+            var shade = Box(_root, "ModalShade", Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero, new Color(0.04f, 0.08f, 0.15f, 0.55f));
+            _modal = shade;
+            var shadeBtn = shade.gameObject.AddComponent<Button>(); shadeBtn.targetGraphic = shade.GetComponent<Image>(); shadeBtn.onClick.AddListener(CloseModal);
+            var win = Box(shade, "Modal", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1000, 780), Color.white);
+            win.gameObject.AddComponent<Button>().targetGraphic = win.GetComponent<Image>();   // swallow clicks so the shade does not close it
+            var head = Box(win, "Head", new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), Vector2.zero, new Vector2(0, 72), Navy);
+            _modalTitle = Label(head, "", 28, Color.white, TextAnchor.MiddleLeft, new Vector2(24, 0), new Vector2(800, 72)); _modalTitle.fontStyle = FontStyle.Bold;
+            var close = Button(head, "✕", new Vector2(1000 - 64, -12), new Vector2(48, 48), Navy2, Color.white, 24, CloseModal);
+            var view = Box(win, "View", new Vector2(0, 0), new Vector2(1, 1), new Vector2(0.5f, 1), new Vector2(0, -72), new Vector2(0, -72), new Color(0, 0, 0, 0));
+            view.gameObject.AddComponent<RectMask2D>();
+            _modalContent = Box(view, "Content", new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), Vector2.zero, new Vector2(0, 0), new Color(0, 0, 0, 0));
+            var sr = view.gameObject.AddComponent<ScrollRect>(); sr.content = _modalContent; sr.horizontal = false; sr.vertical = true; sr.movementType = ScrollRect.MovementType.Clamped; sr.scrollSensitivity = 30;
+            shade.gameObject.SetActive(false);
+        }
+        void RenderModal()
+        {
+            if (_modalRows == null || !ModalOpen) return;
+            var rows = _modalRows();
+            var sb = new StringBuilder();
+            foreach (var r in rows) { sb.Append(r.title).Append(r.sub).Append(r.badge).Append(r.highlight); foreach (var b in r.buttons) sb.Append(b.label).Append(b.enabled); sb.Append('|'); }
+            string sig = sb.ToString(); if (sig == _modalSig) return; _modalSig = sig;
+            for (int i = _modalContent.childCount - 1; i >= 0; i--) Destroy(_modalContent.GetChild(i).gameObject);
+            float y = -12;
+            foreach (var r in rows)
+            {
+                float h = string.IsNullOrEmpty(r.sub) ? 56 : 92;
+                var row = Box(_modalContent, "Row", new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), new Vector2(0, y), new Vector2(-32, h), r.highlight ? Hex(0xFFF8E0) : Hex(0xF4F6F9));
+                var t = Label(row, r.title, 22, Fg, TextAnchor.UpperLeft, new Vector2(18, -10), new Vector2(560, 30)); t.fontStyle = FontStyle.Bold;
+                if (!string.IsNullOrEmpty(r.sub)) Label(row, r.sub, 17, Muted, TextAnchor.UpperLeft, new Vector2(18, -42), new Vector2(600, 46));
+                if (!string.IsNullOrEmpty(r.badge)) { var bd = Label(row, r.badge, 17, Good, TextAnchor.UpperRight, new Vector2(18, -12), new Vector2(920, 26)); }
+                float bx = 968 - 32;
+                for (int k = r.buttons.Count - 1; k >= 0; k--)
+                {
+                    var b = r.buttons[k]; float w = Mathf.Max(120, 16 + b.label.Length * 13);
+                    bx -= w + 10;
+                    var act = b.onClick;
+                    var btn = Button(row, b.label, new Vector2(bx, -(h - 52)), new Vector2(w, 44), b.enabled ? (b.primary ? Accent : Navy2) : Disabled, b.enabled ? (b.primary ? Navy : Color.white) : Muted, 18, () => { if (act != null) act(); _modalSig = ""; RenderModal(); });
+                    btn.interactable = b.enabled;
+                }
+                y -= h + 10;
+            }
+            _modalContent.sizeDelta = new Vector2(0, -y + 12);
+        }
+
         public void Toast(string text)
         {
             if (_toast == null) return;
@@ -246,6 +304,9 @@ namespace ThaiRail.UI
                 vals[i] = Label(cell, "—", 28, Color.white, TextAnchor.LowerLeft, new Vector2(0, -38), new Vector2(240, 34)); vals[i].fontStyle = FontStyle.Bold;
             }
             _money = vals[0]; _clock = vals[1]; _onTime = vals[2]; _inPlat = vals[3]; _held = vals[4]; _rev = vals[5];
+            var lv = Box(bar, "Level", new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 0.5f), new Vector2(24 + stats.Length * 250, 0), new Vector2(300, 0), new Color(0, 0, 0, 0));
+            Label(lv, "ผู้เล่น", 17, OnNavyMuted, TextAnchor.UpperLeft, new Vector2(0, -8), new Vector2(300, 24));
+            _lvl = Label(lv, "—", 24, Accent, TextAnchor.LowerLeft, new Vector2(0, -38), new Vector2(300, 34)); _lvl.fontStyle = FontStyle.Bold;
 
             // live list
             _list = Box(_root, "LiveList", new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 1), new Vector2(16, -92), new Vector2(430, -110), Panel);

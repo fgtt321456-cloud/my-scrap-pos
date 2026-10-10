@@ -632,6 +632,19 @@ namespace ThaiRail.Simulation.Hlp
             if (board.st == TaskState.Run) run(board, gr);
             if (svc.state != HlpSvcState.Ready && svc.tasks.All(t => t.st == TaskState.Done)) { svc.state = HlpSvcState.Ready; Log(svc.outName + " พร้อมออกจากราง " + svc.track + " (กำหนด " + Clock(svc.schedDep) + ")", LogTone.Good); }
         }
+        /// <summary>Hire n more ground-service teams of one kind (port of the web build's ground-service shop).</summary>
+        public bool BuyTeams(string k, int n, Func<int, bool> spend, out string msg)
+        {
+            int ri = Res(k); msg = null; if (ri < 0 || n <= 0) return false;
+            var d = G.file.resources[ri];
+            if (S.res[ri] + n > d.max) { msg = d.name + " มีได้สูงสุด " + d.max; return false; }
+            if (!spend(d.price * n)) { msg = "เงินทุนไม่พอ ต้องใช้ ฿" + (d.price * n).ToString("N0"); return false; }
+            S.res[ri] += n; Log("ซื้อ" + d.name + "เพิ่ม " + n + " (รวม " + S.res[ri] + ")"); msg = d.name + " เพิ่มเป็น " + S.res[ri];
+            return true;
+        }
+        /// <summary>Tasks waiting for a team of each resource (for the ground-service panel).</summary>
+        public int Queued(string k) { int n = 0; foreach (var s in S.services) if (s.phase == HlpPhase.Dwell) foreach (var t in s.tasks) if (t.res == k && t.st == TaskState.Queue) n++; return n; }
+        public int ResIndex(string k) { return Res(k); }
         /// <summary>Teams busy per resource after the last allocation (for the HUD).</summary>
         public int[] Busy { get; private set; }
         void AllocRes()

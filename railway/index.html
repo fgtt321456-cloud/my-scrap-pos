@@ -6926,6 +6926,8 @@ function rtExport() {
     controllers: CTRLS.map(c => pick(c, ['k', 'name', 'en', 'where', 'desc'])),
     hubs: HUBS.map(h => pick(h, ['id', 'mode', 'code', 'name', 'sub'])),
     tiers: TIER_LIST.map(k => pick(TIERS[k], ['id', 'tier', 'name', 'full', 'desc', 'unlock', 'price'])),
+    liveries: Object.keys(LIVERIES).map(k => ({ k, name: LIVERIES[k].name, coins: LIVERIES[k].coins || 0 })),
+    constants: { ctrlMin: CTRL_MIN, ctrlCoins: CTRL_COINS, ctrlBaht: CTRL_BAHT, capMax: CAP_MAX, crewMax: CREW_MAX, giftCoins: 5, levelCoins: 3, startCoins: 25, startCap: 3, startCrew: 3 },
   };
   const difficulty = {
     rush: DIFF.rush.map(([from, to, factor]) => ({ from, to, factor })),

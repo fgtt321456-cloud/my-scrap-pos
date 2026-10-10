@@ -18,6 +18,7 @@ namespace UnityEngine {
   public class GameObject : Object { public GameObject(string n) {} public GameObject(string n, params Type[] components) {} public Transform transform; public string tag; public bool isStatic; public bool activeSelf;
     public void SetActive(bool v) {} public T GetComponent<T>() { return default(T); } public T AddComponent<T>() where T : Component { return default(T); } }
   public class Transform : Component { public Vector3 position, localPosition; public Quaternion rotation, localRotation; public Vector3 forward, right, localScale; public Transform parent;
+    public int childCount; public Transform GetChild(int i) { return null; }
     public void SetParent(Transform p) {} public void SetParent(Transform p, bool worldPositionStays) {} public void SetPositionAndRotation(Vector3 p, Quaternion r) {} }
   public class Renderer : Component { public Material sharedMaterial; public bool receiveShadows; public Rendering.ShadowCastingMode shadowCastingMode; public void SetPropertyBlock(MaterialPropertyBlock b) {} }
   public class MeshRenderer : Renderer {}
@@ -109,6 +110,8 @@ namespace UnityEngine.UI {
   public class Button : Selectable { public class ButtonClickedEvent : UnityEngine.Events.UnityEvent {} public ButtonClickedEvent onClick = new ButtonClickedEvent(); }
   public class CanvasScaler : Behaviour { public enum ScaleMode { ConstantPixelSize, ScaleWithScreenSize, ConstantPhysicalSize } public ScaleMode uiScaleMode; public Vector2 referenceResolution; public float matchWidthOrHeight; }
   public class GraphicRaycaster : Behaviour {}
+  public class RectMask2D : Behaviour {}
+  public class ScrollRect : Behaviour { public enum MovementType { Unrestricted, Elastic, Clamped } public RectTransform content; public bool horizontal, vertical; public MovementType movementType; public float scrollSensitivity; }
   public class MaskableGraphic : Graphic { protected virtual void OnPopulateMesh(VertexHelper vh) {} public virtual void SetVerticesDirty() {} }
   public class VertexHelper { public void Clear() {} public void AddVert(UIVertex v) {} public void AddTriangle(int a, int b, int c) {} }
   public class GridLayoutGroup : Behaviour { public Vector2 cellSize, spacing; }

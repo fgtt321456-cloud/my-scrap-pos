@@ -91,8 +91,15 @@ namespace ThaiRail.Game
 
             _hud = _stationRoot.AddComponent<StationHud>(); _hud.font = font;
             _hud.Bind(_view.Adapter, _view, _rig);
+            var W0 = RailTrackWorld.Instance;
+            _hud.AddToolButton("ห้องควบคุม", 1, () => _hud.ShowModal("ห้องควบคุม", () => MetaPanels.ControlRoom(W0)));
+            _hud.AddToolButton("รางวัล", 2, () => _hud.ShowModal("รางวัลและเลเวล", () => MetaPanels.Rewards(W0, n => W0.Earn(n, "reward"))));
             var hlpRunner = _view as HlpStationRunner;
-            if (hlpRunner != null) AddInterlockingPanels(hlpRunner);
+            if (hlpRunner != null)
+            {
+                AddInterlockingPanels(hlpRunner);
+                _hud.AddToolButton("ทีมภาคพื้น", 3, () => _hud.ShowModal("ทีมบริการภาคพื้น · หัวลำโพง", () => MetaPanels.GroundTeams(W0, hlpRunner.Engine, _hud.Toast)));
+            }
             var ids = new[] { "HLP" }.Concat(RailTrackWorld.Instance.Db.stations.stations.Select(s => s.id)).ToArray();
             _hud.AddControls(ids, id, Open);
             if (hint != null) _hud.Toast(hint);
@@ -104,7 +111,7 @@ namespace ThaiRail.Game
             var nxModel = new NxPanelModel(hr.Engine);
             nxModel.Message += _hud.Toast;
             var nx = NxPanelView.Create(_hud.CanvasRoot, nxModel, _hud.HudFont);
-            nx.OpenControllers = () => _hud.Toast("ARS ทำงานเมื่อมีผู้ควบคุมขาเข้า/ขาออก · เปิดได้ที่ห้องควบคุม");
+            nx.OpenControllers = () => _hud.ShowModal("ห้องควบคุม", () => MetaPanels.ControlRoom(RailTrackWorld.Instance));   // like the web build's ARS buttons
             nx.gameObject.SetActive(false);
             _hud.AddToolButton("แผง NX", 0, () => nx.gameObject.SetActive(!nx.gameObject.activeSelf));
             var dmi = DmiView.Create(_hud.CanvasRoot, hr.Engine, _hud.HudFont);

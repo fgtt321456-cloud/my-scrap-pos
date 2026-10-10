@@ -30,6 +30,7 @@ static class T {
     SceneryCheck.Run(db, Check, a.Length > 2 ? a[2] : null);
     HlpCheck.Run(db, a[0], a.Length > 1 ? a[1] : ".", Check);
     HlpCheck.RunPanels(db, a[0], Check);
+    MetaCheck.Run(db, a[0], Check);
     TrainCheck.Run(db, Path.GetFullPath(Path.Combine(a[1], "../..")), Check, a.Length > 2 ? a[2] : null);
     return fail;
   }

@@ -4,6 +4,7 @@ using System.IO;
 using ThaiRail.Data;
 using ThaiRail.Simulation;
 using ThaiRail.Simulation.Hlp;
+using ThaiRail.Meta;
 using UnityEngine;
 
 namespace ThaiRail.Game
@@ -17,8 +18,7 @@ namespace ThaiRail.Game
     {
         public static RailTrackWorld Instance { get; private set; }
 
-        [Tooltip("Player level used by the difficulty curve until the meta layer is ported")] public int playerLevel = 1;
-        [Tooltip("Purchased controllers: app = approach ARS, dep = departure ARS, ground = faster ground crews, shunt = faster run-arounds / cab changes")] public bool ctrlApp, ctrlDep, ctrlGround, ctrlShunt;
+                [Tooltip("Debug: force controllers on regardless of the control room (app = approach ARS, dep = departure ARS, ground, shunt)")] public bool ctrlApp, ctrlDep, ctrlGround, ctrlShunt;
         public long money = 90000;
         public int xp;
 
@@ -27,6 +27,8 @@ namespace ThaiRail.Game
         public Difficulty Difficulty { get; private set; }
         public RailGraph Graph { get; private set; }
         public RailTrackDatabase Db { get; private set; }
+        /// <summary>Level, coins, rewards, daily gift and control-room controllers.</summary>
+        public MetaService Meta { get; private set; }
         public event Action<string> Notified;
 
         readonly Dictionary<string, TimetableStationSim> _sims = new Dictionary<string, TimetableStationSim>();
@@ -42,6 +44,7 @@ namespace ThaiRail.Game
             public List<StationState> stations = new List<StationState>();
             public long money; public int xp;
             public bool hasHlp; public HlpState hlp;
+            public MetaProfile meta;
         }
         static string SavePath { get { return Path.Combine(Application.persistentDataPath, "railtrack-stations-v1.json"); } }
 
@@ -56,9 +59,10 @@ namespace ThaiRail.Game
         {
             RailTrackDataLoader.Loaded -= Init;
             Db = db; Graph = new RailGraph(db);
-            Difficulty = new Difficulty(db.difficulty, _rng) { PlayerLevel = playerLevel };
+            Difficulty = new Difficulty(db.difficulty, _rng);
             Clock = new WorldClock(); Ledger = new DelayLedger();
             Load();
+            Meta = new MetaService(db.progression, _savedMeta); Meta.Message += Notify;
         }
 
         public bool Ready { get { return Db != null; } }
@@ -91,7 +95,7 @@ namespace ThaiRail.Game
         void Update()
         {
             if (!Ready) return;
-            Difficulty.PlayerLevel = playerLevel;
+            Difficulty.PlayerLevel = Meta.P.lv;
             // on the network map (no active station) the world clock runs on its own
             if (_active == null && mapOpen) Clock.Advance(Time.deltaTime, Db.difficulty.worldNetRate, mapSpeed);
         }
@@ -104,6 +108,7 @@ namespace ThaiRail.Game
         // ---------- save / load ----------
         readonly Dictionary<string, StationState> _pending = new Dictionary<string, StationState>();
         HlpState _pendingHlp;
+        MetaProfile _savedMeta;
         HlpEngine _hlp;
 
         /// <summary>Hua Lamphong's interlocking engine (its own clock: ordinary and commuter trains), restored from the save.</summary>
@@ -116,7 +121,7 @@ namespace ThaiRail.Game
         public void Save()
         {
             if (!Ready) return;
-            var f = new SaveFile { clock = Clock, ledger = Ledger, money = money, xp = xp };
+            var f = new SaveFile { clock = Clock, ledger = Ledger, money = money, xp = xp, meta = Meta != null ? Meta.P : _savedMeta };
             var h = _hlp != null ? _hlp.S : _pendingHlp; if (h != null) { f.hasHlp = true; f.hlp = h; }
             foreach (var kv in _sims) f.stations.Add(kv.Value.State);
             foreach (var kv in _pending) if (!_sims.ContainsKey(kv.Key)) f.stations.Add(kv.Value);
@@ -133,16 +138,23 @@ namespace ThaiRail.Game
                 if (f.ledger != null) Ledger = f.ledger;
                 money = f.money; xp = f.xp;
                 if (f.hasHlp) _pendingHlp = f.hlp;
+                _savedMeta = f.meta;
                 foreach (var s in f.stations) if (s != null && s.id != null) _pending[s.id] = s;
             }
             catch (Exception e) { Debug.LogWarning("RailTrack save unreadable, starting fresh: " + e.Message); }
         }
 
         // ---------- IStationHost ----------
-        public bool ControllerOn(string key) { return key == "app" ? ctrlApp : key == "dep" ? ctrlDep : key == "ground" ? ctrlGround : key == "shunt" && ctrlShunt; }
+        public bool ControllerOn(string key)
+        {
+            bool forced = key == "app" ? ctrlApp : key == "dep" ? ctrlDep : key == "ground" ? ctrlGround : key == "shunt" && ctrlShunt;
+            return forced || (Meta != null && Meta.ControllerOn(key));
+        }
+        /// <summary>Pay from the station funds; false (nothing spent) when there is not enough.</summary>
+        public bool Spend(int amount) { if (money < amount) return false; money -= amount; return true; }
         public void Earn(int amount, string account) { money += amount; }
         public void Pay(double amount, string account) { money -= (long)Math.Round(amount); }
-        public void GainXP(int n) { xp += n; }
+        public void GainXP(int n) { xp += n; if (Meta != null) Meta.GainXP(n); }
         public void Notify(string text) { if (Notified != null) Notified(text); }
     }
 }

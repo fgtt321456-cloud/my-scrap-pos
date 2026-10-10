@@ -246,5 +246,44 @@
    "unlock": 600000,
    "price": 260000
   }
- ]
+ ],
+ "liveries": [
+  {
+   "k": "std",
+   "name": "มาตรฐาน",
+   "coins": 0
+  },
+  {
+   "k": "royal",
+   "name": "ม่วงเฉลิมพระเกียรติ",
+   "coins": 20
+  },
+  {
+   "k": "heritage",
+   "name": "แดงครีมคลาสสิก",
+   "coins": 25
+  },
+  {
+   "k": "ocean",
+   "name": "อันดามัน",
+   "coins": 30
+  },
+  {
+   "k": "gold",
+   "name": "ทองคำ",
+   "coins": 60
+  }
+ ],
+ "constants": {
+  "ctrlMin": 15,
+  "ctrlCoins": 5,
+  "ctrlBaht": 30000,
+  "capMax": 8,
+  "crewMax": 24,
+  "giftCoins": 5,
+  "levelCoins": 3,
+  "startCoins": 25,
+  "startCap": 3,
+  "startCrew": 3
+ }
 }

@@ -81,7 +81,12 @@ namespace ThaiRail.Data
         public ControllerDef[] controllers;
         public HubDef[] hubs;
         public FleetTierDef[] tiers;
+        public LiveryDef[] liveries;
+        public MetaConstants constants;
     }
+    [Serializable] public sealed class LiveryDef { public string k, name; public int coins; }
+    /// <summary>Controller rental (minutes, coins, baht), caps, gift and level-up coins (meta.js constants).</summary>
+    [Serializable] public sealed class MetaConstants { public int ctrlMin, ctrlCoins, ctrlBaht, capMax, crewMax, giftCoins, levelCoins, startCoins, startCap, startCrew; }
     /// <summary>kind: money | coins | cap | crew | liv (value = livery id).</summary>
     [Serializable] public sealed class Reward { public int lv; public string kind, value; }
     [Serializable] public sealed class ControllerDef { public string k, name, en, where, desc; }
