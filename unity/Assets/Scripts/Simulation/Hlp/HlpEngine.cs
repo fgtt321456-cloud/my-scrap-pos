@@ -477,8 +477,11 @@ namespace ThaiRail.Simulation.Hlp
             if (S.nodeMv[node] > 0) { msg = N.label + " กำลังเคลื่อนที่"; return false; }
             if (N.adj.Any(Occupied)) { msg = N.label + " มีรถอยู่บนตอนราง (track locking)"; return false; }
             S.nodePos[node] = (S.nodePos[node] + 1) % N.pairs.Length; S.nodeMv[node] = K.throwT;
-            msg = N.label + " → " + S.nodePos[node]; return true;
+            msg = N.label + " → " + PosName(node, S.nodePos[node]); return true;
         }
+        static readonly string[] SlipPos = { "ตรงทางประธาน", "ตรงทางแยก", "สลับ: ทางประธาน → ทางแยก", "สลับ: ทางแยก → ทางประธาน" };
+        /// <summary>Human name of a switch position (port of posName).</summary>
+        public string PosName(int node, int p) { return G.nodes[node].kind == "slip" ? SlipPos[p % 4] : p > 0 ? "ทางแยก (R)" : "ปกติ (N)"; }
         public bool TrackFree(int T)
         {
             int pw = E("pw" + T), pe = E("pe" + T);

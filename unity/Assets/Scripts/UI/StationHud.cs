@@ -73,7 +73,21 @@ namespace ThaiRail.UI
         {
             _sel = id; _a.Select(id); _cardSig = ""; _listSig = "";
             if (id == null) _sheet = false;
+            if (SelectionChanged != null) SelectionChanged(id);
             Refresh(true);
+        }
+        /// <summary>Raised when the selected train changes (null = none), e.g. for the DMI.</summary>
+        public event Action<string> SelectionChanged;
+        /// <summary>The HUD canvas, for station-specific panels (NX panel, DMI).</summary>
+        public RectTransform CanvasRoot { get { return _root; } }
+        public Font HudFont { get { return F; } }
+
+        /// <summary>An extra tool button at the top-left under the live list header (e.g. "แผง NX").</summary>
+        public Button AddToolButton(string text, int slot, Action onClick)
+        {
+            var b = Button(_root, text, new Vector2(16 + slot * 150, -(92 + 4)), new Vector2(140, 44), Navy2, Color.white, 19, onClick);
+            var rt = b.GetComponent<RectTransform>(); rt.anchorMin = rt.anchorMax = new Vector2(0, 0); rt.pivot = new Vector2(0, 0); rt.anchoredPosition = new Vector2(16 + slot * 150, 16);
+            return b;
         }
         void OnAction()
         {

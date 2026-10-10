@@ -6,6 +6,7 @@ using ThaiRail.Simulation;
 using ThaiRail.Stations;
 using ThaiRail.Trains;
 using ThaiRail.UI;
+using ThaiRail.Simulation.Hlp;
 using UnityEngine;
 
 namespace ThaiRail.Game
@@ -90,10 +91,28 @@ namespace ThaiRail.Game
 
             _hud = _stationRoot.AddComponent<StationHud>(); _hud.font = font;
             _hud.Bind(_view.Adapter, _view, _rig);
+            var hlpRunner = _view as HlpStationRunner;
+            if (hlpRunner != null) AddInterlockingPanels(hlpRunner);
             var ids = new[] { "HLP" }.Concat(RailTrackWorld.Instance.Db.stations.stations.Select(s => s.id)).ToArray();
             _hud.AddControls(ids, id, Open);
             if (hint != null) _hud.Toast(hint);
         }
+
+        /// <summary>Hua Lamphong: NX relay panel (toggle button) and the ETCS DMI of the selected train.</summary>
+        void AddInterlockingPanels(HlpStationRunner hr)
+        {
+            var nxModel = new NxPanelModel(hr.Engine);
+            nxModel.Message += _hud.Toast;
+            var nx = NxPanelView.Create(_hud.CanvasRoot, nxModel, _hud.HudFont);
+            nx.OpenControllers = () => _hud.Toast("ARS ทำงานเมื่อมีผู้ควบคุมขาเข้า/ขาออก · เปิดได้ที่ห้องควบคุม");
+            nx.gameObject.SetActive(false);
+            _hud.AddToolButton("แผง NX", 0, () => nx.gameObject.SetActive(!nx.gameObject.activeSelf));
+            var dmi = DmiView.Create(_hud.CanvasRoot, hr.Engine, _hud.HudFont);
+            dmi.gameObject.SetActive(false);
+            _hud.SelectionChanged += id => { dmi.ServiceId = id; dmi.gameObject.SetActive(id != null); };
+            _nx = nx;
+        }
+        NxPanelView _nx;
 
         void Update()
         {

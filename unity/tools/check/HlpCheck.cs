@@ -63,6 +63,41 @@ static class HlpCheck
                 (svc.lh ? "loco-hauled" : "push-pull") + " " + vm.name + " → ราง " + plat.n + " → " + vm2.actionLabel + " → departed " + (e.Svc(svc.id) == null));
         }
     }
+    public static void RunPanels(RailTrackDatabase db, string dataDir, Action<string, bool, string> Check)
+    {
+        var file = UnityEngine.JsonUtility.FromJson<HlpFile>(File.ReadAllText(Path.Combine(dataDir, "hualamphong.json")));
+        var rng = new Random(77); var e = new HlpEngine(file, db.stations.hualamphong, new Difficulty(db.difficulty, rng), new TestHost(), rng);
+        var nx = new NxPanelModel(e); var msgs = new List<string>(); nx.Message += msgs.Add;
+        int sw = e.G.nodes.Count(n => e.G.IsSwitch(n.i));
+        bool layout = nx.Buttons.Count == 14 + 14 + 2 + sw && nx.Buttons.All(b => b.x >= 0 && b.x <= NxPanelModel.Width && b.y >= 0 && b.y <= NxPanelModel.Height);
+        Check("NX panel layout: 14 platform exits, 15 entrances, exit, every switch", layout, nx.Buttons.Count + " buttons (" + sw + " switches)");
+
+        nx.Press("P3"); bool needEntrance = msgs.Count == 1 && msgs[0].Contains("ทางเข้าก่อน");
+        HlpService held = null;
+        for (int i = 0; i < 20000 && held == null; i++) { e.Step(0.25); held = e.S.services.FirstOrDefault(s => s.phase == HlpPhase.Held); }
+        int T = Enumerable.Range(1, 14).First(t => e.TrackFree(t) && e.ArrivalRule(t, held) == null);
+        nx.Press("HA"); bool selected = nx.Selected == "HA";
+        nx.Press("P" + T); bool routed = e.HasRouteFrom("HA") && nx.Selected == null;
+        bool setting; var st = nx.EdgeState(e.G.E("pw" + T), out setting); bool drawn = st == NxEdgeState.Route;
+        nx.Press("HA"); bool cancelled = !e.HasRouteFrom("HA");
+        Check("NX: entrance H → platform sets the route; pressing H again cancels it", needEntrance && selected && routed && drawn && cancelled, "track " + T + " · " + string.Join(" / ", msgs.Skip(1).Take(2)));
+
+        // a free switch throws and shows reversed; then route again and watch the DMI while the train runs in
+        var free = e.G.nodes.First(n => e.G.IsSwitch(n.i) && e.S.nlock[n.i] == "" && !n.adj.Any(x => e.OCC[x].Count > 0));
+        int before = e.S.nodePos[free.i]; nx.Press("N:" + free.id); bool thrown = e.S.nodePos[free.i] != before && e.S.nodeMv[free.i] > 0;
+        Check("NX: pressing a switch throws it", thrown, free.label + " → " + e.PosName(free.i, e.S.nodePos[free.i]));
+        for (int i = 0; i < 40; i++) e.Step(0.25);   // let it finish moving
+        nx.Press("HA"); nx.Press("P" + T);
+        DmiState d = default(DmiState); bool sawFs = false, sawBrake = false;
+        for (int i = 0; i < 4000 && held.phase != HlpPhase.Dwell; i++)
+        {
+            e.Step(0.25); d = DmiState.For(e, held.id);
+            if (d.has && d.mode == "FS" && d.permitted > 0 && d.message.StartsWith("MA ถึงชานชาลา")) sawFs = true;
+            if (d.has && d.tsm) sawBrake = true;
+        }
+        Check("DMI: full supervision, braking curve into the platform, then standstill", sawFs && sawBrake && held.phase == HlpPhase.Dwell && DmiState.For(e, held.id).target == "จอดนิ่ง"
+            && Math.Abs(DmiState.Angle(0) + 144) < 1e-4 && Math.Abs(DmiState.Angle(160) - 144) < 1e-4, "FS " + sawFs + " · TSM " + sawBrake + " · " + held.phase);
+    }
     // pairs of different consists covering the same stretch of an edge by more than 0.5 m
     static int Overlaps(HlpEngine e)
     {

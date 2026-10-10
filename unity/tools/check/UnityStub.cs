@@ -46,7 +46,7 @@ namespace UnityEngine {
   public struct Color32 { public byte r, g, b, a; public Color32(byte r, byte g, byte b, byte a) { this.r = r; this.g = g; this.b = b; this.a = a; } }
   public struct Vector2 { public float x, y; public Vector2(float x, float y) { this.x = x; this.y = y; } public static Vector2 zero, one; public float magnitude { get { return 0; } }
     public static float Distance(Vector2 a, Vector2 b) { return 0; }
-    public static Vector2 operator -(Vector2 a, Vector2 b) { return a; } public static Vector2 operator +(Vector2 a, Vector2 b) { return a; }
+    public static Vector2 operator -(Vector2 a, Vector2 b) { return a; } public static Vector2 operator +(Vector2 a, Vector2 b) { return a; } public static Vector2 operator *(Vector2 a, float d) { return a; }
     public static implicit operator Vector2(Vector3 v) { return default(Vector2); } public static implicit operator Vector3(Vector2 v) { return default(Vector3); } }
   public struct Vector3 { public float x, y, z; public Vector3(float x, float y, float z) { this.x = x; this.y = y; this.z = z; }
     public static Vector3 up, zero, forward, right, one; public static float Dot(Vector3 a, Vector3 b) { return 0; } public float magnitude { get { return 0; } }
@@ -59,7 +59,7 @@ namespace UnityEngine {
     public static Quaternion LookRotation(Vector3 f, Vector3 u) { return default(Quaternion); }
     public static Quaternion RotateTowards(Quaternion a, Quaternion b, float d) { return a; }
     public static Quaternion operator *(Quaternion a, Quaternion b) { return a; } public static Vector3 operator *(Quaternion a, Vector3 v) { return v; } }
-  public static class Mathf { public const float Deg2Rad = 0.0174f, Rad2Deg = 57.29f, PI = 3.14159f; public static float Tan(float a) { return a; } public static float Sin(float a) { return a; } public static float Abs(float a) { return a; }
+  public static class Mathf { public const float Deg2Rad = 0.0174f, Rad2Deg = 57.29f, PI = 3.14159f; public static float Tan(float a) { return a; } public static float Sin(float a) { return a; } public static float Cos(float a) { return a; } public static int CeilToInt(float v) { return 0; } public static float Abs(float a) { return a; }
     public static float Lerp(float a, float b, float t) { return a; } public static float LerpAngle(float a, float b, float t) { return a; } public static float DeltaAngle(float a, float b) { return a; }
     public static float Clamp(float v, float a, float b) { return v; } public static float Clamp01(float v) { return v; } public static float Atan2(float y, float x) { return y; } public static float Pow(float a, float b) { return a; }
     public static int RoundToInt(float v) { return 0; } public static float Round(float v) { return v; } public static int Max(int a, int b) { return a; } public static float Max(float a, float b) { return a; } public static int Min(int a, int b) { return a; } public static float Min(float a, float b) { return a; } }
@@ -82,10 +82,13 @@ namespace UnityEngine {
   public class Camera : Behaviour { public static Camera main; public bool orthographic; public float orthographicSize, fieldOfView, nearClipPlane, farClipPlane; public int pixelHeight;
     public CameraClearFlags clearFlags; public Color backgroundColor;
     public Vector3 WorldToViewportPoint(Vector3 p) { return p; } public Vector3 WorldToScreenPoint(Vector3 p) { return p; } }
-  public class RectTransform : Transform { public Vector2 anchorMin, anchorMax, pivot, anchoredPosition, sizeDelta, offsetMin, offsetMax; }
+  public class RectTransform : Transform { public Rect rect; public Vector2 anchorMin, anchorMax, pivot, anchoredPosition, sizeDelta, offsetMin, offsetMax; }
   public class Sprite : Object {}
   public class CanvasRenderer : Component { public bool cull; }
   public class RangeAttribute : Attribute { public RangeAttribute(float a, float b) {} }
+}
+namespace UnityEngine {
+  public struct UIVertex { public Vector3 position; public Color32 color; public static UIVertex simpleVert; }
 }
 namespace UnityEngine.Rendering {
   public enum ShadowCastingMode { Off, On, TwoSided, ShadowsOnly }
@@ -106,6 +109,8 @@ namespace UnityEngine.UI {
   public class Button : Selectable { public class ButtonClickedEvent : UnityEngine.Events.UnityEvent {} public ButtonClickedEvent onClick = new ButtonClickedEvent(); }
   public class CanvasScaler : Behaviour { public enum ScaleMode { ConstantPixelSize, ScaleWithScreenSize, ConstantPhysicalSize } public ScaleMode uiScaleMode; public Vector2 referenceResolution; public float matchWidthOrHeight; }
   public class GraphicRaycaster : Behaviour {}
+  public class MaskableGraphic : Graphic { protected virtual void OnPopulateMesh(VertexHelper vh) {} public virtual void SetVerticesDirty() {} }
+  public class VertexHelper { public void Clear() {} public void AddVert(UIVertex v) {} public void AddTriangle(int a, int b, int c) {} }
   public class GridLayoutGroup : Behaviour { public Vector2 cellSize, spacing; }
 }
 namespace UnityEngine.EventSystems {
