@@ -99,9 +99,37 @@
    }
   },
   {
+   "id": "THN_car",
+   "name": "THN DMU",
+   "kind": "car",
+   "len": 20,
+   "ac": false,
+   "maker": "",
+   "livery": {
+    "body": "#F1E9D2",
+    "low": "#D2652A",
+    "line": "#7A3B22",
+    "roof": "#9AA3AE"
+   }
+  },
+  {
    "id": "NKF",
    "name": "NKF DMU",
    "kind": "dmu",
+   "len": 20,
+   "ac": false,
+   "maker": "",
+   "livery": {
+    "body": "#F1E9D2",
+    "low": "#D2652A",
+    "line": "#7A3B22",
+    "roof": "#9AA3AE"
+   }
+  },
+  {
+   "id": "NKF_car",
+   "name": "NKF DMU",
+   "kind": "car",
    "len": 20,
    "ac": false,
    "maker": "",
@@ -127,9 +155,37 @@
    }
   },
   {
+   "id": "APD_car",
+   "name": "Daewoo APD",
+   "kind": "car",
+   "len": 20,
+   "ac": true,
+   "maker": "",
+   "livery": {
+    "body": "#F4F5F8",
+    "low": "#1F4FA8",
+    "line": "#C8102E",
+    "roof": "#A7B0BC"
+   }
+  },
+  {
    "id": "ASR",
    "name": "ASR (BR Class 158)",
    "kind": "dmu",
+   "len": 20,
+   "ac": true,
+   "maker": "",
+   "livery": {
+    "body": "#F4F5F8",
+    "low": "#1F2F5A",
+    "line": "#C8102E",
+    "roof": "#A7B0BC"
+   }
+  },
+  {
+   "id": "ASR_car",
+   "name": "ASR (BR Class 158)",
+   "kind": "car",
    "len": 20,
    "ac": true,
    "maker": "",
@@ -155,6 +211,20 @@
    }
   },
   {
+   "id": "red_car",
+   "name": "Hitachi AT100",
+   "kind": "car",
+   "len": 20,
+   "ac": true,
+   "maker": "",
+   "livery": {
+    "body": "#F4F5F8",
+    "low": "#C8102E",
+    "line": "#C8102E",
+    "roof": "#C7CDD6"
+   }
+  },
+  {
    "id": "frt",
    "name": "แคร่ขนตู้สินค้า",
    "kind": "flat",
@@ -166,20 +236,6 @@
     "low": "#A3262A",
     "line": "#EFE6CF",
     "roof": "#7B8390"
-   }
-  },
-  {
-   "id": "NKF_car",
-   "name": "NKF DMU",
-   "kind": "car",
-   "len": 20,
-   "ac": false,
-   "maker": "",
-   "livery": {
-    "body": "#F1E9D2",
-    "low": "#D2652A",
-    "line": "#7A3B22",
-    "roof": "#9AA3AE"
    }
   }
  ],

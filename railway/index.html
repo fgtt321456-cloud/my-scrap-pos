@@ -6911,7 +6911,11 @@ function rtExport() {
     classes: Object.keys(STN_CLS).map(cls => ({ cls, rev: STN_CLS[cls].rev, kind: STN_CLS[cls].kind, vehMin: STN_CLS[cls].veh[0], vehMax: STN_CLS[cls].veh[1], car: STN_CLS[cls].car })),
   };
   const rolling = {
-    models: Object.keys(RS).map(id => ({ id, name: RS[id].name, kind: RS[id].kind, len: RS[id].len, ac: !!RS[id].ac, maker: RS[id].maker || '', livery: Object.assign({ body: '', low: '', line: '', roof: '' }, RS[id].liv) })),
+    // base models plus a trailer ("_car") for every multiple unit; RS gains _car entries lazily at runtime, so build them here
+    models: Object.keys(RS).filter(id => !id.endsWith('_car')).flatMap(id => {
+      const M = RS[id], row = (k, kind) => ({ id: k, name: M.name, kind, len: M.len, ac: !!M.ac, maker: M.maker || '', livery: Object.assign({ body: '', low: '', line: '', roof: '' }, M.liv) });
+      return M.kind === 'dmu' || M.kind === 'emu' ? [row(id, M.kind), row(id + '_car', 'car')] : [row(id, M.kind)];
+    }),
     aliases: Object.keys(RS_ALIAS).map(k => ({ key: k, model: RS_ALIAS[k] })),
     info: RS_INFO.map(r => ({ id: r.id, consist: r.consist, tier: r.tier || '', role: r.role, note: r.note })),
   };
