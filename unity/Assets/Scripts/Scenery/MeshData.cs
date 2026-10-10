@@ -140,6 +140,37 @@ namespace ThaiRail.Scenery
             }
         }
 
+        /// <summary>Flat disc (or arc segment) in a vertical plane at constant x, facing −x or +x; θ = 0 points along +z, π/2 up.</summary>
+        public void DiscX(V3 c, double r, int seg, Rgba col, bool facingMinusX, double thetaStart = 0, double thetaLen = Math.PI * 2)
+        {
+            var n = new V3(facingMinusX ? -1 : 1, 0, 0);
+            for (int i = 0; i < seg; i++)
+            {
+                double a = thetaStart + thetaLen * i / seg, b = thetaStart + thetaLen * (i + 1) / seg;
+                Tri(c, c + new V3(0, r * Math.Sin(a), r * Math.Cos(a)), c + new V3(0, r * Math.Sin(b), r * Math.Cos(b)), n, col);
+            }
+        }
+
+        /// <summary>
+        /// Half-elliptic arch in the y–z plane at x = c.x (radii rz across, ry up), as a square tube of side 2·t —
+        /// the trainshed ribs and window frames (the web build's scaled half torus).
+        /// </summary>
+        public void ArcYZ(V3 c, double rz, double ry, double t, int seg, Rgba col)
+        {
+            Func<double, V3> P = th => c + new V3(0, ry * Math.Sin(th), rz * Math.Cos(th));
+            Func<double, V3> N = th => new V3(0, Math.Sin(th) / Math.Max(ry, 1e-6), Math.Cos(th) / Math.Max(rz, 1e-6)).Normalized;
+            V3 X = new V3(t, 0, 0);
+            for (int i = 0; i < seg; i++)
+            {
+                double a = Math.PI * i / seg, b = Math.PI * (i + 1) / seg, m = (a + b) / 2;
+                V3 pa = P(a), pb = P(b), na = N(a) * t, nb = N(b) * t, nm = N(m);
+                Quad(pa + na - X, pb + nb - X, pb + nb + X, pa + na + X, nm, col);              // outer
+                Quad(pa - na - X, pb - nb - X, pb - nb + X, pa - na + X, nm * -1, col);         // inner
+                Quad(pa - na - X, pb - nb - X, pb + nb - X, pa + na - X, new V3(-1, 0, 0), col); // sides
+                Quad(pa - na + X, pb - nb + X, pb + nb + X, pa + na + X, new V3(1, 0, 0), col);
+            }
+        }
+
         /// <summary>Low-poly ellipsoid (tree crowns).</summary>
         public void Blob(V3 c, double rx, double ry, double rz, Rgba col, int seg = 8, int rings = 5)
         {

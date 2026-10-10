@@ -13,7 +13,7 @@ const dir = process.argv[2], THREE_DIR = process.env.THREE_DIR;
   await page.setContent('<body style="margin:0"><canvas id=c width=1280 height=760></canvas></body>');
   await page.addScriptTag({ content: fs.readFileSync(path.join(THREE_DIR, 'build/three.min.js'), 'utf8') });
   const trains = JSON.parse(fs.readFileSync(path.join(dir, 'trains.json'), 'utf8'));
-  for (const f of fs.readdirSync(dir).filter(f => f.startsWith('scene_'))) {
+  for (const f of fs.readdirSync(dir).filter(f => f.startsWith('scene_') && f.endsWith('.json'))) {
     const data = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
     for (const [tag, zoom, dx] of [['wide', 0.8, 0], ['close', 2.6, 0]]) {
       await page.evaluate(({ data, trains, zoom }) => {

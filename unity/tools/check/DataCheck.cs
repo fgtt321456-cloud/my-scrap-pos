@@ -6,7 +6,7 @@ static class T {
   static int Main(string[] a) {
     Console.OutputEncoding = new System.Text.UTF8Encoding(false);
     string dir = a[0]; Func<string, string> R = f => File.ReadAllText(Path.Combine(dir, f));
-    var db = RailTrackDataLoader.Parse(R("stations.json"), R("timetable.json"), R("rolling_stock.json"), R("progression.json"), R("difficulty.json"), R("network.json"));
+    var db = RailTrackDataLoader.Parse(R("stations.json"), R("timetable.json"), R("rolling_stock.json"), R("progression.json"), R("difficulty.json"), R("network.json"), R("hualamphong.json"));
     Check("5 timetable stations + HLP", db.stations.stations.Length == 5 && db.stations.hualamphong.platformClass.Length == 14, db.stations.stations.Length.ToString());
     var cmi = db.Station("CMI"); Check("CMI: 7 tracks, 4 with platforms, terminus", cmi.tracks.Length == 7 && cmi.tracks.Count(x => x.platform) == 4 && cmi.IsTerminus);
     Check("timetable trains + classes", db.timetable.trains.Length >= 20 && db.timetable.classes.Length > 3, db.timetable.trains.Length + "");
@@ -28,6 +28,7 @@ static class T {
     Check("run day of 31 at HDY (06:40 next morning)", DelayLedger.RunDay(Clock.ToSec("06:40"), Clock.ToSec("16:45"), 1) == 0);
     StationSimCheck.Run(db, a.Length > 1 ? a[1] : ".", Check);
     SceneryCheck.Run(db, Check, a.Length > 2 ? a[2] : null);
+    HlpCheck.Run(db, a[0], a.Length > 1 ? a[1] : ".", Check);
     TrainCheck.Run(db, Path.GetFullPath(Path.Combine(a[1], "../..")), Check, a.Length > 2 ? a[2] : null);
     return fail;
   }

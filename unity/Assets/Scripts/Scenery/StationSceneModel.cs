@@ -9,18 +9,23 @@ namespace ThaiRail.Scenery
     /// <summary>A world-space label (station sign, track number, landmark) in web coordinates.</summary>
     public struct SceneLabel { public string title, sub; public V3 at; public float width; }
 
+    /// <summary>Static scenery of one station: an opaque and a transparent layer (2 draw calls) plus labels and lamp posts.</summary>
+    public abstract class SceneModel
+    {
+        public readonly MeshData Opaque = new MeshData(), Transparent = new MeshData();
+        public readonly List<SceneLabel> Labels = new List<SceneLabel>();
+        public readonly List<V3> Lamps = new List<V3>();
+        public double CenterX, Deck;
+    }
+
     /// <summary>
     /// The static 3D scene of a timetable station, generated from its StationDef: tracks, platforms, canopies,
     /// the building in the station's real style, and its landmarks. Port of stnBuild / railInstances / build* /
     /// stnExtras in railway/src/stations.js. Pure C#: <see cref="StationSceneBuilder"/> turns it into Unity meshes.
     /// Two layers keep it at two draw calls: <see cref="Opaque"/> and <see cref="Transparent"/> (glass roofs, canopies).
     /// </summary>
-    public sealed class StationSceneModel
+    public sealed class StationSceneModel : SceneModel
     {
-        public readonly MeshData Opaque = new MeshData(), Transparent = new MeshData();
-        public readonly List<SceneLabel> Labels = new List<SceneLabel>();
-        public readonly List<V3> Lamps = new List<V3>();
-        public double CenterX, Deck;
 
         // palette (SM in stations.js)
         static readonly Rgba Ground = new Rgba(0xDCD1B8), Ballast = new Rgba(0xA79F92), Sleeper = new Rgba(0x6B5646), Rail = new Rgba(0x59626e),

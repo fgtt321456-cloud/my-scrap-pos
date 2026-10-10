@@ -41,7 +41,21 @@ const { open } = require('../tests/harness');
     }
     return out;
   });
-  fs.writeFileSync(path.join(__dirname, '../../unity/tools/check/golden_sim.json'), JSON.stringify({ stations: ref }) + '\n');
+  // Hua Lamphong: seeded opening scene, both ARS on, no purchased controllers, 4 game hours, averaged over 12 runs
+  // (single runs spread widely: on-time 55–98 %, so fewer runs make a noisy reference)
+  const hlp = await page.evaluate(() => {
+    const R = window.__rt, runs = [];
+    for (let k = 0; k < 12; k++) {
+      const m = R.meta(); m.lv = 1; m.ctrl = {};
+      const T = R.hlpReset(); T.ars.arr = T.ars.dep = true;
+      for (let i = 0; i < 4 * 3600 * 4; i++) R.tStep(0.25);
+      runs.push({ arr: T.stats.arr, dep: T.stats.dep, onTime: T.stats.onTime, holdMin: T.stats.holdMin, delayMin: T.stats.delayMin, stuck: T.services.filter(x => x.phase === 'dwell' && T.now - x.schedDep > 1800).length });
+    }
+    const avg = f => runs.reduce((a, r) => a + r[f], 0) / runs.length;
+    return { arr: avg('arr'), dep: avg('dep'), onTime: avg('onTime'), holdMin: avg('holdMin'), delayMin: avg('delayMin'), stuck: avg('stuck') };
+  });
+  fs.writeFileSync(path.join(__dirname, '../../unity/tools/check/golden_sim.json'), JSON.stringify({ stations: ref, hlp }) + '\n');
+  console.log('hlp reference', JSON.stringify(hlp));
   console.log('behaviour reference', JSON.stringify(ref));
   if (errors.length) console.error('page errors:', errors);
   await browser.close();

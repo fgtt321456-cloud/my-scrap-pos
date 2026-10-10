@@ -26,7 +26,7 @@ Assets/Scripts/
   Scenery/     MeshData + StationSceneModel (ฉากสถานีจากผังจริง, C# ล้วน), TrainMeshModel (รถจำลองจากสีลายรถ),
                StationSceneBuilder (สร้าง Mesh 2 ชิ้น = 2 draw call + ป้ายชื่อ)
   UI/          StationHud (HUD สร้างด้วยโค้ด อ่านจาก adapter อย่างเดียว)
-  Game/        StationSceneBootstrap (ฉากเปล่า → สถานีที่เล่นได้)
+  Game/        StationSceneBootstrap (ฉากเปล่า → สถานีที่เล่นได้ ทั้ง 6 สถานีรวมหัวลำโพง)
   Trains/      TrainLibrary (โมเดลรถไฟละเอียดจาก Resources), RollingStockCatalog (รหัสรุ่นรถ → prefab ใน pool),
                CarSources (prefab จริง → โมเดลละเอียด → รถจำลองแบบง่าย ตามที่มี)
 Assets/Resources/RailTrack/  shader สีตามจุดยอด (ทึบ/โปร่งใส), shader รถไฟ (ลายรถ + ไฟหน้าต่างกลางคืน)
@@ -43,7 +43,7 @@ tools/check/   คอมไพล์สคริปต์ทั้งหมด�
 1. สร้าง scene ใหม่ → GameObject เปล่า → เพิ่ม `StationSceneBootstrap` → กด Play
 2. ได้สถานีเชียงใหม่ที่สร้างจากผังจริงทันที: ราง ชานชาลา หลังคา อาคารทรงล้านนา โรงรถจักร วงเวียนกลับรถจักร ดอยสุเทพ
    พร้อมขบวนรถตามตารางจริงด้วยโมเดลรถไฟละเอียดชุดเดียวกับเว็บ (ไฟหน้าต่างและไฟหน้าติดตอนกลางคืน), กล้องไอโซเมตริก, HUD และกลางวัน/กลางคืน
-3. ปุ่มมุมขวาบน: หยุด/1×/2×/4× และสลับสถานี CMI NKI UBN HDY KRT · ตั้ง `font` เป็นฟอนต์ไทย (เช่น IBM Plex Sans Thai) เพื่อให้ตัวอักษรไทยสวย
+3. ปุ่มมุมขวาบน: หยุด/1×/2×/4× และสลับสถานี HLP (หัวลำโพง) CMI NKI UBN HDY KRT · ตั้ง `font` เป็นฟอนต์ไทย (เช่น IBM Plex Sans Thai) เพื่อให้ตัวอักษรไทยสวย
 4. ควบคุม: ลากเพื่อเลื่อน, ล้อเมาส์/บีบนิ้วเพื่อซูม, คลิกขวาลาก/หมุนสองนิ้วเพื่อหมุน, แตะขบวนเพื่อเลือก
 
 ข้อกำหนด: Built-in Render Pipeline (shader อยู่ที่ `Assets/Resources/RailTrack/`), Active Input Handling = "Input Manager" หรือ "Both"

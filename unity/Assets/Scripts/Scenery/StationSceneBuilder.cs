@@ -18,7 +18,7 @@ namespace ThaiRail.Scenery
         [Tooltip("Font for station signs and labels (a Thai-capable font, e.g. IBM Plex Sans Thai). Left empty: Unity's built-in font.")] public Font labelFont;
         public Color labelColor = new Color(0.12f, 0.16f, 0.24f, 1);
 
-        public StationSceneModel Model { get; private set; }
+        public SceneModel Model { get; private set; }
         public GameObject Root { get; private set; }
         readonly List<GameObject> _made = new List<GameObject>();
 
@@ -26,11 +26,13 @@ namespace ThaiRail.Scenery
         public static Vector3 ToUnity(V3 p) { return ToUnity(p.x, p.y, p.z); }
         public static Vector3 ToUnity(P3 p) { return ToUnity(p.x, p.y, p.z); }
 
-        public GameObject Build(StationDef def, StationGeometry geo)
+        public GameObject Build(StationDef def, StationGeometry geo) { return Build(new StationSceneModel(def, geo), def.id); }
+
+        public GameObject Build(SceneModel model, string name)
         {
             Clear();
-            Model = new StationSceneModel(def, geo);
-            Root = new GameObject("Station " + def.id); Root.transform.SetParent(transform, false); _made.Add(Root);
+            Model = model;
+            Root = new GameObject("Station " + name); Root.transform.SetParent(transform, false); _made.Add(Root);
             AddMesh("Opaque", Model.Opaque, opaqueMaterial != null ? opaqueMaterial : Mat("RailTrack/VertexColorLit"), true);
             AddMesh("Transparent", Model.Transparent, transparentMaterial != null ? transparentMaterial : Mat("RailTrack/VertexColorTransparent"), false);
             var labels = new GameObject("Labels"); labels.transform.SetParent(Root.transform, false);

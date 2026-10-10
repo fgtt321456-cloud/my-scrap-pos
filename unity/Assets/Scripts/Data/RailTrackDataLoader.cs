@@ -38,14 +38,14 @@ namespace ThaiRail.Data
                 }
                 else texts[i] = File.ReadAllText(path);
             }
-            Db = Parse(texts[0], texts[1], texts[2], texts[3], texts[4], texts[5]);
+            Db = Parse(texts[0], texts[1], texts[2], texts[3], texts[4], texts[5], texts[6]);
             if (Loaded != null) Loaded(Db);
         }
 
-        static readonly string[] Files = { "stations.json", "timetable.json", "rolling_stock.json", "progression.json", "difficulty.json", "network.json" };
+        static readonly string[] Files = { "stations.json", "timetable.json", "rolling_stock.json", "progression.json", "difficulty.json", "network.json", "hualamphong.json" };
 
         /// <summary>Pure parse step (no file IO), also used by edit-mode tests.</summary>
-        public static RailTrackDatabase Parse(string stations, string timetable, string rolling, string progression, string difficulty, string network)
+        public static RailTrackDatabase Parse(string stations, string timetable, string rolling, string progression, string difficulty, string network, string hualamphong = null)
         {
             var db = new RailTrackDatabase
             {
@@ -55,6 +55,7 @@ namespace ThaiRail.Data
                 progression = JsonUtility.FromJson<ProgressionFile>(progression),
                 difficulty = JsonUtility.FromJson<DifficultyFile>(difficulty),
                 network = JsonUtility.FromJson<NetworkFile>(network),
+                hualamphongGraph = string.IsNullOrEmpty(hualamphong) ? null : JsonUtility.FromJson<ThaiRail.Simulation.Hlp.HlpFile>(hualamphong),
             };
             db.Index();
             return db;

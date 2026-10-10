@@ -29,7 +29,7 @@ namespace ThaiRail.UI
         static Color Hex(int v, float a = 1) { return new Color(((v >> 16) & 255) / 255f, ((v >> 8) & 255) / 255f, (v & 255) / 255f, a); }
 
         IStationAdapter _a;
-        TimetableStationRunner _runner;
+        IStationView _runner;
         StationCameraRig _rig;
         string _sel; ListFilter _filter = ListFilter.All; bool _sheet;
         float _acc; string _listSig = "", _cardSig = "", _sheetSig = "";
@@ -46,7 +46,7 @@ namespace ThaiRail.UI
         sealed class Row { public GameObject go; public Image bg, bar; public Text code, name, right; public string id; }
         sealed class PlatBtn { public GameObject go; public Button btn; public Image img; public Text label; public int n; }
 
-        public void Bind(IStationAdapter adapter, TimetableStationRunner runner, StationCameraRig rig)
+        public void Bind(IStationAdapter adapter, IStationView runner, StationCameraRig rig)
         {
             _a = adapter; _runner = runner; _rig = rig;
             if (_root == null) BuildUi();
@@ -109,16 +109,13 @@ namespace ThaiRail.UI
 
         void StatusBar()
         {
-            var W = RailTrackWorld.Instance; var sim = _runner != null ? _runner.Sim : null; if (sim == null || W == null) return;
-            var S = sim.State;
+            var W = RailTrackWorld.Instance; if (_runner == null || !_runner.Running || W == null) return;
+            var S = _runner.Status();
             _money.text = "฿" + W.money.ToString("N0");
             _clock.text = Clock.HM(S.now) + (W.Difficulty.IsRain(S.now) ? " · ฝน" : "") + (W.Difficulty.IsRush(S.now) ? " · เร่งด่วน" : "");
-            _onTime.text = S.stats.dep > 0 ? Mathf.RoundToInt(100f * S.stats.onTime / S.stats.dep) + "%" : "—";
-            int inPl = 0, held = 0, plats = 0;
-            foreach (var s in S.services) { if (s.phase == ServicePhase.Entering || s.phase == ServicePhase.Dwell || s.phase == ServicePhase.Ready) inPl++; if (s.phase == ServicePhase.Held) held++; }
-            foreach (var t in sim.Def.tracks) if (sim.HasPlatform(t)) plats++;
-            _inPlat.text = inPl + "/" + plats; _held.text = held.ToString(); _held.color = held > 0 ? Hex(0xFF8A8F) : Color.white;
-            _rev.text = "฿" + S.stats.rev.ToString("N0");
+            _onTime.text = S.dep > 0 ? Mathf.RoundToInt(100f * S.onTime / S.dep) + "%" : "—";
+            _inPlat.text = S.inPlatform + "/" + S.platforms; _held.text = S.held.ToString(); _held.color = S.held > 0 ? Hex(0xFF8A8F) : Color.white;
+            _rev.text = "฿" + S.revenue.ToString("N0");
         }
 
         void RenderList(IReadOnlyList<string> ids)
@@ -192,7 +189,7 @@ namespace ThaiRail.UI
             for (int i = speeds.Length - 1; i >= 0; i--)
             {
                 float sp = speeds[i];
-                var b = Button(_root, names[i], new Vector2(x - 64, -14), new Vector2(64, 48), Navy2, Color.white, 20, () => { if (_runner != null && _runner.Sim != null) _runner.Sim.State.speed = sp; });
+                var b = Button(_root, names[i], new Vector2(x - 64, -14), new Vector2(64, 48), Navy2, Color.white, 20, () => { if (_runner != null && _runner.Running) _runner.Speed = sp; });
                 var rt = b.GetComponent<RectTransform>(); rt.anchorMin = rt.anchorMax = new Vector2(1, 1); rt.pivot = new Vector2(0, 1);
                 x -= 70;
             }

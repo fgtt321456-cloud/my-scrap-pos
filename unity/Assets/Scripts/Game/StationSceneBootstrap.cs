@@ -18,13 +18,13 @@ namespace ThaiRail.Game
     /// </summary>
     public sealed class StationSceneBootstrap : MonoBehaviour
     {
-        [Tooltip("CMI, NKI, UBN, HDY or KRT")] public string stationId = "CMI";
+        [Tooltip("HLP (Hua Lamphong), CMI, NKI, UBN, HDY or KRT")] public string stationId = "CMI";
         [Tooltip("Optional real train prefabs (needs a PoolManager). Empty = generated placeholder trains")] public RollingStockCatalog catalog;
         [Tooltip("Thai-capable font for the HUD and signs (e.g. IBM Plex Sans Thai)")] public Font font;
         [Tooltip("Start with the approach and departure controllers (ARS) switched on")] public bool startWithArs;
 
         StationSceneBuilder _builder;
-        TimetableStationRunner _runner;
+        IStationView _view;
         StationCameraRig _rig;
         StationHud _hud;
         Light _sun;
@@ -57,30 +57,48 @@ namespace ThaiRail.Game
             if (_stationRoot != null) Destroy(_stationRoot);
             stationId = id;
             _stationRoot = new GameObject("Station " + id);
-            _runner = _stationRoot.AddComponent<TimetableStationRunner>();
-            _runner.stationId = id; _runner.catalog = catalog;
-            _runner.trainRoot = new GameObject("Trains").transform; _runner.trainRoot.SetParent(_stationRoot.transform, false);
-            _runner.Begin();
-            if (!_runner.Running) return;
-
+            var trains = new GameObject("Trains").transform; trains.SetParent(_stationRoot.transform, false);
             _builder = _stationRoot.AddComponent<StationSceneBuilder>(); _builder.labelFont = font;
-            _builder.Build(_runner.Sim.Def, _runner.Sim.Geo);
-
-            var d = _runner.Sim.Def;
-            double zm = d.tracks.Where(t => !t.siding).Average(t => t.z);
-            _rig.Home(StationSceneBuilder.ToUnity((d.P0 + d.P1) / 2, d.deck, zm));
-            _rig.bounds = Rect.MinMaxRect(d.P0 - 700, (float)-zm - 500, d.P1 + 700, (float)-zm + 500);
+            string hint;
+            if (id == "HLP")
+            {
+                var W = RailTrackWorld.Instance; var engine = W.HuaLamphong(); if (engine == null) return;
+                var model = new HlpSceneModel(engine.G);
+                var hr = _stationRoot.AddComponent<HlpStationRunner>(); hr.catalog = catalog; hr.trainRoot = trains;
+                hr.Begin(model.Signals); if (!hr.Running) return;
+                _builder.Build(model, "HLP");
+                _rig.Home(StationSceneBuilder.ToUnity(150, 0, 42.75), 0.7f);
+                _rig.bounds = Rect.MinMaxRect(-250, -500, 1000, 420);
+                _view = hr;
+                hint = engine.S.hinted ? null : "สถานีกรุงเทพ (หัวลำโพง): แตะขบวนที่รอสัญญาณ H แล้วเลือกชานชาลา · ขบวนหัวรถจักรต้องสับหลีกผ่านรางคู่ก่อนออก";
+                engine.S.hinted = true;
+            }
+            else
+            {
+                var tr = _stationRoot.AddComponent<TimetableStationRunner>();
+                tr.stationId = id; tr.catalog = catalog; tr.trainRoot = trains;
+                tr.Begin(); if (!tr.Running) return;
+                _builder.Build(tr.Sim.Def, tr.Sim.Geo);
+                var d = tr.Sim.Def;
+                double zm = d.tracks.Where(t => !t.siding).Average(t => t.z);
+                _rig.Home(StationSceneBuilder.ToUnity((d.P0 + d.P1) / 2, d.deck, zm));
+                _rig.bounds = Rect.MinMaxRect(d.P0 - 700, (float)-zm - 500, d.P1 + 700, (float)-zm + 500);
+                _view = tr;
+                hint = tr.Sim.State.hinted ? null : d.name + ": เลือกชานชาลาให้ขบวนที่มีแถบเหลือง แล้วปล่อยรถเมื่อพร้อม";
+                tr.Sim.State.hinted = true;
+            }
 
             _hud = _stationRoot.AddComponent<StationHud>(); _hud.font = font;
-            _hud.Bind(_runner.Adapter, _runner, _rig);
-            _hud.AddControls(RailTrackWorld.Instance.Db.stations.stations.Select(s => s.id).ToArray(), id, Open);
-            if (!_runner.Sim.State.hinted) { _runner.Sim.State.hinted = true; _hud.Toast(d.name + ": เลือกชานชาลาให้ขบวนที่มีแถบเหลือง แล้วปล่อยรถเมื่อพร้อม"); }
+            _hud.Bind(_view.Adapter, _view, _rig);
+            var ids = new[] { "HLP" }.Concat(RailTrackWorld.Instance.Db.stations.stations.Select(s => s.id)).ToArray();
+            _hud.AddControls(ids, id, Open);
+            if (hint != null) _hud.Toast(hint);
         }
 
         void Update()
         {
-            if (_runner == null || !_runner.Running || _sun == null) return;
-            float hour = (float)(_runner.Sim.State.now / 3600 % 24);
+            if (_view == null || !_view.Running || _sun == null) return;
+            float hour = (float)(_view.Status().now / 3600 % 24);
             DayNight(hour); TrainLibrary.SetNight(TrainLibrary.NightFactor(hour));
         }
 

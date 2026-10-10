@@ -24,7 +24,7 @@ namespace UnityEngine {
   public class MeshFilter : Component { public Mesh sharedMesh, mesh; }
   public class Mesh : Object { public Vector3[] vertices, normals; public Vector2[] uv; public Color32[] colors32; public int[] triangles; public Rendering.IndexFormat indexFormat;
     public void RecalculateBounds() {} public void RecalculateNormals() {} public void UploadMeshData(bool markNoLongerReadable) {} }
-  public class Material : Object { public Material(Shader s) {} public Material(Material m) {} public bool enableInstancing; public Color color; public void SetTexture(string n, Texture t) {} public void SetFloat(string n, float v) {} }
+  public class Material : Object { public Material(Shader s) {} public Material(Material m) {} public bool enableInstancing; public Color color; public void SetTexture(string n, Texture t) {} public void SetFloat(string n, float v) {} public void SetColor(string n, Color c) {} }
   public class Texture : Object {} public class Texture2D : Texture {} public class TextAsset : Object { public string text; }
   public class Shader : Object { public static int PropertyToID(string n) { return 0; } public static Shader Find(string n) { return null; } public static void SetGlobalFloat(string n, float v) {} }
   public class Font : Object { public Material material; }

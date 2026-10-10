@@ -13,7 +13,7 @@ namespace ThaiRail.Stations
     /// Cars come from the RollingStockCatalog + PoolManager when a catalog is set, otherwise from generated
     /// placeholder meshes, so a station runs before any train art exists.
     /// </summary>
-    public sealed class TimetableStationRunner : MonoBehaviour
+    public sealed class TimetableStationRunner : MonoBehaviour, IStationView
     {
         [Tooltip("CMI, NKI, UBN, HDY or KRT")] public string stationId = "CMI";
         [Tooltip("Optional: real prefabs per model. Empty = generated placeholder cars")] public RollingStockCatalog catalog;
@@ -24,7 +24,16 @@ namespace ThaiRail.Stations
 
         public TimetableStationSim Sim { get; private set; }
         public TimetableStationAdapter Adapter { get; private set; }
+        IStationAdapter IStationView.Adapter { get { return Adapter; } }
         public bool Running { get { return Sim != null; } }
+        public float Speed { get { return Sim != null ? Sim.State.speed : 0; } set { if (Sim != null) Sim.State.speed = value; } }
+        public StationStatus Status()
+        {
+            var S = Sim.State; var st = new StationStatus { now = S.now, dep = S.stats.dep, onTime = S.stats.onTime, revenue = S.stats.rev };
+            foreach (var s in S.services) { if (s.phase == ServicePhase.Entering || s.phase == ServicePhase.Dwell || s.phase == ServicePhase.Ready) st.inPlatform++; if (s.phase == ServicePhase.Held) st.held++; }
+            foreach (var t in Sim.Def.tracks) if (Sim.HasPlatform(t)) st.platforms++;
+            return st;
+        }
 
         sealed class Live { public List<Transform> cars = new List<Transform>(); }
         readonly Dictionary<string, Live> _live = new Dictionary<string, Live>();

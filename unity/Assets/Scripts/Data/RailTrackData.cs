@@ -43,11 +43,12 @@ namespace ThaiRail.Data
         public string id, name, en, line;
         public int tracks;
         public string[] real;
-        public HlpService[] longHaul, pushPull;
+        public HlpRegularTrain[] longHaul, pushPull;
         /// <summary>Consist class each platform 1..14 accepts (index 0 = platform 1).</summary>
         public int[] platformClass;
     }
-    [Serializable] public sealed class HlpService { public int no; public string from; }
+    /// <summary>An ordinary or commuter train worked at Hua Lamphong: outbound number and origin.</summary>
+    [Serializable] public sealed class HlpRegularTrain { public int no; public string from; }
 
     // ---------- timetable.json ----------
     [Serializable] public sealed class TimetableFile { public Place[] places; public TimetableTrain[] trains; public ServiceClass[] classes; }
@@ -135,6 +136,8 @@ namespace ThaiRail.Data
         public ProgressionFile progression;
         public DifficultyFile difficulty;
         public NetworkFile network;
+        /// <summary>Hua Lamphong interlocking graph (hualamphong.json); null when the file is missing.</summary>
+        public ThaiRail.Simulation.Hlp.HlpFile hualamphongGraph;
 
         readonly Dictionary<string, StationDef> _stations = new Dictionary<string, StationDef>();
         readonly Dictionary<string, TrainModel> _models = new Dictionary<string, TrainModel>();

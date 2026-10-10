@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using ThaiRail.Data;
 using ThaiRail.Simulation;
+using ThaiRail.Simulation.Hlp;
 using UnityEngine;
 
 namespace ThaiRail.Game
@@ -17,7 +18,7 @@ namespace ThaiRail.Game
         public static RailTrackWorld Instance { get; private set; }
 
         [Tooltip("Player level used by the difficulty curve until the meta layer is ported")] public int playerLevel = 1;
-        [Tooltip("Purchased controllers: app = approach ARS, dep = departure ARS, ground = faster ground crews")] public bool ctrlApp, ctrlDep, ctrlGround;
+        [Tooltip("Purchased controllers: app = approach ARS, dep = departure ARS, ground = faster ground crews, shunt = faster run-arounds / cab changes")] public bool ctrlApp, ctrlDep, ctrlGround, ctrlShunt;
         public long money = 90000;
         public int xp;
 
@@ -40,6 +41,7 @@ namespace ThaiRail.Game
             public DelayLedger ledger;
             public List<StationState> stations = new List<StationState>();
             public long money; public int xp;
+            public bool hasHlp; public HlpState hlp;
         }
         static string SavePath { get { return Path.Combine(Application.persistentDataPath, "railtrack-stations-v1.json"); } }
 
@@ -101,10 +103,21 @@ namespace ThaiRail.Game
 
         // ---------- save / load ----------
         readonly Dictionary<string, StationState> _pending = new Dictionary<string, StationState>();
+        HlpState _pendingHlp;
+        HlpEngine _hlp;
+
+        /// <summary>Hua Lamphong's interlocking engine (its own clock: ordinary and commuter trains), restored from the save.</summary>
+        public HlpEngine HuaLamphong()
+        {
+            if (_hlp == null && Db.hualamphongGraph != null)
+                _hlp = new HlpEngine(Db.hualamphongGraph, Db.stations.hualamphong, Difficulty, this, _rng, _pendingHlp);
+            return _hlp;
+        }
         public void Save()
         {
             if (!Ready) return;
             var f = new SaveFile { clock = Clock, ledger = Ledger, money = money, xp = xp };
+            var h = _hlp != null ? _hlp.S : _pendingHlp; if (h != null) { f.hasHlp = true; f.hlp = h; }
             foreach (var kv in _sims) f.stations.Add(kv.Value.State);
             foreach (var kv in _pending) if (!_sims.ContainsKey(kv.Key)) f.stations.Add(kv.Value);
             try { File.WriteAllText(SavePath, JsonUtility.ToJson(f)); } catch (Exception e) { Debug.LogWarning("RailTrack save failed: " + e.Message); }
@@ -119,13 +132,14 @@ namespace ThaiRail.Game
                 if (f.clock != null) Clock = f.clock;
                 if (f.ledger != null) Ledger = f.ledger;
                 money = f.money; xp = f.xp;
+                if (f.hasHlp) _pendingHlp = f.hlp;
                 foreach (var s in f.stations) if (s != null && s.id != null) _pending[s.id] = s;
             }
             catch (Exception e) { Debug.LogWarning("RailTrack save unreadable, starting fresh: " + e.Message); }
         }
 
         // ---------- IStationHost ----------
-        public bool ControllerOn(string key) { return key == "app" ? ctrlApp : key == "dep" ? ctrlDep : key == "ground" && ctrlGround; }
+        public bool ControllerOn(string key) { return key == "app" ? ctrlApp : key == "dep" ? ctrlDep : key == "ground" ? ctrlGround : key == "shunt" && ctrlShunt; }
         public void Earn(int amount, string account) { money += amount; }
         public void Pay(double amount, string account) { money -= (long)Math.Round(amount); }
         public void GainXP(int n) { xp += n; }

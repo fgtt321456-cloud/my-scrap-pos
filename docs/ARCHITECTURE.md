@@ -36,7 +36,9 @@
 | ฉากสถานีจากผังจริง (ราง ชานชาลา อาคารตามรูปแบบ สถานที่สำคัญ) | `stations.js` (`stnBuild`, `build*`, `stnExtras`) | `Scripts/Scenery/StationSceneModel.cs`, `StationSceneBuilder.cs` |
 | กล้อง, HUD, กลางวัน/กลางคืน, ฉากเริ่มต้น | `stations.js` (`camStn`), `station_view.js`, `fx.js` | `StationCameraRig`, `StationHud`, `StationSceneBootstrap` |
 | โมเดลรถไฟแบบละเอียด (เรขาคณิต + atlas ลายรถ + ไฟกลางคืน) | `rolling_stock.js` (`buildModel`, `paintAtlas`) | ส่งออกเป็น `Resources/RailTrack/Trains` + `Scripts/Trains/TrainLibrary.cs` |
-| interlocking หัวลำโพง | `hlp_*.js` | ยังไม่ย้าย (ดูหัวข้อ 6) |
+| interlocking หัวลำโพง (กราฟราง, ค้นเส้นทาง, ETCS, ล็อกเส้นทาง/ปลดเป็นตอน, สัญญาณ, สับหลีก, งานกลับขบวน, ARS) | `hlp_engine.js` (ส่วนจำลอง) | `hualamphong.json` + `Scripts/Simulation/Hlp/HlpEngine.cs`, `Stations/HuaLamphongAdapter.cs` |
+| ฉากหัวลำโพง (อาคาร ซุ้มโค้งกระจก โรงคลุมชานชาลา ลานน้ำพุ คลอง) | `hlp_engine.js` (`tBuildScene`), `hlp_scenery.js` | `Scripts/Scenery/HlpSceneModel.cs`, `Stations/HlpStationRunner.cs` |
+| แผง NX แบบรีเลย์, จอ DMI ของ ETCS, รถ/เรือ/ผู้คนเคลื่อนไหว | `hlp_engine.js` (`nx*`, `dmi*`), `hlp_scenery.js`, `hlp_fx.js` | ยังไม่ย้าย: Unity ตั้งเส้นทางผ่านแผงเลือกชานชาลาแทน |
 
 ## 2. โมเดลโดเมน
 
@@ -120,7 +122,7 @@ sched ──(ถึงเวลา eta−5 นาที)──► approach ─�
 4. **ฉาก** ✅ ย้ายแล้ว (`StationSceneBootstrap` ทำให้ฉากเปล่าเล่นได้ทันที) · เดิม: สร้างจาก `StationDef` (รางตาม `tracks[].z`, ชานชาลาตาม `platforms[]`, อาคารตาม `style`, ของประกอบตาม `extras`)
    ตู้รถดึงจาก pool ตาม `TrainModel.id` และใช้สีจาก `livery`
 5. **UI** ✅ มี `StationHud` ที่สร้างด้วยโค้ดแล้ว ขั้นต่อไปคือทำ prefab ที่ออกแบบสวยกว่า · เดิม: prefab รายการขบวน/การ์ด/แผงชานชาลาที่อ่าน `TrainViewModel` อย่างเดียว
-6. **หัวลำโพง**: ย้าย `hlp_engine.js` (กราฟราง, ประแจ, NX, ล็อกเส้นทาง, ETCS, งานกลับขบวน) เป็นลำดับสุดท้าย เพราะซับซ้อนที่สุด
+6. **หัวลำโพง** ✅ ย้ายแล้ว (เปิดด้วย `stationId = "HLP"`) ตรวจกับเว็บ: ขบวนเข้า/ออกและอัตราตรงเวลา 4 ชม. ตรงกัน (72%) และไม่มีขบวนซ้อนกันบนวงจรรางตลอดการจำลอง · เดิม: ย้าย `hlp_engine.js` (กราฟราง, ประแจ, NX, ล็อกเส้นทาง, ETCS, งานกลับขบวน) เป็นลำดับสุดท้าย เพราะซับซ้อนที่สุด
 7. **บันทึกเกม**: `WorldClock` และ `DelayLedger` เป็น `[Serializable]` อยู่แล้ว (ledger เก็บเป็น List เพื่อให้ JsonUtility ใช้ได้)
 
 ## 7. การทดสอบ
@@ -130,5 +132,5 @@ sched ──(ถึงเวลา eta−5 นาที)──► approach ─�
 | `node railway/tests/smoke.test.js` | เส้นทางหลักของเกมทั้งหมด (12 ข้อ) |
 | `node railway/tests/world.test.js` | นาฬิกาโลก ความล่าช้าข้ามสถานี การไล่เวลา ขบวนจริงบนแผนที่ ความยาก (7 ข้อ) |
 | `node railway/tests/perf.test.js` | draw call ต่อฉาก (ดู `docs/TESTING.md`) |
-| `sh unity/tools/check/check.sh` | สคริปต์ Unity คอมไพล์ผ่าน + ข้อมูล JSON โหลดได้ + ระบบจำลองสถานีให้ผลตรงกับเว็บ + ฉากสถานี/รถไฟหันหน้าถูกด้านหลังแปลงแกน (34 ข้อ) |
+| `sh unity/tools/check/check.sh` | สคริปต์ Unity คอมไพล์ผ่าน + ข้อมูล JSON โหลดได้ + ระบบจำลองสถานีให้ผลตรงกับเว็บ + ฉากสถานี/รถไฟหันหน้าถูกด้านหลังแปลงแกน (40 ข้อ) |
 | `node railway/tools/export_unity.js` | ส่งออก JSON และสร้างค่าอ้างอิงจากเว็บ (`unity/tools/check/golden_*.json`) ให้ check.sh ใช้เทียบ |

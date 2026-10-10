@@ -50,6 +50,19 @@ static class SceneryCheck
                 string.Format("{0:N0} verts ({1:N0} tris, {2:N0} transparent) · {3} labels · {4} lamps · {5} ms", v, model.Opaque.TriangleCount + model.Transparent.TriangleCount, model.Transparent.VertexCount, model.Labels.Count, model.Lamps.Count, sw.ElapsedMilliseconds));
             if (dumpDir != null) Dump(Path.Combine(dumpDir, "scene_" + d.id + ".json"), model, d);
         }
+        if (db.hualamphongGraph != null)
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            var hm = new HlpSceneModel(new ThaiRail.Simulation.Hlp.HlpGraph(db.hualamphongGraph)); sw.Stop();
+            int v = hm.Opaque.VertexCount + hm.Transparent.VertexCount;
+            Check("scene HLP builds", v > 1000 && v < 400000 && hm.Signals.Count == 15 && hm.Opaque.pos.All(x => !float.IsNaN(x)),
+                string.Format("{0:N0} verts ({1:N0} transparent) · {2} labels · {3} signals · {4} ms", v, hm.Transparent.VertexCount, hm.Labels.Count, hm.Signals.Count, sw.ElapsedMilliseconds));
+            if (dumpDir != null)
+            {
+                var sb = new StringBuilder("{\"opaque\":"); AppendMesh(sb, hm.Opaque); sb.Append(",\"transparent\":"); AppendMesh(sb, hm.Transparent);
+                sb.Append(",\"centre\":[60,0,-42.75]}"); File.WriteAllText(Path.Combine(dumpDir, "scene_HLP.json"), sb.ToString());
+            }
+        }
         int worst = 0; string worstId = "";
         foreach (var m in db.rollingStock.models)
         {

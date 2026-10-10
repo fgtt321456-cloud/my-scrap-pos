@@ -1,0 +1,2685 @@
+{
+ "nodes": [
+  {
+   "id": "B1",
+   "x": -30,
+   "z": 0,
+   "kind": "buffer",
+   "label": "กันชนราง 1",
+   "pairs": []
+  },
+  {
+   "id": "Ra1",
+   "x": 12,
+   "z": 0,
+   "kind": "switch",
+   "label": "ประแจ 1ก",
+   "pairs": [
+    {
+     "a": "stub1",
+     "b": "mid1"
+    },
+    {
+     "a": "stub1",
+     "b": "c2b0"
+    }
+   ]
+  },
+  {
+   "id": "Rb1",
+   "x": 30,
+   "z": 0,
+   "kind": "switch",
+   "label": "ประแจ 1ข",
+   "pairs": [
+    {
+     "a": "pw1",
+     "b": "mid1"
+    },
+    {
+     "a": "pw1",
+     "b": "c1a0"
+    }
+   ]
+  },
+  {
+   "id": "ST1",
+   "x": 280,
+   "z": 0,
+   "kind": "signal",
+   "label": "S1",
+   "pairs": [
+    {
+     "a": "pw1",
+     "b": "pe1"
+    }
+   ]
+  },
+  {
+   "id": "L1",
+   "x": 380,
+   "z": 0,
+   "kind": "plain",
+   "label": "ประแจ 101",
+   "pairs": [
+    {
+     "a": "ln21",
+     "b": "pe1"
+    }
+   ]
+  },
+  {
+   "id": "B2",
+   "x": -30,
+   "z": 4.5,
+   "kind": "buffer",
+   "label": "กันชนราง 2",
+   "pairs": []
+  },
+  {
+   "id": "Ra2",
+   "x": 12,
+   "z": 4.5,
+   "kind": "switch",
+   "label": "ประแจ 2ก",
+   "pairs": [
+    {
+     "a": "stub2",
+     "b": "mid2"
+    },
+    {
+     "a": "stub2",
+     "b": "c1b0"
+    }
+   ]
+  },
+  {
+   "id": "Rb2",
+   "x": 30,
+   "z": 4.5,
+   "kind": "switch",
+   "label": "ประแจ 2ข",
+   "pairs": [
+    {
+     "a": "pw2",
+     "b": "mid2"
+    },
+    {
+     "a": "pw2",
+     "b": "c2a0"
+    }
+   ]
+  },
+  {
+   "id": "ST2",
+   "x": 280,
+   "z": 4.5,
+   "kind": "signal",
+   "label": "S2",
+   "pairs": [
+    {
+     "a": "pw2",
+     "b": "pe2"
+    }
+   ]
+  },
+  {
+   "id": "L2",
+   "x": 398,
+   "z": 4.5,
+   "kind": "switch",
+   "label": "ประแจ 102",
+   "pairs": [
+    {
+     "a": "ln32",
+     "b": "ln21"
+    },
+    {
+     "a": "ln32",
+     "b": "pe2"
+    }
+   ]
+  },
+  {
+   "id": "B3",
+   "x": -30,
+   "z": 13.5,
+   "kind": "buffer",
+   "label": "กันชนราง 3",
+   "pairs": []
+  },
+  {
+   "id": "Ra3",
+   "x": 12,
+   "z": 13.5,
+   "kind": "switch",
+   "label": "ประแจ 3ก",
+   "pairs": [
+    {
+     "a": "stub3",
+     "b": "mid3"
+    },
+    {
+     "a": "stub3",
+     "b": "c2b1"
+    }
+   ]
+  },
+  {
+   "id": "Rb3",
+   "x": 30,
+   "z": 13.5,
+   "kind": "switch",
+   "label": "ประแจ 3ข",
+   "pairs": [
+    {
+     "a": "pw3",
+     "b": "mid3"
+    },
+    {
+     "a": "pw3",
+     "b": "c1a1"
+    }
+   ]
+  },
+  {
+   "id": "ST3",
+   "x": 280,
+   "z": 13.5,
+   "kind": "signal",
+   "label": "S3",
+   "pairs": [
+    {
+     "a": "pw3",
+     "b": "pe3"
+    }
+   ]
+  },
+  {
+   "id": "L3",
+   "x": 434,
+   "z": 13.5,
+   "kind": "switch",
+   "label": "ประแจ 103",
+   "pairs": [
+    {
+     "a": "ln43",
+     "b": "ln32"
+    },
+    {
+     "a": "ln43",
+     "b": "pe3"
+    }
+   ]
+  },
+  {
+   "id": "B4",
+   "x": -30,
+   "z": 18,
+   "kind": "buffer",
+   "label": "กันชนราง 4",
+   "pairs": []
+  },
+  {
+   "id": "Ra4",
+   "x": 12,
+   "z": 18,
+   "kind": "switch",
+   "label": "ประแจ 4ก",
+   "pairs": [
+    {
+     "a": "stub4",
+     "b": "mid4"
+    },
+    {
+     "a": "stub4",
+     "b": "c1b1"
+    }
+   ]
+  },
+  {
+   "id": "Rb4",
+   "x": 30,
+   "z": 18,
+   "kind": "switch",
+   "label": "ประแจ 4ข",
+   "pairs": [
+    {
+     "a": "pw4",
+     "b": "mid4"
+    },
+    {
+     "a": "pw4",
+     "b": "c2a1"
+    }
+   ]
+  },
+  {
+   "id": "ST4",
+   "x": 280,
+   "z": 18,
+   "kind": "signal",
+   "label": "S4",
+   "pairs": [
+    {
+     "a": "pw4",
+     "b": "pe4"
+    }
+   ]
+  },
+  {
+   "id": "L4",
+   "x": 452,
+   "z": 18,
+   "kind": "switch",
+   "label": "ประแจ 104",
+   "pairs": [
+    {
+     "a": "ln54",
+     "b": "ln43"
+    },
+    {
+     "a": "ln54",
+     "b": "pe4"
+    }
+   ]
+  },
+  {
+   "id": "B5",
+   "x": -30,
+   "z": 27,
+   "kind": "buffer",
+   "label": "กันชนราง 5",
+   "pairs": []
+  },
+  {
+   "id": "Ra5",
+   "x": 12,
+   "z": 27,
+   "kind": "switch",
+   "label": "ประแจ 5ก",
+   "pairs": [
+    {
+     "a": "stub5",
+     "b": "mid5"
+    },
+    {
+     "a": "stub5",
+     "b": "c2b2"
+    }
+   ]
+  },
+  {
+   "id": "Rb5",
+   "x": 30,
+   "z": 27,
+   "kind": "switch",
+   "label": "ประแจ 5ข",
+   "pairs": [
+    {
+     "a": "pw5",
+     "b": "mid5"
+    },
+    {
+     "a": "pw5",
+     "b": "c1a2"
+    }
+   ]
+  },
+  {
+   "id": "ST5",
+   "x": 280,
+   "z": 27,
+   "kind": "signal",
+   "label": "S5",
+   "pairs": [
+    {
+     "a": "pw5",
+     "b": "pe5"
+    }
+   ]
+  },
+  {
+   "id": "L5",
+   "x": 488,
+   "z": 27,
+   "kind": "switch",
+   "label": "ประแจ 105",
+   "pairs": [
+    {
+     "a": "ln65",
+     "b": "ln54"
+    },
+    {
+     "a": "ln65",
+     "b": "pe5"
+    }
+   ]
+  },
+  {
+   "id": "B6",
+   "x": -30,
+   "z": 31.5,
+   "kind": "buffer",
+   "label": "กันชนราง 6",
+   "pairs": []
+  },
+  {
+   "id": "Ra6",
+   "x": 12,
+   "z": 31.5,
+   "kind": "switch",
+   "label": "ประแจ 6ก",
+   "pairs": [
+    {
+     "a": "stub6",
+     "b": "mid6"
+    },
+    {
+     "a": "stub6",
+     "b": "c1b2"
+    }
+   ]
+  },
+  {
+   "id": "Rb6",
+   "x": 30,
+   "z": 31.5,
+   "kind": "switch",
+   "label": "ประแจ 6ข",
+   "pairs": [
+    {
+     "a": "pw6",
+     "b": "mid6"
+    },
+    {
+     "a": "pw6",
+     "b": "c2a2"
+    }
+   ]
+  },
+  {
+   "id": "ST6",
+   "x": 280,
+   "z": 31.5,
+   "kind": "signal",
+   "label": "S6",
+   "pairs": [
+    {
+     "a": "pw6",
+     "b": "pe6"
+    }
+   ]
+  },
+  {
+   "id": "L6",
+   "x": 506,
+   "z": 31.5,
+   "kind": "switch",
+   "label": "ประแจ 106",
+   "pairs": [
+    {
+     "a": "lnA",
+     "b": "ln65"
+    },
+    {
+     "a": "lnA",
+     "b": "pe6"
+    }
+   ]
+  },
+  {
+   "id": "B7",
+   "x": -30,
+   "z": 40.5,
+   "kind": "buffer",
+   "label": "กันชนราง 7",
+   "pairs": []
+  },
+  {
+   "id": "Ra7",
+   "x": 12,
+   "z": 40.5,
+   "kind": "switch",
+   "label": "ประแจ 7ก",
+   "pairs": [
+    {
+     "a": "stub7",
+     "b": "mid7"
+    },
+    {
+     "a": "stub7",
+     "b": "c2b3"
+    }
+   ]
+  },
+  {
+   "id": "Rb7",
+   "x": 30,
+   "z": 40.5,
+   "kind": "switch",
+   "label": "ประแจ 7ข",
+   "pairs": [
+    {
+     "a": "pw7",
+     "b": "mid7"
+    },
+    {
+     "a": "pw7",
+     "b": "c1a3"
+    }
+   ]
+  },
+  {
+   "id": "ST7",
+   "x": 280,
+   "z": 40.5,
+   "kind": "signal",
+   "label": "S7",
+   "pairs": [
+    {
+     "a": "pw7",
+     "b": "pe7"
+    }
+   ]
+  },
+  {
+   "id": "B8",
+   "x": -30,
+   "z": 45,
+   "kind": "buffer",
+   "label": "กันชนราง 8",
+   "pairs": []
+  },
+  {
+   "id": "Ra8",
+   "x": 12,
+   "z": 45,
+   "kind": "switch",
+   "label": "ประแจ 8ก",
+   "pairs": [
+    {
+     "a": "stub8",
+     "b": "mid8"
+    },
+    {
+     "a": "stub8",
+     "b": "c1b3"
+    }
+   ]
+  },
+  {
+   "id": "Rb8",
+   "x": 30,
+   "z": 45,
+   "kind": "switch",
+   "label": "ประแจ 8ข",
+   "pairs": [
+    {
+     "a": "pw8",
+     "b": "mid8"
+    },
+    {
+     "a": "pw8",
+     "b": "c2a3"
+    }
+   ]
+  },
+  {
+   "id": "ST8",
+   "x": 280,
+   "z": 45,
+   "kind": "signal",
+   "label": "S8",
+   "pairs": [
+    {
+     "a": "pw8",
+     "b": "pe8"
+    }
+   ]
+  },
+  {
+   "id": "B9",
+   "x": -30,
+   "z": 54,
+   "kind": "buffer",
+   "label": "กันชนราง 9",
+   "pairs": []
+  },
+  {
+   "id": "Ra9",
+   "x": 12,
+   "z": 54,
+   "kind": "switch",
+   "label": "ประแจ 9ก",
+   "pairs": [
+    {
+     "a": "stub9",
+     "b": "mid9"
+    },
+    {
+     "a": "stub9",
+     "b": "c2b4"
+    }
+   ]
+  },
+  {
+   "id": "Rb9",
+   "x": 30,
+   "z": 54,
+   "kind": "switch",
+   "label": "ประแจ 9ข",
+   "pairs": [
+    {
+     "a": "pw9",
+     "b": "mid9"
+    },
+    {
+     "a": "pw9",
+     "b": "c1a4"
+    }
+   ]
+  },
+  {
+   "id": "ST9",
+   "x": 280,
+   "z": 54,
+   "kind": "signal",
+   "label": "S9",
+   "pairs": [
+    {
+     "a": "pw9",
+     "b": "pe9"
+    }
+   ]
+  },
+  {
+   "id": "L9",
+   "x": 446,
+   "z": 54,
+   "kind": "switch",
+   "label": "ประแจ 109",
+   "pairs": [
+    {
+     "a": "lsB",
+     "b": "ls910"
+    },
+    {
+     "a": "lsB",
+     "b": "pe9"
+    }
+   ]
+  },
+  {
+   "id": "B10",
+   "x": -30,
+   "z": 58.5,
+   "kind": "buffer",
+   "label": "กันชนราง 10",
+   "pairs": []
+  },
+  {
+   "id": "Ra10",
+   "x": 12,
+   "z": 58.5,
+   "kind": "switch",
+   "label": "ประแจ 10ก",
+   "pairs": [
+    {
+     "a": "stub10",
+     "b": "mid10"
+    },
+    {
+     "a": "stub10",
+     "b": "c1b4"
+    }
+   ]
+  },
+  {
+   "id": "Rb10",
+   "x": 30,
+   "z": 58.5,
+   "kind": "switch",
+   "label": "ประแจ 10ข",
+   "pairs": [
+    {
+     "a": "pw10",
+     "b": "mid10"
+    },
+    {
+     "a": "pw10",
+     "b": "c2a4"
+    }
+   ]
+  },
+  {
+   "id": "ST10",
+   "x": 280,
+   "z": 58.5,
+   "kind": "signal",
+   "label": "S10",
+   "pairs": [
+    {
+     "a": "pw10",
+     "b": "pe10"
+    }
+   ]
+  },
+  {
+   "id": "L10",
+   "x": 428,
+   "z": 58.5,
+   "kind": "switch",
+   "label": "ประแจ 110",
+   "pairs": [
+    {
+     "a": "ls910",
+     "b": "ls1011"
+    },
+    {
+     "a": "ls910",
+     "b": "pe10"
+    }
+   ]
+  },
+  {
+   "id": "B11",
+   "x": -30,
+   "z": 67.5,
+   "kind": "buffer",
+   "label": "กันชนราง 11",
+   "pairs": []
+  },
+  {
+   "id": "Ra11",
+   "x": 12,
+   "z": 67.5,
+   "kind": "switch",
+   "label": "ประแจ 11ก",
+   "pairs": [
+    {
+     "a": "stub11",
+     "b": "mid11"
+    },
+    {
+     "a": "stub11",
+     "b": "c2b5"
+    }
+   ]
+  },
+  {
+   "id": "Rb11",
+   "x": 30,
+   "z": 67.5,
+   "kind": "switch",
+   "label": "ประแจ 11ข",
+   "pairs": [
+    {
+     "a": "pw11",
+     "b": "mid11"
+    },
+    {
+     "a": "pw11",
+     "b": "c1a5"
+    }
+   ]
+  },
+  {
+   "id": "ST11",
+   "x": 280,
+   "z": 67.5,
+   "kind": "signal",
+   "label": "S11",
+   "pairs": [
+    {
+     "a": "pw11",
+     "b": "pe11"
+    }
+   ]
+  },
+  {
+   "id": "L11",
+   "x": 392,
+   "z": 67.5,
+   "kind": "switch",
+   "label": "ประแจ 111",
+   "pairs": [
+    {
+     "a": "ls1011",
+     "b": "ls1112"
+    },
+    {
+     "a": "ls1011",
+     "b": "pe11"
+    }
+   ]
+  },
+  {
+   "id": "B12",
+   "x": -30,
+   "z": 72,
+   "kind": "buffer",
+   "label": "กันชนราง 12",
+   "pairs": []
+  },
+  {
+   "id": "Ra12",
+   "x": 12,
+   "z": 72,
+   "kind": "switch",
+   "label": "ประแจ 12ก",
+   "pairs": [
+    {
+     "a": "stub12",
+     "b": "mid12"
+    },
+    {
+     "a": "stub12",
+     "b": "c1b5"
+    }
+   ]
+  },
+  {
+   "id": "Rb12",
+   "x": 30,
+   "z": 72,
+   "kind": "switch",
+   "label": "ประแจ 12ข",
+   "pairs": [
+    {
+     "a": "pw12",
+     "b": "mid12"
+    },
+    {
+     "a": "pw12",
+     "b": "c2a5"
+    }
+   ]
+  },
+  {
+   "id": "ST12",
+   "x": 280,
+   "z": 72,
+   "kind": "signal",
+   "label": "S12",
+   "pairs": [
+    {
+     "a": "pw12",
+     "b": "pe12"
+    }
+   ]
+  },
+  {
+   "id": "L12",
+   "x": 374,
+   "z": 72,
+   "kind": "switch",
+   "label": "ประแจ 112",
+   "pairs": [
+    {
+     "a": "ls1112",
+     "b": "ls1213"
+    },
+    {
+     "a": "ls1112",
+     "b": "pe12"
+    }
+   ]
+  },
+  {
+   "id": "B13",
+   "x": -30,
+   "z": 81,
+   "kind": "buffer",
+   "label": "กันชนราง 13",
+   "pairs": []
+  },
+  {
+   "id": "Ra13",
+   "x": 12,
+   "z": 81,
+   "kind": "switch",
+   "label": "ประแจ 13ก",
+   "pairs": [
+    {
+     "a": "stub13",
+     "b": "mid13"
+    },
+    {
+     "a": "stub13",
+     "b": "c2b6"
+    }
+   ]
+  },
+  {
+   "id": "Rb13",
+   "x": 30,
+   "z": 81,
+   "kind": "switch",
+   "label": "ประแจ 13ข",
+   "pairs": [
+    {
+     "a": "pw13",
+     "b": "mid13"
+    },
+    {
+     "a": "pw13",
+     "b": "c1a6"
+    }
+   ]
+  },
+  {
+   "id": "ST13",
+   "x": 280,
+   "z": 81,
+   "kind": "signal",
+   "label": "S13",
+   "pairs": [
+    {
+     "a": "pw13",
+     "b": "pe13"
+    }
+   ]
+  },
+  {
+   "id": "L13",
+   "x": 338,
+   "z": 81,
+   "kind": "switch",
+   "label": "ประแจ 113",
+   "pairs": [
+    {
+     "a": "ls1213",
+     "b": "ls1314"
+    },
+    {
+     "a": "ls1213",
+     "b": "pe13"
+    }
+   ]
+  },
+  {
+   "id": "B14",
+   "x": -30,
+   "z": 85.5,
+   "kind": "buffer",
+   "label": "กันชนราง 14",
+   "pairs": []
+  },
+  {
+   "id": "Ra14",
+   "x": 12,
+   "z": 85.5,
+   "kind": "switch",
+   "label": "ประแจ 14ก",
+   "pairs": [
+    {
+     "a": "stub14",
+     "b": "mid14"
+    },
+    {
+     "a": "stub14",
+     "b": "c1b6"
+    }
+   ]
+  },
+  {
+   "id": "Rb14",
+   "x": 30,
+   "z": 85.5,
+   "kind": "switch",
+   "label": "ประแจ 14ข",
+   "pairs": [
+    {
+     "a": "pw14",
+     "b": "mid14"
+    },
+    {
+     "a": "pw14",
+     "b": "c2a6"
+    }
+   ]
+  },
+  {
+   "id": "ST14",
+   "x": 280,
+   "z": 85.5,
+   "kind": "signal",
+   "label": "S14",
+   "pairs": [
+    {
+     "a": "pw14",
+     "b": "pe14"
+    }
+   ]
+  },
+  {
+   "id": "L14",
+   "x": 320,
+   "z": 85.5,
+   "kind": "plain",
+   "label": "ประแจ 114",
+   "pairs": [
+    {
+     "a": "ls1314",
+     "b": "pe14"
+    }
+   ]
+  },
+  {
+   "id": "X0",
+   "x": 21,
+   "z": 2.25,
+   "kind": "diamond",
+   "label": "ทางตัด 1/2",
+   "pairs": [
+    {
+     "a": "c1a0",
+     "b": "c1b0"
+    },
+    {
+     "a": "c2a0",
+     "b": "c2b0"
+    }
+   ]
+  },
+  {
+   "id": "X1",
+   "x": 21,
+   "z": 15.75,
+   "kind": "diamond",
+   "label": "ทางตัด 3/4",
+   "pairs": [
+    {
+     "a": "c1a1",
+     "b": "c1b1"
+    },
+    {
+     "a": "c2a1",
+     "b": "c2b1"
+    }
+   ]
+  },
+  {
+   "id": "X2",
+   "x": 21,
+   "z": 29.25,
+   "kind": "diamond",
+   "label": "ทางตัด 5/6",
+   "pairs": [
+    {
+     "a": "c1a2",
+     "b": "c1b2"
+    },
+    {
+     "a": "c2a2",
+     "b": "c2b2"
+    }
+   ]
+  },
+  {
+   "id": "X3",
+   "x": 21,
+   "z": 42.75,
+   "kind": "diamond",
+   "label": "ทางตัด 7/8",
+   "pairs": [
+    {
+     "a": "c1a3",
+     "b": "c1b3"
+    },
+    {
+     "a": "c2a3",
+     "b": "c2b3"
+    }
+   ]
+  },
+  {
+   "id": "X4",
+   "x": 21,
+   "z": 56.25,
+   "kind": "diamond",
+   "label": "ทางตัด 9/10",
+   "pairs": [
+    {
+     "a": "c1a4",
+     "b": "c1b4"
+    },
+    {
+     "a": "c2a4",
+     "b": "c2b4"
+    }
+   ]
+  },
+  {
+   "id": "X5",
+   "x": 21,
+   "z": 69.75,
+   "kind": "diamond",
+   "label": "ทางตัด 11/12",
+   "pairs": [
+    {
+     "a": "c1a5",
+     "b": "c1b5"
+    },
+    {
+     "a": "c2a5",
+     "b": "c2b5"
+    }
+   ]
+  },
+  {
+   "id": "X6",
+   "x": 21,
+   "z": 83.25,
+   "kind": "diamond",
+   "label": "ทางตัด 13/14",
+   "pairs": [
+    {
+     "a": "c1a6",
+     "b": "c1b6"
+    },
+    {
+     "a": "c2a6",
+     "b": "c2b6"
+    }
+   ]
+  },
+  {
+   "id": "DSN",
+   "x": 542,
+   "z": 40.5,
+   "kind": "slip",
+   "label": "ประแจสลับคู่ 201",
+   "pairs": [
+    {
+     "a": "aMain",
+     "b": "aMid"
+    },
+    {
+     "a": "lnD",
+     "b": "lnA"
+    },
+    {
+     "a": "aMain",
+     "b": "lnA"
+    },
+    {
+     "a": "lnD",
+     "b": "aMid"
+    }
+   ]
+  },
+  {
+   "id": "DSS",
+   "x": 482,
+   "z": 45,
+   "kind": "slip",
+   "label": "ประแจสลับคู่ 202",
+   "pairs": [
+    {
+     "a": "dMid",
+     "b": "pe8"
+    },
+    {
+     "a": "lsA",
+     "b": "lsB"
+    },
+    {
+     "a": "dMid",
+     "b": "lsB"
+    },
+    {
+     "a": "lsA",
+     "b": "pe8"
+    }
+   ]
+  },
+  {
+   "id": "SWN",
+   "x": 560,
+   "z": 45,
+   "kind": "switch",
+   "label": "ประแจ 121",
+   "pairs": [
+    {
+     "a": "dMain",
+     "b": "dMid"
+    },
+    {
+     "a": "dMain",
+     "b": "lnD"
+    }
+   ]
+  },
+  {
+   "id": "SWS",
+   "x": 500,
+   "z": 40.5,
+   "kind": "switch",
+   "label": "ประแจ 122",
+   "pairs": [
+    {
+     "a": "aMid",
+     "b": "pe7"
+    },
+    {
+     "a": "aMid",
+     "b": "lsA"
+    }
+   ]
+  },
+  {
+   "id": "HA",
+   "x": 640,
+   "z": 40.5,
+   "kind": "signal",
+   "label": "H",
+   "pairs": [
+    {
+     "a": "aFar",
+     "b": "aMain"
+    }
+   ]
+  },
+  {
+   "id": "AE",
+   "x": 1400,
+   "z": 40.5,
+   "kind": "end",
+   "label": "ปลายทางเข้า",
+   "pairs": []
+  },
+  {
+   "id": "DX",
+   "x": 640,
+   "z": 45,
+   "kind": "signal",
+   "label": "ทางออก",
+   "pairs": [
+    {
+     "a": "dMain",
+     "b": "dFar"
+    }
+   ]
+  },
+  {
+   "id": "DE",
+   "x": 1400,
+   "z": 45,
+   "kind": "end",
+   "label": "ปลายทางออก",
+   "pairs": []
+  }
+ ],
+ "edges": [
+  {
+   "id": "stub1",
+   "u": "B1",
+   "v": "Ra1",
+   "len": 42,
+   "speed": 4.2,
+   "rev": true,
+   "track": 1,
+   "kind": "stub",
+   "label": "ปลายราง 1"
+  },
+  {
+   "id": "mid1",
+   "u": "Ra1",
+   "v": "Rb1",
+   "len": 18,
+   "speed": 8.3,
+   "rev": false,
+   "track": 1,
+   "kind": "line",
+   "label": "ประแจหลีก 1"
+  },
+  {
+   "id": "pw1",
+   "u": "Rb1",
+   "v": "ST1",
+   "len": 250,
+   "speed": 8.3,
+   "rev": false,
+   "track": 1,
+   "kind": "plat",
+   "label": "ชานชาลา 1"
+  },
+  {
+   "id": "pe1",
+   "u": "ST1",
+   "v": "L1",
+   "len": 100,
+   "speed": 8.3,
+   "rev": false,
+   "track": 1,
+   "kind": "line",
+   "label": "ทางเข้าราง 1"
+  },
+  {
+   "id": "stub2",
+   "u": "B2",
+   "v": "Ra2",
+   "len": 42,
+   "speed": 4.2,
+   "rev": true,
+   "track": 2,
+   "kind": "stub",
+   "label": "ปลายราง 2"
+  },
+  {
+   "id": "mid2",
+   "u": "Ra2",
+   "v": "Rb2",
+   "len": 18,
+   "speed": 8.3,
+   "rev": false,
+   "track": 2,
+   "kind": "line",
+   "label": "ประแจหลีก 2"
+  },
+  {
+   "id": "pw2",
+   "u": "Rb2",
+   "v": "ST2",
+   "len": 250,
+   "speed": 8.3,
+   "rev": false,
+   "track": 2,
+   "kind": "plat",
+   "label": "ชานชาลา 2"
+  },
+  {
+   "id": "pe2",
+   "u": "ST2",
+   "v": "L2",
+   "len": 118,
+   "speed": 8.3,
+   "rev": false,
+   "track": 2,
+   "kind": "line",
+   "label": "ทางเข้าราง 2"
+  },
+  {
+   "id": "stub3",
+   "u": "B3",
+   "v": "Ra3",
+   "len": 42,
+   "speed": 4.2,
+   "rev": true,
+   "track": 3,
+   "kind": "stub",
+   "label": "ปลายราง 3"
+  },
+  {
+   "id": "mid3",
+   "u": "Ra3",
+   "v": "Rb3",
+   "len": 18,
+   "speed": 8.3,
+   "rev": false,
+   "track": 3,
+   "kind": "line",
+   "label": "ประแจหลีก 3"
+  },
+  {
+   "id": "pw3",
+   "u": "Rb3",
+   "v": "ST3",
+   "len": 250,
+   "speed": 8.3,
+   "rev": false,
+   "track": 3,
+   "kind": "plat",
+   "label": "ชานชาลา 3"
+  },
+  {
+   "id": "pe3",
+   "u": "ST3",
+   "v": "L3",
+   "len": 154,
+   "speed": 8.3,
+   "rev": false,
+   "track": 3,
+   "kind": "line",
+   "label": "ทางเข้าราง 3"
+  },
+  {
+   "id": "stub4",
+   "u": "B4",
+   "v": "Ra4",
+   "len": 42,
+   "speed": 4.2,
+   "rev": true,
+   "track": 4,
+   "kind": "stub",
+   "label": "ปลายราง 4"
+  },
+  {
+   "id": "mid4",
+   "u": "Ra4",
+   "v": "Rb4",
+   "len": 18,
+   "speed": 8.3,
+   "rev": false,
+   "track": 4,
+   "kind": "line",
+   "label": "ประแจหลีก 4"
+  },
+  {
+   "id": "pw4",
+   "u": "Rb4",
+   "v": "ST4",
+   "len": 250,
+   "speed": 8.3,
+   "rev": false,
+   "track": 4,
+   "kind": "plat",
+   "label": "ชานชาลา 4"
+  },
+  {
+   "id": "pe4",
+   "u": "ST4",
+   "v": "L4",
+   "len": 172,
+   "speed": 8.3,
+   "rev": false,
+   "track": 4,
+   "kind": "line",
+   "label": "ทางเข้าราง 4"
+  },
+  {
+   "id": "stub5",
+   "u": "B5",
+   "v": "Ra5",
+   "len": 42,
+   "speed": 4.2,
+   "rev": true,
+   "track": 5,
+   "kind": "stub",
+   "label": "ปลายราง 5"
+  },
+  {
+   "id": "mid5",
+   "u": "Ra5",
+   "v": "Rb5",
+   "len": 18,
+   "speed": 8.3,
+   "rev": false,
+   "track": 5,
+   "kind": "line",
+   "label": "ประแจหลีก 5"
+  },
+  {
+   "id": "pw5",
+   "u": "Rb5",
+   "v": "ST5",
+   "len": 250,
+   "speed": 8.3,
+   "rev": false,
+   "track": 5,
+   "kind": "plat",
+   "label": "ชานชาลา 5"
+  },
+  {
+   "id": "pe5",
+   "u": "ST5",
+   "v": "L5",
+   "len": 208,
+   "speed": 8.3,
+   "rev": false,
+   "track": 5,
+   "kind": "line",
+   "label": "ทางเข้าราง 5"
+  },
+  {
+   "id": "stub6",
+   "u": "B6",
+   "v": "Ra6",
+   "len": 42,
+   "speed": 4.2,
+   "rev": true,
+   "track": 6,
+   "kind": "stub",
+   "label": "ปลายราง 6"
+  },
+  {
+   "id": "mid6",
+   "u": "Ra6",
+   "v": "Rb6",
+   "len": 18,
+   "speed": 8.3,
+   "rev": false,
+   "track": 6,
+   "kind": "line",
+   "label": "ประแจหลีก 6"
+  },
+  {
+   "id": "pw6",
+   "u": "Rb6",
+   "v": "ST6",
+   "len": 250,
+   "speed": 8.3,
+   "rev": false,
+   "track": 6,
+   "kind": "plat",
+   "label": "ชานชาลา 6"
+  },
+  {
+   "id": "pe6",
+   "u": "ST6",
+   "v": "L6",
+   "len": 226,
+   "speed": 8.3,
+   "rev": false,
+   "track": 6,
+   "kind": "line",
+   "label": "ทางเข้าราง 6"
+  },
+  {
+   "id": "stub7",
+   "u": "B7",
+   "v": "Ra7",
+   "len": 42,
+   "speed": 4.2,
+   "rev": true,
+   "track": 7,
+   "kind": "stub",
+   "label": "ปลายราง 7"
+  },
+  {
+   "id": "mid7",
+   "u": "Ra7",
+   "v": "Rb7",
+   "len": 18,
+   "speed": 8.3,
+   "rev": false,
+   "track": 7,
+   "kind": "line",
+   "label": "ประแจหลีก 7"
+  },
+  {
+   "id": "pw7",
+   "u": "Rb7",
+   "v": "ST7",
+   "len": 250,
+   "speed": 8.3,
+   "rev": false,
+   "track": 7,
+   "kind": "plat",
+   "label": "ชานชาลา 7"
+  },
+  {
+   "id": "pe7",
+   "u": "ST7",
+   "v": "SWS",
+   "len": 220,
+   "speed": 8.3,
+   "rev": false,
+   "track": 7,
+   "kind": "line",
+   "label": "ทางเข้าราง 7"
+  },
+  {
+   "id": "stub8",
+   "u": "B8",
+   "v": "Ra8",
+   "len": 42,
+   "speed": 4.2,
+   "rev": true,
+   "track": 8,
+   "kind": "stub",
+   "label": "ปลายราง 8"
+  },
+  {
+   "id": "mid8",
+   "u": "Ra8",
+   "v": "Rb8",
+   "len": 18,
+   "speed": 8.3,
+   "rev": false,
+   "track": 8,
+   "kind": "line",
+   "label": "ประแจหลีก 8"
+  },
+  {
+   "id": "pw8",
+   "u": "Rb8",
+   "v": "ST8",
+   "len": 250,
+   "speed": 8.3,
+   "rev": false,
+   "track": 8,
+   "kind": "plat",
+   "label": "ชานชาลา 8"
+  },
+  {
+   "id": "pe8",
+   "u": "ST8",
+   "v": "DSS",
+   "len": 202,
+   "speed": 8.3,
+   "rev": false,
+   "track": 8,
+   "kind": "line",
+   "label": "ทางเข้าราง 8"
+  },
+  {
+   "id": "stub9",
+   "u": "B9",
+   "v": "Ra9",
+   "len": 42,
+   "speed": 4.2,
+   "rev": true,
+   "track": 9,
+   "kind": "stub",
+   "label": "ปลายราง 9"
+  },
+  {
+   "id": "mid9",
+   "u": "Ra9",
+   "v": "Rb9",
+   "len": 18,
+   "speed": 8.3,
+   "rev": false,
+   "track": 9,
+   "kind": "line",
+   "label": "ประแจหลีก 9"
+  },
+  {
+   "id": "pw9",
+   "u": "Rb9",
+   "v": "ST9",
+   "len": 250,
+   "speed": 8.3,
+   "rev": false,
+   "track": 9,
+   "kind": "plat",
+   "label": "ชานชาลา 9"
+  },
+  {
+   "id": "pe9",
+   "u": "ST9",
+   "v": "L9",
+   "len": 166,
+   "speed": 8.3,
+   "rev": false,
+   "track": 9,
+   "kind": "line",
+   "label": "ทางเข้าราง 9"
+  },
+  {
+   "id": "stub10",
+   "u": "B10",
+   "v": "Ra10",
+   "len": 42,
+   "speed": 4.2,
+   "rev": true,
+   "track": 10,
+   "kind": "stub",
+   "label": "ปลายราง 10"
+  },
+  {
+   "id": "mid10",
+   "u": "Ra10",
+   "v": "Rb10",
+   "len": 18,
+   "speed": 8.3,
+   "rev": false,
+   "track": 10,
+   "kind": "line",
+   "label": "ประแจหลีก 10"
+  },
+  {
+   "id": "pw10",
+   "u": "Rb10",
+   "v": "ST10",
+   "len": 250,
+   "speed": 8.3,
+   "rev": false,
+   "track": 10,
+   "kind": "plat",
+   "label": "ชานชาลา 10"
+  },
+  {
+   "id": "pe10",
+   "u": "ST10",
+   "v": "L10",
+   "len": 148,
+   "speed": 8.3,
+   "rev": false,
+   "track": 10,
+   "kind": "line",
+   "label": "ทางเข้าราง 10"
+  },
+  {
+   "id": "stub11",
+   "u": "B11",
+   "v": "Ra11",
+   "len": 42,
+   "speed": 4.2,
+   "rev": true,
+   "track": 11,
+   "kind": "stub",
+   "label": "ปลายราง 11"
+  },
+  {
+   "id": "mid11",
+   "u": "Ra11",
+   "v": "Rb11",
+   "len": 18,
+   "speed": 8.3,
+   "rev": false,
+   "track": 11,
+   "kind": "line",
+   "label": "ประแจหลีก 11"
+  },
+  {
+   "id": "pw11",
+   "u": "Rb11",
+   "v": "ST11",
+   "len": 250,
+   "speed": 8.3,
+   "rev": false,
+   "track": 11,
+   "kind": "plat",
+   "label": "ชานชาลา 11"
+  },
+  {
+   "id": "pe11",
+   "u": "ST11",
+   "v": "L11",
+   "len": 112,
+   "speed": 8.3,
+   "rev": false,
+   "track": 11,
+   "kind": "line",
+   "label": "ทางเข้าราง 11"
+  },
+  {
+   "id": "stub12",
+   "u": "B12",
+   "v": "Ra12",
+   "len": 42,
+   "speed": 4.2,
+   "rev": true,
+   "track": 12,
+   "kind": "stub",
+   "label": "ปลายราง 12"
+  },
+  {
+   "id": "mid12",
+   "u": "Ra12",
+   "v": "Rb12",
+   "len": 18,
+   "speed": 8.3,
+   "rev": false,
+   "track": 12,
+   "kind": "line",
+   "label": "ประแจหลีก 12"
+  },
+  {
+   "id": "pw12",
+   "u": "Rb12",
+   "v": "ST12",
+   "len": 250,
+   "speed": 8.3,
+   "rev": false,
+   "track": 12,
+   "kind": "plat",
+   "label": "ชานชาลา 12"
+  },
+  {
+   "id": "pe12",
+   "u": "ST12",
+   "v": "L12",
+   "len": 94,
+   "speed": 8.3,
+   "rev": false,
+   "track": 12,
+   "kind": "line",
+   "label": "ทางเข้าราง 12"
+  },
+  {
+   "id": "stub13",
+   "u": "B13",
+   "v": "Ra13",
+   "len": 42,
+   "speed": 4.2,
+   "rev": true,
+   "track": 13,
+   "kind": "stub",
+   "label": "ปลายราง 13"
+  },
+  {
+   "id": "mid13",
+   "u": "Ra13",
+   "v": "Rb13",
+   "len": 18,
+   "speed": 8.3,
+   "rev": false,
+   "track": 13,
+   "kind": "line",
+   "label": "ประแจหลีก 13"
+  },
+  {
+   "id": "pw13",
+   "u": "Rb13",
+   "v": "ST13",
+   "len": 250,
+   "speed": 8.3,
+   "rev": false,
+   "track": 13,
+   "kind": "plat",
+   "label": "ชานชาลา 13"
+  },
+  {
+   "id": "pe13",
+   "u": "ST13",
+   "v": "L13",
+   "len": 58,
+   "speed": 8.3,
+   "rev": false,
+   "track": 13,
+   "kind": "line",
+   "label": "ทางเข้าราง 13"
+  },
+  {
+   "id": "stub14",
+   "u": "B14",
+   "v": "Ra14",
+   "len": 42,
+   "speed": 4.2,
+   "rev": true,
+   "track": 14,
+   "kind": "stub",
+   "label": "ปลายราง 14"
+  },
+  {
+   "id": "mid14",
+   "u": "Ra14",
+   "v": "Rb14",
+   "len": 18,
+   "speed": 8.3,
+   "rev": false,
+   "track": 14,
+   "kind": "line",
+   "label": "ประแจหลีก 14"
+  },
+  {
+   "id": "pw14",
+   "u": "Rb14",
+   "v": "ST14",
+   "len": 250,
+   "speed": 8.3,
+   "rev": false,
+   "track": 14,
+   "kind": "plat",
+   "label": "ชานชาลา 14"
+  },
+  {
+   "id": "pe14",
+   "u": "ST14",
+   "v": "L14",
+   "len": 40,
+   "speed": 8.3,
+   "rev": false,
+   "track": 14,
+   "kind": "line",
+   "label": "ทางเข้าราง 14"
+  },
+  {
+   "id": "c1a0",
+   "u": "Rb1",
+   "v": "X0",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 1→2"
+  },
+  {
+   "id": "c1b0",
+   "u": "X0",
+   "v": "Ra2",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 1→2"
+  },
+  {
+   "id": "c2a0",
+   "u": "Rb2",
+   "v": "X0",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 2→1"
+  },
+  {
+   "id": "c2b0",
+   "u": "X0",
+   "v": "Ra1",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 2→1"
+  },
+  {
+   "id": "c1a1",
+   "u": "Rb3",
+   "v": "X1",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 3→4"
+  },
+  {
+   "id": "c1b1",
+   "u": "X1",
+   "v": "Ra4",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 3→4"
+  },
+  {
+   "id": "c2a1",
+   "u": "Rb4",
+   "v": "X1",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 4→3"
+  },
+  {
+   "id": "c2b1",
+   "u": "X1",
+   "v": "Ra3",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 4→3"
+  },
+  {
+   "id": "c1a2",
+   "u": "Rb5",
+   "v": "X2",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 5→6"
+  },
+  {
+   "id": "c1b2",
+   "u": "X2",
+   "v": "Ra6",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 5→6"
+  },
+  {
+   "id": "c2a2",
+   "u": "Rb6",
+   "v": "X2",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 6→5"
+  },
+  {
+   "id": "c2b2",
+   "u": "X2",
+   "v": "Ra5",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 6→5"
+  },
+  {
+   "id": "c1a3",
+   "u": "Rb7",
+   "v": "X3",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 7→8"
+  },
+  {
+   "id": "c1b3",
+   "u": "X3",
+   "v": "Ra8",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 7→8"
+  },
+  {
+   "id": "c2a3",
+   "u": "Rb8",
+   "v": "X3",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 8→7"
+  },
+  {
+   "id": "c2b3",
+   "u": "X3",
+   "v": "Ra7",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 8→7"
+  },
+  {
+   "id": "c1a4",
+   "u": "Rb9",
+   "v": "X4",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 9→10"
+  },
+  {
+   "id": "c1b4",
+   "u": "X4",
+   "v": "Ra10",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 9→10"
+  },
+  {
+   "id": "c2a4",
+   "u": "Rb10",
+   "v": "X4",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 10→9"
+  },
+  {
+   "id": "c2b4",
+   "u": "X4",
+   "v": "Ra9",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 10→9"
+  },
+  {
+   "id": "c1a5",
+   "u": "Rb11",
+   "v": "X5",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 11→12"
+  },
+  {
+   "id": "c1b5",
+   "u": "X5",
+   "v": "Ra12",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 11→12"
+  },
+  {
+   "id": "c2a5",
+   "u": "Rb12",
+   "v": "X5",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 12→11"
+  },
+  {
+   "id": "c2b5",
+   "u": "X5",
+   "v": "Ra11",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 12→11"
+  },
+  {
+   "id": "c1a6",
+   "u": "Rb13",
+   "v": "X6",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 13→14"
+  },
+  {
+   "id": "c1b6",
+   "u": "X6",
+   "v": "Ra14",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 13→14"
+  },
+  {
+   "id": "c2a6",
+   "u": "Rb14",
+   "v": "X6",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 14→13"
+  },
+  {
+   "id": "c2b6",
+   "u": "X6",
+   "v": "Ra13",
+   "len": 9.276987657639737,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "line",
+   "label": "ทางหลีก 14→13"
+  },
+  {
+   "id": "lnD",
+   "u": "SWN",
+   "v": "DSN",
+   "len": 18.553975315279473,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด lnD"
+  },
+  {
+   "id": "lnA",
+   "u": "DSN",
+   "v": "L6",
+   "len": 37.107950630558946,
+   "speed": 8.3,
+   "rev": true,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด lnA"
+  },
+  {
+   "id": "ln65",
+   "u": "L6",
+   "v": "L5",
+   "len": 18.553975315279473,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด ln65"
+  },
+  {
+   "id": "ln54",
+   "u": "L5",
+   "v": "L4",
+   "len": 37.107950630558946,
+   "speed": 8.3,
+   "rev": true,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด ln54"
+  },
+  {
+   "id": "ln43",
+   "u": "L4",
+   "v": "L3",
+   "len": 18.553975315279473,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด ln43"
+  },
+  {
+   "id": "ln32",
+   "u": "L3",
+   "v": "L2",
+   "len": 37.107950630558946,
+   "speed": 8.3,
+   "rev": true,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด ln32"
+  },
+  {
+   "id": "ln21",
+   "u": "L2",
+   "v": "L1",
+   "len": 18.553975315279473,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด ln21"
+  },
+  {
+   "id": "lsA",
+   "u": "SWS",
+   "v": "DSS",
+   "len": 18.553975315279473,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด lsA"
+  },
+  {
+   "id": "lsB",
+   "u": "DSS",
+   "v": "L9",
+   "len": 37.107950630558946,
+   "speed": 8.3,
+   "rev": true,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด lsB"
+  },
+  {
+   "id": "ls910",
+   "u": "L9",
+   "v": "L10",
+   "len": 18.553975315279473,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด ls910"
+  },
+  {
+   "id": "ls1011",
+   "u": "L10",
+   "v": "L11",
+   "len": 37.107950630558946,
+   "speed": 8.3,
+   "rev": true,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด ls1011"
+  },
+  {
+   "id": "ls1112",
+   "u": "L11",
+   "v": "L12",
+   "len": 18.553975315279473,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด ls1112"
+  },
+  {
+   "id": "ls1213",
+   "u": "L12",
+   "v": "L13",
+   "len": 37.107950630558946,
+   "speed": 8.3,
+   "rev": true,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด ls1213"
+  },
+  {
+   "id": "ls1314",
+   "u": "L13",
+   "v": "L14",
+   "len": 18.553975315279473,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด ls1314"
+  },
+  {
+   "id": "aFar",
+   "u": "AE",
+   "v": "HA",
+   "len": 760,
+   "speed": 25,
+   "rev": false,
+   "track": 0,
+   "kind": "main",
+   "label": "ทางประธานขาเข้า"
+  },
+  {
+   "id": "aMain",
+   "u": "HA",
+   "v": "DSN",
+   "len": 98,
+   "speed": 22,
+   "rev": true,
+   "track": 0,
+   "kind": "main",
+   "label": "ทางประธานขาเข้า (ในเขตสถานี)"
+  },
+  {
+   "id": "aMid",
+   "u": "DSN",
+   "v": "SWS",
+   "len": 42,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด aMid"
+  },
+  {
+   "id": "dMid",
+   "u": "DSS",
+   "v": "SWN",
+   "len": 78,
+   "speed": 8.3,
+   "rev": false,
+   "track": 0,
+   "kind": "throat",
+   "label": "คอขวด dMid"
+  },
+  {
+   "id": "dMain",
+   "u": "SWN",
+   "v": "DX",
+   "len": 80,
+   "speed": 22,
+   "rev": true,
+   "track": 0,
+   "kind": "main",
+   "label": "ทางประธานขาออก (ในเขตสถานี)"
+  },
+  {
+   "id": "dFar",
+   "u": "DX",
+   "v": "DE",
+   "len": 760,
+   "speed": 25,
+   "rev": false,
+   "track": 0,
+   "kind": "main",
+   "label": "ทางประธานขาออก"
+  }
+ ],
+ "platformsZ": [
+  -4.5,
+  9,
+  22.5,
+  36,
+  49.5,
+  63,
+  76.5,
+  90
+ ],
+ "trackZ": [
+  0,
+  4.5,
+  13.5,
+  18,
+  27,
+  31.5,
+  40.5,
+  45,
+  54,
+  58.5,
+  67.5,
+  72,
+  81,
+  85.5
+ ],
+ "physics": {
+  "rate": 6,
+  "carLen": 20,
+  "throwT": 5,
+  "acc": 0.45,
+  "bCurve": 0.5,
+  "bMax": 0.9,
+  "shunt": 6.9
+ },
+ "resources": [
+  {
+   "k": "staff",
+   "name": "พนักงานชานชาลา",
+   "start": 4,
+   "price": 12000,
+   "max": 30
+  },
+  {
+   "k": "parcel",
+   "name": "รถลากพัสดุ",
+   "start": 1,
+   "price": 15000,
+   "max": 20
+  },
+  {
+   "k": "crew",
+   "name": "ทีมทำความสะอาด",
+   "start": 3,
+   "price": 20000,
+   "max": 30
+  },
+  {
+   "k": "cater",
+   "name": "รถเสบียง",
+   "start": 1,
+   "price": 22000,
+   "max": 20
+  },
+  {
+   "k": "truck",
+   "name": "รถเติมน้ำมัน",
+   "start": 2,
+   "price": 35000,
+   "max": 20
+  },
+  {
+   "k": "lav",
+   "name": "รถดูดสิ่งปฏิกูล",
+   "start": 1,
+   "price": 15000,
+   "max": 20
+  },
+  {
+   "k": "water",
+   "name": "รถเติมน้ำ",
+   "start": 2,
+   "price": 15000,
+   "max": 20
+  },
+  {
+   "k": "lift",
+   "name": "ลิฟต์วีลแชร์",
+   "start": 1,
+   "price": 30000,
+   "max": 10
+  },
+  {
+   "k": "repair",
+   "name": "ทีมช่างซ่อมด่วน",
+   "start": 1,
+   "price": 20000,
+   "max": 10
+  }
+ ],
+ "origins": [
+  {
+   "name": "นครสวรรค์",
+   "code": "NSN"
+  },
+  {
+   "name": "บ้านตาคลี",
+   "code": "BTK"
+  },
+  {
+   "name": "ตะพานหิน",
+   "code": "TPH"
+  },
+  {
+   "name": "สุรินทร์",
+   "code": "SUR"
+  },
+  {
+   "name": "อรัญประเทศ",
+   "code": "ARN"
+  },
+  {
+   "name": "จุกเสม็ด",
+   "code": "CSM"
+  },
+  {
+   "name": "ชุมทางบ้านภาชี",
+   "code": "BPC"
+  },
+  {
+   "name": "ชุมทางแก่งคอย",
+   "code": "KKY"
+  },
+  {
+   "name": "เชียงใหม่",
+   "code": "CMI"
+  },
+  {
+   "name": "อุบลราชธานี",
+   "code": "UBN"
+  },
+  {
+   "name": "หนองคาย",
+   "code": "NKI"
+  },
+  {
+   "name": "สุไหงโก-ลก",
+   "code": "SGK"
+  },
+  {
+   "name": "ชุมทางหาดใหญ่",
+   "code": "HDY"
+  },
+  {
+   "name": "พิษณุโลก",
+   "code": "PLK"
+  },
+  {
+   "name": "สุราษฎร์ธานี",
+   "code": "SNI"
+  },
+  {
+   "name": "ตรัง",
+   "code": "TRG"
+  },
+  {
+   "name": "ศิลาอาสน์",
+   "code": "SLA"
+  },
+  {
+   "name": "ลพบุรี",
+   "code": "LBR"
+  },
+  {
+   "name": "อยุธยา",
+   "code": "AYA"
+  },
+  {
+   "name": "ฉะเชิงเทรา",
+   "code": "CCO"
+  },
+  {
+   "name": "ราชบุรี",
+   "code": "RBR"
+  },
+  {
+   "name": "ปราจีนบุรี",
+   "code": "PCB"
+  },
+  {
+   "name": "นครปฐม",
+   "code": "NPT"
+  },
+  {
+   "name": "บ้านภาชี",
+   "code": "BPC"
+  },
+  {
+   "name": "แก่งคอย",
+   "code": "KKY"
+  },
+  {
+   "name": "หัวหิน",
+   "code": "HHN"
+  },
+  {
+   "name": "กาญจนบุรี",
+   "code": "KAN"
+  }
+ ],
+ "regions": [
+  {
+   "code": "NSN",
+   "region": "สายเหนือ"
+  },
+  {
+   "code": "BTK",
+   "region": "สายเหนือ"
+  },
+  {
+   "code": "TPH",
+   "region": "สายเหนือ"
+  },
+  {
+   "code": "SUR",
+   "region": "สายอีสาน"
+  },
+  {
+   "code": "ARN",
+   "region": "สายตะวันออก"
+  },
+  {
+   "code": "CSM",
+   "region": "สายตะวันออก"
+  },
+  {
+   "code": "CMI",
+   "region": "สายเหนือ"
+  },
+  {
+   "code": "PLK",
+   "region": "สายเหนือ"
+  },
+  {
+   "code": "SLA",
+   "region": "สายเหนือ"
+  },
+  {
+   "code": "LBR",
+   "region": "สายเหนือ"
+  },
+  {
+   "code": "AYA",
+   "region": "สายเหนือ"
+  },
+  {
+   "code": "BPC",
+   "region": "สายเหนือ"
+  },
+  {
+   "code": "UBN",
+   "region": "สายอีสาน"
+  },
+  {
+   "code": "NKI",
+   "region": "สายอีสาน"
+  },
+  {
+   "code": "KKY",
+   "region": "สายอีสาน"
+  },
+  {
+   "code": "SGK",
+   "region": "สายใต้"
+  },
+  {
+   "code": "HDY",
+   "region": "สายใต้"
+  },
+  {
+   "code": "SNI",
+   "region": "สายใต้"
+  },
+  {
+   "code": "TRG",
+   "region": "สายใต้"
+  },
+  {
+   "code": "RBR",
+   "region": "สายใต้"
+  },
+  {
+   "code": "NPT",
+   "region": "สายใต้"
+  },
+  {
+   "code": "HHN",
+   "region": "สายใต้"
+  },
+  {
+   "code": "KAN",
+   "region": "สายตะวันตก"
+  },
+  {
+   "code": "CCO",
+   "region": "สายตะวันออก"
+  },
+  {
+   "code": "PCB",
+   "region": "สายตะวันออก"
+  }
+ ],
+ "locoTypes": [
+  "GEK",
+  "ALS",
+  "HID",
+  "ALS"
+ ],
+ "dmuTypes": [
+  "THN",
+  "NKF",
+  "APD",
+  "ASR"
+ ]
+}

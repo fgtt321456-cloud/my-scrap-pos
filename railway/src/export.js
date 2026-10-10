@@ -54,7 +54,7 @@ function rtExport() {
     const P = stnTrackPath(d, t), R = revPath(P);
     golden.paths.push({ station: d.id, track: t.n, len: P.len, stopE: stnStopS(d, { track: t.n, side: 'E' }, P), stopW: d.kind === 'T' ? -1 : stnStopS(d, { track: t.n, side: 'W' }, R), mid: pAtS(P, P.len * 0.37) });
   }
-  return { '#golden': golden, 'stations.json': { stations, hualamphong: hlp }, 'timetable.json': timetable, 'rolling_stock.json': rolling, 'progression.json': progression, 'difficulty.json': difficulty, 'network.json': network };
+  return { '#golden': golden, 'hualamphong.json': rtExportHlp(), 'stations.json': { stations, hualamphong: hlp }, 'timetable.json': timetable, 'rolling_stock.json': rolling, 'progression.json': progression, 'difficulty.json': difficulty, 'network.json': network };
 }
 /**
  * Detailed train models for Unity: the exact merged geometry (positions, normals, atlas UVs) of every model,
@@ -72,4 +72,22 @@ function rtExportTrains() {
     if (!families[fam]) { const m = TR3.mats[fam]; families[fam] = { tex: m.map.image.toDataURL('image/png'), em: m.emissiveMap.image.toDataURL('image/png'), rough: m.roughness, metal: m.metalness }; }
   }
   return { models, families: Object.keys(families).map(k => Object.assign({ family: k }, families[k])) };
+}
+/**
+ * Hua Lamphong interlocking data for the Unity port: the track graph exactly as hlp_engine.js builds it
+ * (nodes with their switch positions as edge pairs, edges with length / line speed / reversal permission),
+ * the physics constants, ground-service resources and the origin → region map used by route contracts.
+ * Unity side: unity/Assets/Scripts/Simulation/Hlp/HlpData.cs.
+ */
+function rtExportHlp() {
+  const nodes = Object.values(G.nodes).map(n => ({ id: n.id, x: n.x, z: n.z, kind: n.kind, label: n.label, pairs: n.pairs.map(p => ({ a: p[0], b: p[1] })) }));
+  const edges = Object.values(G.edges).map(e => ({ id: e.id, u: e.u, v: e.v, len: e.len, speed: e.speed, rev: e.rev, track: e.track, kind: e.kind, label: e.label }));
+  return {
+    nodes, edges, platformsZ: PLATFORMS_Z, trackZ: Array.from({ length: 14 }, (_, i) => TZ(i + 1)),
+    physics: { rate: TRATE, carLen: VL, throwT: THROW_T, acc: ACC, bCurve: B_CURVE, bMax: B_MAX, shunt: SPD.shunt },
+    resources: Object.keys(GS).map(k => ({ k, name: GS[k].name, start: GS[k].start, price: GS[k].price, max: GS[k].max })),
+    origins: Object.keys(ORIG_CODE).map(name => ({ name, code: ORIG_CODE[name] })),
+    regions: Object.keys(ROUTE_REGION).map(code => ({ code, region: ROUTE_REGION[code] })),
+    locoTypes: LOCO_T, dmuTypes: DMU_T,
+  };
 }
