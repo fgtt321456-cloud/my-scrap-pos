@@ -8,7 +8,7 @@ const ORIG_CODE = { 'นครสวรรค์': 'NSN', 'บ้านตาค
 const ROUTE_REGION = { NSN: 'สายเหนือ', BTK: 'สายเหนือ', TPH: 'สายเหนือ', SUR: 'สายอีสาน', ARN: 'สายตะวันออก', CSM: 'สายตะวันออก', CMI: 'สายเหนือ', PLK: 'สายเหนือ', SLA: 'สายเหนือ', LBR: 'สายเหนือ', AYA: 'สายเหนือ', BPC: 'สายเหนือ', UBN: 'สายอีสาน', NKI: 'สายอีสาน', KKY: 'สายอีสาน',
   SGK: 'สายใต้', HDY: 'สายใต้', SNI: 'สายใต้', TRG: 'สายใต้', RBR: 'สายใต้', NPT: 'สายใต้', HHN: 'สายใต้', KAN: 'สายตะวันตก', CCO: 'สายตะวันออก', PCB: 'สายตะวันออก' };
 const origCode = s => ORIG_CODE[s.from] || ORIG_CODE[String(s.from).split(' ')[0]] || 'SPC';
-const LOCO_T = ['GEA', 'ALS', 'HID', 'CSR'], DMU_T = ['THN', 'NKF', 'APD', 'ASR'];
+const LOCO_T = ['GEK', 'ALS', 'HID', 'ALS'], DMU_T = ['THN', 'NKF', 'APD', 'ASR'];
 const svcType = s => s.ty || (s.ty = (s.kind === 'LH' ? LOCO_T : DMU_T)[Math.floor(Math.random() * 4)]);
 const needsLift = s => !!(s.tasks ? s.tasks.lift : s.lift);
 const svcRev = s => { const late = Math.max(0, (Math.max(tstate.now, s.phase === 'dwell' || s.phase === 'departing' ? tstate.now : s.schedDep) - s.schedDep) / 60); return Math.round(Math.max(1000, Math.round((s.kind === 'LH' ? 12000 : 7000) - late * 400)) * (s.special ? 2 : 1)); };

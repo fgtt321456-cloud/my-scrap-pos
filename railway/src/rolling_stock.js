@@ -108,7 +108,7 @@ const hoodSide = (g, L) => {   // GE hood: orange hood with grille doors
 };
 // --- model catalogue (real SRT stock) ---
 const RS = {
-  GEA: { name: 'GE UM12C', liv: LIV.srtLoco, kind: 'hood', len: 17.0, maker: 'General Electric · สหรัฐฯ', side: sideLoco({ num: '4021', maker: 'GE' }), front: faceLoco({ num: '4021', ws: [[50, 46, 70, 56], [136, 46, 70, 56]] }), hood: hoodSide },
+  GEK: { name: 'GE UM12C (GEK)', liv: LIV.srtLoco, kind: 'hood', len: 17.0, maker: 'General Electric · สหรัฐฯ', side: sideLoco({ num: '4021', maker: 'GE' }), front: faceLoco({ num: '4021', ws: [[50, 46, 70, 56], [136, 46, 70, 56]] }), hood: hoodSide },
   ALS: { name: 'Alsthom AD24C', liv: LIV.srtLoco, kind: 'loco', len: 17.4, nose: 0.9, side: sideLoco({ num: '4135', maker: 'Alsthom' }), front: faceLoco({ num: '4135', vee: true }) },
   HID: { name: 'Hitachi 8FA-36C', liv: LIV.srtLoco, kind: 'loco', len: 18.4, side: sideLoco({ num: '4512', maker: 'Hitachi' }), front: faceLoco({ num: '4512', ws: [[18, 36, 104, 70], [134, 36, 104, 70]] }) },
   CSR: { name: 'CSR SDA3 “Ultraman”', liv: LIV.ultra, kind: 'loco', len: 19.2, slope: true, side: sideLoco({ num: '5114', maker: 'CSR Qishuyan', cabs: [20, 904] }), front: faceLoco({ num: '5114', vee: true, numCol: '#1F2F5A', ws: [[16, 30, 224, 76]] }) },
@@ -196,7 +196,7 @@ function mergeParts(list) {
   geo.computeBoundingSphere(); return geo;
 }
 // legacy vehicle keys → real models
-const RS_ALIAS = { loco: 'ALS', coach: 'coach', cab: 'THN', car: 'THN_car', cnr: 'cnr', red: 'red', frt: 'frt', dmu: 'APD' };
+const RS_ALIAS = { GEA: 'GEK', loco: 'ALS', coach: 'coach', cab: 'THN', car: 'THN_car', cnr: 'cnr', red: 'red', frt: 'frt', dmu: 'APD' };
 function rsResolve(t) {
   let k = RS_ALIAS[t] || t, trailer = false;
   if (k.endsWith('_car')) { trailer = true; k = k.slice(0, -4); }
@@ -219,16 +219,16 @@ function trainModel(t) {
 function trainsNight(f) { f = Math.round(f * 20) / 20; if (f === TR3.night) return; TR3.night = f; TR3.all.forEach(m => { m.emissiveIntensity = f * 0.9; }); }
 // ---------- reference sheet for RailPedia (real stock, short notes) ----------
 const RS_INFO = [
-  { id: 'CSR', consist: ['CSR', 'cnr', 'cnr'], tier: 'QSY', role: 'หัวรถจักรดีเซลไฟฟ้า', note: 'ผลิตโดย CSR Qishuyan ประเทศจีน เข้าประจำการราวปี 2556–2558 ฉายา “อุลตร้าแมน” จากสีขาวแดงด้านหน้า' },
-  { id: 'cnr', consist: ['cnr', 'cnr', 'cnr'], role: 'รถนั่งและนอนปรับอากาศ', note: 'ขบวนรถนอนรุ่นใหม่จาก CNR Changchun ประเทศจีน เริ่มให้บริการปี 2559 กับขบวนด่วนพิเศษสายเหนือ อีสาน และใต้' },
-  { id: 'ALS', consist: ['ALS', 'coach', 'coach'], tier: 'AD24C', role: 'หัวรถจักรดีเซลไฟฟ้า', note: 'Alsthom ประเทศฝรั่งเศส รุ่น AD24C เข้าประจำการช่วงทศวรรษ 2510–2520 เป็นหัวรถจักรที่ใช้งานแพร่หลายที่สุดรุ่นหนึ่ง' },
-  { id: 'HID', consist: ['HID', 'coach', 'coach'], role: 'หัวรถจักรดีเซลไฟฟ้า', note: 'Hitachi ประเทศญี่ปุ่น รุ่น 8FA-36C เข้าประจำการราวปี 2536 ห้องขับสองด้าน ตัวรถทรงกล่อง' },
-  { id: 'GEA', consist: ['GEA', 'coach', 'coach'], role: 'หัวรถจักรดีเซลไฟฟ้า', note: 'General Electric ประเทศสหรัฐฯ รุ่น UM12C แบบห้องเครื่องแคบ (hood unit) หัวรถจักรรุ่นแรก ๆ ของการรถไฟไทย' },
-  { id: 'ASR', consist: ['ASR', 'ASR_car', 'ASR'], tier: 'ASR', role: 'รถดีเซลรางปรับอากาศ', note: 'พื้นฐานจาก British Rail Class 158 สร้างโดย BREL ประเทศอังกฤษ ใช้กับขบวนด่วนพิเศษดีเซลราง' },
-  { id: 'APD', consist: ['APD', 'APD_car', 'APD'], role: 'รถดีเซลรางปรับอากาศ', note: 'Daewoo ประเทศเกาหลีใต้ ส่งมอบราวปี 2538–2539 ใช้กับขบวนด่วนพิเศษและด่วนระยะกลาง' },
-  { id: 'THN', consist: ['THN', 'THN_car', 'THN'], tier: 'THN', role: 'รถดีเซลราง', note: 'ผลิตโดยกลุ่ม Tokyu–Hitachi–Nippon Sharyo ประเทศญี่ปุ่น (2526) ใช้กับรถธรรมดาและรถชานเมือง' },
-  { id: 'NKF', consist: ['NKF', 'NKF_car', 'NKF'], role: 'รถดีเซลราง', note: 'กลุ่ม Nippon Sharyo–Kawasaki–Fuji ประเทศญี่ปุ่น (2528) รุ่นต่อจาก THN ใช้งานลักษณะเดียวกัน' },
-  { id: 'red', consist: ['red', 'red_car', 'red_car', 'red'], role: 'รถไฟฟ้า (สายสีแดง)', note: 'Hitachi AT100 ประเทศญี่ปุ่น ให้บริการรถไฟชานเมืองสายสีแดง เริ่มปี 2564 จ่ายไฟเหนือหัว 25 kV' },
+  { id: 'HID', consist: ['HID', 'cnr', 'cnr'], role: 'หัวรถจักรดีเซลไฟฟ้า', note: 'Hitachi ประเทศญี่ปุ่น รุ่น 8FA-36C สร้าง 22 คันราวปี 2536 (ซีรีส์ 4500) มีภาพหมายเลข 4507 ลากขบวนรถนอน CNR สายเชียงใหม่' },
+  { id: 'cnr', consist: ['cnr', 'cnr', 'cnr'], role: 'รถนอนปรับอากาศ', note: 'สั่งจาก CNR Changchun (ปัจจุบันคือ CRRC) รวม 115 คัน: รถนอนชั้น 1 9 คัน ชั้น 2 88 คัน รถเสบียง 9 คัน รถไฟฟ้ากำลัง 9 คัน เริ่มวิ่ง 11 พ.ย. 2559 (ขบวน 9/10, 23/24) และ 2 ธ.ค. 2559 (25/26, 31/32)' },
+  { id: 'ALS', consist: ['ALS', 'coach', 'coach'], tier: 'AD24C', role: 'หัวรถจักรดีเซลไฟฟ้า', note: 'Alsthom ประเทศฝรั่งเศส รุ่น AD24C หมายเลขซีรีส์ 4100 และ 4200 เดิมใช้เครื่องยนต์ Pielstick ส่วนใหญ่เปลี่ยนเป็น MTU หรือ Caterpillar ในภายหลัง' },
+  { id: 'GEK', consist: ['GEK', 'coach', 'coach'], role: 'หัวรถจักรดีเซลไฟฟ้า', note: 'General Electric ประเทศสหรัฐฯ รุ่น UM12C (รหัส GEK) แบบห้องเครื่องแคบ (hood unit) ส่งมอบตั้งแต่ปี 2506 จำนวน 50 คัน ราวปี 2556 ยังใช้งานอยู่ 45 คัน' },
+  { id: 'CSR', consist: ['CSR', 'frt', 'frt'], tier: 'QSY', role: 'หัวรถจักรดีเซลไฟฟ้า (สินค้า)', note: 'CSR Qishuyan ประเทศจีน รุ่น SDA3 จำนวน 20 คัน สั่งซื้อปี 2556 ส่งมอบปี 2558 สำหรับขนตู้สินค้า เครื่องยนต์ Caterpillar 2.8 MW วิ่งได้ 100 กม./ชม. · ชื่อ “Ultraman” เป็นชื่อในเกมตามเอกสารออกแบบ ยังไม่พบแหล่งยืนยัน' },
+  { id: 'ASR', consist: ['ASR', 'ASR_car', 'ASR'], tier: 'ASR', role: 'รถดีเซลรางปรับอากาศ', note: 'สร้างโดย BREL ที่ Derby ประเทศอังกฤษ พื้นฐานจาก British Rail Class 158 จำนวน 20 คันในปี 2533–2534' },
+  { id: 'THN', consist: ['THN', 'THN_car', 'THN'], tier: 'THN', role: 'รถดีเซลราง', note: 'Tokyu–Hitachi–Nippon Sharyo ประเทศญี่ปุ่น ปี 2526 จำนวน 40 คัน 235 แรงม้า ความเร็วสูงสุด 105 กม./ชม. (ข้อมูลจากเว็บไซต์ผู้ชื่นชอบรถไฟ)' },
+  { id: 'NKF', consist: ['NKF', 'NKF_car', 'NKF'], role: 'รถดีเซลราง', note: 'พัฒนาต่อจาก THN ผลิตปี 2528 โดยกลุ่มผู้ผลิตญี่ปุ่น (Nippon Sharyo, Hitachi, Fuji, Kawasaki ฯลฯ) 2 ชุด 64 และ 12 คัน (ข้อมูลจากเว็บไซต์ผู้ชื่นชอบรถไฟ)' },
+  { id: 'APD', consist: ['APD', 'APD_car', 'APD'], role: 'รถดีเซลรางปรับอากาศ', note: 'รถดีเซลรางจาก Daewoo ประเทศเกาหลีใต้ · รุ่นย่อยและปีที่ส่งมอบยังหาแหล่งยืนยันไม่ได้' },
+  { id: 'red', consist: ['red', 'red_car', 'red_car', 'red'], role: 'รถไฟฟ้าชานเมือง (สายสีแดง)', note: 'Hitachi (AT100) 25 ขบวน: 4 ตู้ 10 ขบวน และ 6 ตู้ 15 ขบวน รวม 130 ตู้ ใช้ไฟ 25 kV 50 Hz เหนือหัว ทดลองวิ่ง 2 ส.ค. 2564 เปิดเชิงพาณิชย์ 29 พ.ย. 2564' },
 ];
 // ---------- 3D thumbnails for UI (rendered once, cached as data URLs) ----------
 const THUMB = { r: null, cache: {} };
@@ -250,4 +250,4 @@ function trainThumb(consist, w = 520, h = 130) {
   } catch (e) { return ''; }
 }
 const thumbImg = (consist, cls = '') => { const u = trainThumb(consist); return u ? `<img class="rsimg ${cls}" src="${u}" alt="">` : ''; };
-const TIER_CONSIST = { THN: ['THN', 'THN_car', 'THN'], AD24C: ['ALS', 'coach', 'coach'], ASR: ['ASR', 'ASR_car', 'ASR'], QSY: ['CSR', 'cnr', 'cnr'] };
+const TIER_CONSIST = { THN: ['THN', 'THN_car', 'THN'], AD24C: ['ALS', 'coach', 'coach'], ASR: ['ASR', 'ASR_car', 'ASR'], QSY: ['CSR', 'frt', 'frt'] };

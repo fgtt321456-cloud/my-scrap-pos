@@ -77,6 +77,16 @@ function stnVehGeo(t) {
 }
 function stnVehMesh(t) { return trainModel(t); }
 const isCab = t => /^(THN|NKF|APD|ASR|red|cab)$/.test(t);
+function steamDisplay(sc, x, z, label) {   // preserved steam locomotive on a plinth (e.g. at Ubon Ratchathani)
+  const g = new THREE.Group(), blk = mat(0x1D232B), red = mat(0x8E2B2B);
+  bx(g, 2.6, 0.5, 16, SM.concrete, 0, 0.25, 0); bx(g, 2.2, 2.2, 9, blk, 0, 2.2, 1.5); bx(g, 2.6, 2.8, 3.2, blk, 0, 2.6, -4.4); bx(g, 2.7, 0.3, 3.4, red, 0, 4.1, -4.4);
+  const boiler = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.05, 9, 16), blk); boiler.rotation.x = Math.PI / 2; boiler.position.set(0, 2.6, 1.5); g.add(boiler);
+  const chim = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 1.2, 10), blk); chim.position.set(0, 4.1, 5.2); g.add(chim);
+  for (const zz of [-1.6, 0.6, 2.8]) for (const s of [-1, 1]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 0.2, 16), red); w.rotation.z = Math.PI / 2; w.position.set(s * 1.05, 1.35, zz); g.add(w); }
+  g.position.set(x, 0, z); g.rotation.y = Math.PI / 2; sc.add(g);
+  if (label) { const lb = tLabel(label, 'รถจักรไอน้ำจัดแสดง', 300); lb.scale.set(20, 6.4, 1); lb.position.set(x, 11, z); sc.add(lb); }
+}
+function turntable(sc, x, z) { const pit = new THREE.Mesh(new THREE.CylinderGeometry(11, 11, 0.4, 40), SM.concrete); pit.position.set(x, 0.1, z); sc.add(pit); bx(sc, 21, 0.5, 3, SM.steel, x, 0.45, z).rotation.y = 0.4; const lb = tLabel('วงเวียนกลับรถจักร', '', 260); lb.scale.set(16, 5, 1); lb.position.set(x, 8, z); sc.add(lb); }
 
 // ---------- buildings by real style ----------
 function buildLanna(sc, d) {      // Chiang Mai: single-storey hall with layered Thai gable roofs and a porch
@@ -173,14 +183,15 @@ function stnExtras(sc, d) {
     const sx = d.kind === 'T' ? 120 : -60, sz = Math.max(...d.tracks.map(t => t.z)) + 22;
     bx(sc, 70, 9, 16, mat(0xB7A68A), sx, 4.5, sz); const r = gable(74, 18, 4, SM.steel); r.position.set(sx, 9, sz); sc.add(r);
     const lb = tLabel('โรงรถจักร', '', 200); lb.scale.set(14, 5, 1); lb.position.set(sx, 18, sz); sc.add(lb);
-    const loco = stnVehMesh(pickOne(['GEA', 'ALS', 'HID'])); loco.position.set(sx + 40, 0, sz); loco.rotation.y = Math.PI / 2; sc.add(loco);
+    const loco = stnVehMesh(pickOne(['GEK', 'ALS', 'HID'])); loco.position.set(sx + 40, 0, sz); loco.rotation.y = Math.PI / 2; sc.add(loco);
   }
   if (ex.includes('footbridge')) {
     const zs = d.platforms.map(p => p.z), zMin = Math.min(...zs) - 2, zMax = Math.max(...zs) + 2;
     bx(sc, 4, 0.7, zMax - zMin, SM.steel, 20, 7.5, (zMin + zMax) / 2); bx(sc, 4, 2.6, zMax - zMin, SM.glassRoof, 20, 9.2, (zMin + zMax) / 2);
     zs.forEach(z => bx(sc, 3, 7.5, 3, SM.steel, 20, 3.75, z));
   }
-  if (ex.includes('customs')) {}
+  if (ex.includes('steam')) steamDisplay(sc, d.id === 'UBN' ? 120 : 150, d.bz - d.bd / 2 - 22, d.id === 'UBN' ? 'NBL หมายเลข 180' : '');
+  if (ex.includes('turntable')) turntable(sc, 60, Math.max(...d.tracks.map(t => t.z)) + 40);
   if (ex.includes('redline')) {}
   if (ex.includes('songthaew')) { for (let i = 0; i < 8; i++) { const c = bx(sc, 2, 2, 4.4, mat(0xC8102E), 110 + i * 7, 1, d.bz - d.bd / 2 - 24); c.castShadow = true; } }
   if (ex.includes('city') || d.id === 'KRT') {
@@ -271,7 +282,7 @@ const stnEastOf = (id, other) => (STN_EAST[id] || []).includes(other);
 function stnMakeSvc(S, d, e, day) {
   const C = STN_CLS[e.cls] || { rev: 6000, kind: Math.random() < 0.5 ? 'LH' : 'PP', veh: [4, 7], car: 'coach' };
   const n = rint(C.veh[0], C.veh[1]);
-  const loco = C.car === 'cnr' ? 'CSR' : pickOne(e.real ? ['ALS', 'HID'] : ['GEA', 'ALS', 'HID']);
+  const loco = C.car === 'cnr' ? 'HID' : pickOne(e.real ? ['ALS', 'HID'] : ['GEK', 'ALS', 'HID']);
   const dmu = e.cls === 'ด่วนพิเศษ (ดีเซลราง)' ? 'ASR' : e.cls === 'Shuttle' ? 'APD' : pickOne(['THN', 'NKF']);
   const veh = C.kind === 'LH' ? [loco].concat(Array(n - 1).fill(C.car)) : [dmu].concat(Array(Math.max(1, n - 2)).fill(dmu + '_car'), [dmu]);
   const base = day * 86400 + e.t;
@@ -515,7 +526,7 @@ function stnCrewModal() {
 }
 $('#mmodal').addEventListener('click', e => { const b = e.target.closest('[data-shire]'); if (!b || b.disabled) return; const S = stnState(); if (spend(20000 * S.crew)) { S.crew++; toast(`ทีมบริการเป็น ${S.crew} ทีม`); MCACHE.body = null; stnCrewModal(); } });
 const HLP_REAL = { name: 'สถานีกรุงเทพ (หัวลำโพง)', en: 'Bangkok (Hua Lamphong)', line: 'ต้นทางขบวนธรรมดาและรถชานเมือง', km: 0, kind: 'T', tracks: Array.from({ length: 14 }, (_, i) => ({ n: i + 1, z: i })), platforms: Array(8),
-  real: ['เปิดใช้งานปี 2459 (ค.ศ. 1916) ออกแบบโดยมาริโอ ตามัญโญ สถาปัตยกรรมแบบอิตาเลียนเรอเนสซองส์', 'โถงหลักหลังคาโค้งและหน้าต่างกระจกโค้งบานใหญ่ด้านหน้า มีนาฬิกาอยู่กลางซุ้มโค้ง', 'สถานีปลายตัน 14 ราง ใต้หลังคาโรงคลุมชานชาลาโค้ง ขบวนเข้า-ออกผ่านคอขวดด้านเดียว', 'ด้านหน้ามีน้ำพุช้างสามเศียร ถนนพระรามที่ 4 และคลองผดุงกรุงเกษมเลียบข้างสถานี', 'ตั้งแต่ปี 2566 ขบวนทางไกลย้ายไปกรุงเทพอภิวัฒน์ หัวลำโพงยังรับขบวนธรรมดาและรถชานเมือง'] };
+  real: ['เปิดใช้งาน 25 มิถุนายน 2459 (ค.ศ. 1916) ด้านหน้าออกแบบโดยมาริโอ ตามัญโญ ร่วมกับอันนิบาเล ริก็อตติ แบบอิตาเลียนนีโอเรอเนสซองส์', 'โถงหลักหลังคาโค้งและหน้าต่างกระจกโค้งบานใหญ่ด้านหน้า มีนาฬิกาอยู่กลางซุ้มโค้ง', 'สถานีปลายตัน 14 ชานชาลา ใต้หลังคาโรงคลุมชานชาลาโค้ง ขบวนเข้า-ออกผ่านคอขวดด้านเดียว', 'ด้านหน้าคือถนนพระรามที่ 4 และมีคลองผดุงกรุงเกษมเลียบข้างสถานี (ลานน้ำพุในเกมเป็นการตกแต่ง ยังไม่ได้ตรวจกับของจริง)', 'ตั้งแต่มกราคม 2566 ขบวนทางไกลย้ายไปกรุงเทพอภิวัฒน์ หัวลำโพงยังรับขบวนธรรมดา รถชานเมือง ขบวนนำเที่ยว และสายตะวันออก'] };
 function stnTool(k) { if (k === 'sinfo' && MODE === 'term') hlpInfoModal(); else if (k === 'sinfo') stnInfoModal(); else if (k === 'sboard') stnBoardModal(); else if (k === 'screw') stnCrewModal(); }
 TOOLS.stn = [['sinfo', 'ข้อมูลจริง'], ['sboard', 'ตารางจริง'], ['screw', 'ทีมบริการ'], ['ctrl', 'ห้องควบคุม'], ['contracts', 'สัญญา']];
 Object.assign(ICONS, { sinfo: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>', sboard: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h10M7 17h6"/>', screw: '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M14 15.5c.9-.3 1.9-.5 3-.5 2.5 0 4 1.5 4 4"/>' });

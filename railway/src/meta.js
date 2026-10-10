@@ -38,8 +38,8 @@ const CTRLS = [
 const CTRL_MIN = 15, CTRL_COINS = 5, CTRL_BAHT = 30000, CAP_MAX = 8, CREW_MAX = 24;
 const HUBS = [
   { id: 'term', mode: 'term', code: 'BKK', name: 'สถานีกรุงเทพ (หัวลำโพง)', sub: 'สถานีปลายตัน 14 ราง · ขบวนธรรมดาและรถชานเมือง' },
-  { id: 'cmi', mode: 'stn:CMI', code: 'CMI', name: 'สถานีเชียงใหม่', sub: 'ปลายทางสายเหนือ · อาคารทรงไทยล้านนา · 3 ราง', lock: 2 },
-  { id: 'hdy', mode: 'stn:HDY', code: 'HDY', name: 'สถานีชุมทางหาดใหญ่', sub: 'ชุมทางสายใต้ · อาคารโคโลเนียล · 5 ราง', lock: 3 },
+  { id: 'cmi', mode: 'stn:CMI', code: 'CMI', name: 'สถานีเชียงใหม่', sub: 'ปลายทางสายเหนือ · อาคารออกแบบใหม่ปี 2489 · 4 ราง', lock: 2 },
+  { id: 'hdy', mode: 'stn:HDY', code: 'HDY', name: 'สถานีชุมทางหาดใหญ่', sub: 'ชุมทางสายใต้ · 6 ชานชาลา', lock: 3 },
   { id: 'nki', mode: 'stn:NKI', code: 'NKI', name: 'สถานีหนองคาย', sub: 'ปลายทางสายอีสาน · ต่อขบวนข้ามสะพานมิตรภาพ', lock: 4 },
   { id: 'ubn', mode: 'stn:UBN', code: 'UBN', name: 'สถานีอุบลราชธานี', sub: 'ปลายทางสายอีสานใต้ · ริมแม่น้ำมูล', lock: 5 },
   { id: 'krt', mode: 'stn:KRT', code: 'KRT', name: 'สถานีกลางกรุงเทพอภิวัฒน์', sub: 'ต้นทางขบวนทางไกลทุกสาย · 26 ชานชาลา', lock: 6 },

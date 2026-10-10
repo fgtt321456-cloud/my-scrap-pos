@@ -45,16 +45,7 @@ function tBeautify() {
   const basin = new THREE.Mesh(new THREE.CylinderGeometry(7.2, 7.6, 1.1, 40), stoneDk); basin.castShadow = true; add(basin, -112, 0.55, cz);
   const water = new THREE.Mesh(new THREE.CircleGeometry(6.7, 40).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x4FA3D9, roughness: 0.1, metalness: 0.2, emissive: 0x0d3550 })); add(water, -112, 1.06, cz);
   add(new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.8, 2.4, 16), stone), -112, 1.2, cz);
-  // three-headed elephant fountain in front of the station
-  const ele = mat(0x8E949C, { roughness: 0.55, metalness: 0.25 });
-  add(new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 12), ele), -112, 3.6, cz).scale.set(1, 0.85, 1);
-  for (let k = 0; k < 3; k++) {
-    const a = k / 3 * Math.PI * 2 + Math.PI, hx = -112 + Math.cos(a) * 1.3, hz = cz + Math.sin(a) * 1.3;
-    add(new THREE.Mesh(new THREE.SphereGeometry(0.75, 12, 10), ele), hx, 4.1, hz);
-    const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.24, 2, 8), ele); tr.position.set(hx + Math.cos(a) * 0.6, 3.2, hz + Math.sin(a) * 0.6); tr.rotation.set(Math.sin(a) * 0.45, 0, -Math.cos(a) * 0.45); tScene.add(tr);
-    for (const s of [-1, 1]) { const ear = new THREE.Mesh(new THREE.CircleGeometry(0.6, 10), ele); ear.position.set(hx - Math.sin(a) * s * 0.7, 4.2, hz + Math.cos(a) * s * 0.7); ear.rotation.y = -a; tScene.add(ear); }
-  }
-  add(new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.4, 10), mat(0xD4A017, { metalness: 0.6, roughness: 0.3 })), -112, 5.4, cz);
+  add(new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.9, 2.2, 14), stone), -112, 3.4, cz);   // decorative fountain column (not verified against the real forecourt)
   const jetMat = new THREE.MeshBasicMaterial({ color: 0xE8F6FF, transparent: true, opacity: 0.55, depthWrite: false });
   for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2, j = new THREE.Mesh(new THREE.ConeGeometry(0.35, 1, 8), jetMat); j.position.set(-112 + Math.cos(a) * 4.2, 1.6, cz + Math.sin(a) * 4.2); tScene.add(j); TB.jets.push(j); }
   const top = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1, 10), jetMat); top.position.set(-112, 3.5, cz); tScene.add(top); TB.jets.push(top);
