@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ThaiRail.Data;
+using ThaiRail.Scenery;
 using UnityEngine;
 
 namespace ThaiRail.Trains
@@ -81,7 +82,7 @@ namespace ThaiRail.Trains
             var m = Data(key); if (m == null) return null;
             Material mat; if (_mats.TryGetValue(m.family, out mat)) return mat;
             LiveryFamily fam = null; foreach (var f in _file.families) if (f.family == m.family) fam = f;
-            var shader = Shader.Find("RailTrack/Train") ?? Shader.Find("Standard");
+            var shader = RailTrackShaders.Find("Train");
             mat = new Material(shader) { name = "SRT livery " + m.family, enableInstancing = true };
             mat.SetTexture("_MainTex", Resources.Load<Texture2D>(Folder + "atlas_" + m.family));
             mat.SetTexture("_EmissionMap", Resources.Load<Texture2D>(Folder + "atlas_" + m.family + "_em"));

@@ -51,7 +51,7 @@ namespace ThaiRail.Stations
             Adapter = new TimetableStationAdapter(Sim, W.Db);
             if (trainRoot == null) trainRoot = transform;
             if (catalog != null && ThaiRail.Pooling.PoolManager.Instance != null) _cars = new PooledCarSource(catalog);
-            else _cars = new ProceduralCarSource(W.Db, placeholderMaterial != null ? placeholderMaterial : new Material(Shader.Find("RailTrack/VertexColorLit") ?? Shader.Find("Standard")));
+            else _cars = new ProceduralCarSource(W.Db, placeholderMaterial != null ? placeholderMaterial : new Material(RailTrackShaders.Find("VertexColorLit")));
         }
 
         void Start() { if (RailTrackWorld.Instance != null && RailTrackWorld.Instance.Ready) Begin(); }

@@ -95,6 +95,8 @@ namespace UnityEngine.Rendering {
   public enum ShadowCastingMode { Off, On, TwoSided, ShadowsOnly }
   public enum IndexFormat { UInt16, UInt32 }
   public enum AmbientMode { Skybox, Trilight, Flat, Custom }
+  public class RenderPipelineAsset : Object {}
+  public static class GraphicsSettings { public static RenderPipelineAsset currentRenderPipeline; }
 }
 namespace UnityEngine.Events {
   public class UnityEvent { public void AddListener(Action a) {} }

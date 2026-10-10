@@ -44,7 +44,7 @@ namespace ThaiRail.Scenery
 
         static Material Mat(string shader)
         {
-            var s = Shader.Find(shader) ?? Shader.Find("Standard");
+            var s = RailTrackShaders.Find(shader.Replace("RailTrack/", ""));
             return new Material(s) { enableInstancing = true };
         }
 

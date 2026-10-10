@@ -25,7 +25,8 @@ Assets/Scripts/
                StationCameraRig (กล้องไอโซเมตริก เมาส์/สัมผัส)
   Scenery/     MeshData + StationSceneModel (ฉากสถานีจากผังจริง, C# ล้วน), TrainMeshModel (รถจำลองจากสีลายรถ),
                StationSceneBuilder (สร้าง Mesh 2 ชิ้น = 2 draw call + ป้ายชื่อ)
-  UI/          StationHud (HUD สร้างด้วยโค้ด อ่านจาก adapter อย่างเดียว)
+  UI/          StationHud (HUD + หน้าต่าง modal), NxPanelView + DmiView + UiShapes (แผง NX, จอ DMI), MetaPanels
+  Meta/        MetaService (เลเวล XP เหรียญ รางวัล ของขวัญรายวัน ผู้ควบคุมตามเวลาจริง)
   Game/        StationSceneBootstrap (ฉากเปล่า → สถานีที่เล่นได้ ทั้ง 6 สถานีรวมหัวลำโพง)
   Trains/      TrainLibrary (โมเดลรถไฟละเอียดจาก Resources), RollingStockCatalog (รหัสรุ่นรถ → prefab ใน pool),
                CarSources (prefab จริง → โมเดลละเอียด → รถจำลองแบบง่าย ตามที่มี)
@@ -46,8 +47,18 @@ tools/check/   คอมไพล์สคริปต์ทั้งหมด�
 3. ปุ่มมุมขวาบน: หยุด/1×/2×/4× และสลับสถานี HLP (หัวลำโพง) CMI NKI UBN HDY KRT · ตั้ง `font` เป็นฟอนต์ไทย (เช่น IBM Plex Sans Thai) เพื่อให้ตัวอักษรไทยสวย
 4. ควบคุม: ลากเพื่อเลื่อน, ล้อเมาส์/บีบนิ้วเพื่อซูม, คลิกขวาลาก/หมุนสองนิ้วเพื่อหมุน, แตะขบวนเพื่อเลือก
 
-ข้อกำหนด: Built-in Render Pipeline (shader อยู่ที่ `Assets/Resources/RailTrack/`), Active Input Handling = "Input Manager" หรือ "Both"
-ถ้าใช้ URP ให้ทำ Shader Graph ที่คูณ Base Color ด้วย Vertex Color แล้วใส่ให้ `StationSceneBuilder` และ `TimetableStationRunner`
+ข้อกำหนด: Active Input Handling = "Input Manager" หรือ "Both"
+
+**Render pipeline:** ใช้ได้ทั้งสองแบบ โค้ดเลือก shader ให้อัตโนมัติ (`RailTrackShaders`)
+- Built-in: ใช้ได้ทันที (shader อยู่ที่ `Assets/Resources/RailTrack/`)
+- URP: เปลี่ยนชื่อโฟลเดอร์ `Assets/Resources/RailTrack/URP~` เป็น `URP` (โฟลเดอร์ที่ลงท้ายด้วย ~ Unity จะไม่นำเข้า จึงไม่เกิด error ในโปรเจกต์ที่ไม่มี URP)
+  shader ชุด URP ยังไม่ได้คอมไพล์ใน Unity จริง ถ้าขึ้น error ให้ส่งข้อความมาแก้
+
+### เมนูในสถานี
+- **แผง NX** (หัวลำโพง): กดทางเข้า (H หรือ S1–S14) แล้วกดทางออก (เลขชานชาลา หรือ "ออก") · กดทางเข้าซ้ำเพื่อยกเลิก · กดวงกลมเพื่อกลับประแจ · ปุ่ม ARS เปิดห้องควบคุม
+- **DMI** (หัวลำโพง): แสดงอัตโนมัติเมื่อแตะขบวน (ความเร็ว เส้นโค้งเบรก เป้าหมาย อาณัติ)
+- **ห้องควบคุม**: เปิดผู้ควบคุมขาเข้า/ขาออก/ภาคพื้น/สับเปลี่ยน ครั้งละ 15 นาทีตามเวลาจริง (ทดลองฟรีครั้งแรก, 5 เหรียญ หรือ ฿30,000)
+- **รางวัล**: ของขวัญรายวัน, รางวัลตามเลเวล · **ทีมภาคพื้น** (หัวลำโพง): จ้างทีมบริการเพิ่ม
 
 ### ตั้งฉากสถานีตามตาราง (แบบประกอบเอง)
 1. Bootstrap scene: `RailTrackDataLoader`, `RailTrackWorld`, `PoolManager` (DontDestroyOnLoad)

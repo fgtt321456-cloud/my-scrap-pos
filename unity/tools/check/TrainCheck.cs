@@ -43,6 +43,13 @@ static class TrainCheck
         var noAtlas = fams.Where(f => !File.Exists(Path.Combine(dir, "atlas_" + f + ".png")) || !File.Exists(Path.Combine(dir, "atlas_" + f + "_em.png"))).ToArray();
         Check("every livery has its atlas and night atlas", noAtlas.Length == 0, noAtlas.Length > 0 ? string.Join(",", noAtlas) : fams.Length + " liveries");
         if (dumpDir != null) File.WriteAllText(Path.Combine(dumpDir, "trains_detailed.json"), sb.Append('}').ToString());
+        // every shader RailTrackShaders asks for exists for both pipelines (URP ones live in the ignored URP~ folder)
+        string res = Path.Combine(unityDir, "Assets/Resources/RailTrack");
+        string all = string.Join("\n", Directory.GetFiles(res, "*.shader", SearchOption.AllDirectories).Select(File.ReadAllText));
+        var missingShaders = new[] { "VertexColorLit", "VertexColorTransparent", "Train" }.SelectMany(n => new[] { "RailTrack/" + n, "RailTrack/URP/" + n })
+            .Where(n => !all.Contains("Shader \"" + n + "\"")).ToArray();
+        bool urpTagged = Directory.GetFiles(Path.Combine(res, "URP~"), "*.shader").All(f => File.ReadAllText(f).Contains("\"RenderPipeline\"=\"UniversalPipeline\"") && File.ReadAllText(f).Contains("UniversalForward"));
+        Check("shaders for Built-in and URP exist under the names the code uses", missingShaders.Length == 0 && urpTagged, missingShaders.Length > 0 ? "missing " + string.Join(", ", missingShaders) : "3 × 2 shaders");
     }
     static double[] Sub(UnityEngine.Vector3 a, UnityEngine.Vector3 b) { return new double[] { a.x - b.x, a.y - b.y, a.z - b.z }; }
     static string[] TrainLibraryFamilies(string dir)

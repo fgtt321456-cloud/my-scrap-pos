@@ -104,7 +104,7 @@ namespace ThaiRail.Stations
         static Material Unlit(Color c)
         {
             // Unlit/Color may be stripped from a player build; the bundled vertex-colour shader (white lamp mesh × _Tint) is always there
-            var m = new Material(Shader.Find("Unlit/Color") ?? Shader.Find("RailTrack/VertexColorLit")); m.color = c; m.SetColor("_Tint", c); return m;
+            var m = new Material(Shader.Find(RailTrackShaders.Urp ? "Universal Render Pipeline/Unlit" : "Unlit/Color") ?? RailTrackShaders.Find("VertexColorLit")); m.color = c; m.SetColor("_Tint", c); m.SetColor("_BaseColor", c); return m;
         }
         void BuildLamps(IList<SignalLamps> signals)
         {

@@ -38,7 +38,10 @@
 | โมเดลรถไฟแบบละเอียด (เรขาคณิต + atlas ลายรถ + ไฟกลางคืน) | `rolling_stock.js` (`buildModel`, `paintAtlas`) | ส่งออกเป็น `Resources/RailTrack/Trains` + `Scripts/Trains/TrainLibrary.cs` |
 | interlocking หัวลำโพง (กราฟราง, ค้นเส้นทาง, ETCS, ล็อกเส้นทาง/ปลดเป็นตอน, สัญญาณ, สับหลีก, งานกลับขบวน, ARS) | `hlp_engine.js` (ส่วนจำลอง) | `hualamphong.json` + `Scripts/Simulation/Hlp/HlpEngine.cs`, `Stations/HuaLamphongAdapter.cs` |
 | ฉากหัวลำโพง (อาคาร ซุ้มโค้งกระจก โรงคลุมชานชาลา ลานน้ำพุ คลอง) | `hlp_engine.js` (`tBuildScene`), `hlp_scenery.js` | `Scripts/Scenery/HlpSceneModel.cs`, `Stations/HlpStationRunner.cs` |
-| แผง NX แบบรีเลย์, จอ DMI ของ ETCS, รถ/เรือ/ผู้คนเคลื่อนไหว | `hlp_engine.js` (`nx*`, `dmi*`), `hlp_scenery.js`, `hlp_fx.js` | ยังไม่ย้าย: Unity ตั้งเส้นทางผ่านแผงเลือกชานชาลาแทน |
+| แผง NX แบบรีเลย์, จอ DMI ของ ETCS | `hlp_engine.js` (`nx*`, `dmi*`) | `Stations/NxPanelModel.cs` (`NxPanelModel`, `DmiState`), `UI/NxPanelView.cs`, `UI/DmiView.cs` |
+| เลเวล รางวัล ของขวัญ ห้องควบคุม ทีมภาคพื้น | `meta.js` | `Meta/MetaService.cs`, `UI/MetaPanels.cs`, `HlpEngine.BuyTeams` |
+| shader สำหรับ URP | — | `Resources/RailTrack/URP~` (เปลี่ยนชื่อเป็น URP เมื่อใช้) + `Scenery/RailTrackShaders.cs` |
+| รถ/เรือ/ผู้คนเคลื่อนไหว, เมนูหลัก, แผนที่ประเทศไทย, ร้านลายรถ, สัญญา/เครือข่าย | `hlp_scenery.js`, `hlp_fx.js`, `meta.js`, `core_net.js`, `world.js` | ยังไม่ย้าย |
 
 ## 2. โมเดลโดเมน
 
@@ -132,5 +135,5 @@ sched ──(ถึงเวลา eta−5 นาที)──► approach ─�
 | `node railway/tests/smoke.test.js` | เส้นทางหลักของเกมทั้งหมด (12 ข้อ) |
 | `node railway/tests/world.test.js` | นาฬิกาโลก ความล่าช้าข้ามสถานี การไล่เวลา ขบวนจริงบนแผนที่ ความยาก (7 ข้อ) |
 | `node railway/tests/perf.test.js` | draw call ต่อฉาก (ดู `docs/TESTING.md`) |
-| `sh unity/tools/check/check.sh` | สคริปต์ Unity คอมไพล์ผ่าน + ข้อมูล JSON โหลดได้ + ระบบจำลองสถานีให้ผลตรงกับเว็บ + ฉากสถานี/รถไฟหันหน้าถูกด้านหลังแปลงแกน (40 ข้อ) |
+| `sh unity/tools/check/check.sh` | สคริปต์ Unity คอมไพล์ผ่าน + ข้อมูล JSON โหลดได้ + ระบบจำลองสถานีให้ผลตรงกับเว็บ + ฉากสถานี/รถไฟหันหน้าถูกด้านหลังแปลงแกน (50 ข้อ) |
 | `node railway/tools/export_unity.js` | ส่งออก JSON และสร้างค่าอ้างอิงจากเว็บ (`unity/tools/check/golden_*.json`) ให้ check.sh ใช้เทียบ |
