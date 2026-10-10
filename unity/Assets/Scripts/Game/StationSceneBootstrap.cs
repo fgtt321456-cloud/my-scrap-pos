@@ -80,7 +80,8 @@ namespace ThaiRail.Game
         void Update()
         {
             if (_runner == null || !_runner.Running || _sun == null) return;
-            DayNight((float)(_runner.Sim.State.now / 3600 % 24));
+            float hour = (float)(_runner.Sim.State.now / 3600 % 24);
+            DayNight(hour); TrainLibrary.SetNight(TrainLibrary.NightFactor(hour));
         }
 
         /// <summary>Sun arc and sky colours by hour (simplified port of applyDayNight in fx.js).</summary>

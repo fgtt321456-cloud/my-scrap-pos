@@ -6949,6 +6949,23 @@ function rtExport() {
   }
   return { '#golden': golden, 'stations.json': { stations, hualamphong: hlp }, 'timetable.json': timetable, 'rolling_stock.json': rolling, 'progression.json': progression, 'difficulty.json': difficulty, 'network.json': network };
 }
+/**
+ * Detailed train models for Unity: the exact merged geometry (positions, normals, atlas UVs) of every model,
+ * plus each livery family's painted atlas and night-emission atlas as PNG data URLs.
+ * Unity side: unity/Assets/Scripts/Trains/TrainLibrary.cs. Writer: railway/tools/export_unity.js.
+ */
+function rtExportTrains() {
+  const r = (a, k) => Array.from(a, x => Math.round(x * k) / k);
+  const keys = Object.keys(RS).filter(id => !id.endsWith('_car')).flatMap(id => RS[id].kind === 'dmu' || RS[id].kind === 'emu' ? [id, id + '_car'] : [id]);
+  const models = [], families = {};
+  for (const key of keys) {
+    trainModel(key);   // builds geometry and the family's atlas on first use
+    const g = TR3.geos[key], fam = rsResolve(key).k;
+    models.push({ key, family: fam, len: RS[key].len, p: r(g.attributes.position.array, 1000), n: r(g.attributes.normal.array, 1000), uv: r(g.attributes.uv.array, 10000) });
+    if (!families[fam]) { const m = TR3.mats[fam]; families[fam] = { tex: m.map.image.toDataURL('image/png'), em: m.emissiveMap.image.toDataURL('image/png'), rough: m.roughness, metal: m.metalness }; }
+  }
+  return { models, families: Object.keys(families).map(k => Object.assign({ family: k }, families[k])) };
+}
 
 // =================== mode switch, save/load, main loop ===================
 function setMode(m, quiet) {
@@ -7068,7 +7085,7 @@ function start(data) {
   setInterval(metaTick, 1000);
   requestAnimationFrame(t => { last = t; frame(t); });
 }
-if (location.hash.startsWith('#rtdebug')) window.__rt = { meta: () => M_(), gainXP, openFleet, openPlanner, openCtrlModal, metaPick, stnEnter, perf: () => Object.assign({ fps: PERF.ema, q: FX.quality, px: renderer.getPixelRatio() }, renderer.info.render, { geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), thumb: (c, w, h) => trainThumb(c, w, h), stn: () => stnState(), stnReset: id => { STN.st[id] = stnNew(id); }, exportData: () => rtExport(), world: () => WORLD, ttRunning: n => ttRunning(n), catchUp: () => worldCatchUp(stnState()), rush: rushFactor, rain: wxRain, stnStep: dt => stnStep(stnState(), dt), stnRelease: s => stnRelease(stnState(), s), openGS, openContracts, genOffer, stars: () => [netStars(), termStars()], tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }), hit: () => MAP2D.hit, heldRect: () => worldRect(termHeldPos()), platRect: () => worldRect(termPlatformPos()), readyRect: () => worldRect(termReadyPos()), routes: () => tstate.routes.map(r => r.kind + ':' + r.state), fx: () => ({ q: FX.quality, composer: !!FX.composer, lamp: FX.lamp }) };
+if (location.hash.startsWith('#rtdebug')) window.__rt = { meta: () => M_(), gainXP, openFleet, openPlanner, openCtrlModal, metaPick, stnEnter, perf: () => Object.assign({ fps: PERF.ema, q: FX.quality, px: renderer.getPixelRatio() }, renderer.info.render, { geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }), thumb: (c, w, h) => trainThumb(c, w, h), stn: () => stnState(), stnReset: id => { STN.st[id] = stnNew(id); }, exportData: () => rtExport(), exportTrains: () => rtExportTrains(), world: () => WORLD, ttRunning: n => ttRunning(n), catchUp: () => worldCatchUp(stnState()), rush: rushFactor, rain: wxRain, stnStep: dt => stnStep(stnState(), dt), stnRelease: s => stnRelease(stnState(), s), openGS, openContracts, genOffer, stars: () => [netStars(), termStars()], tStep, simStep, get t() { return tstate; }, get s() { return state; }, setMode, computeOcc, showReceipt, setMap2d, openDrawer, pool: () => ({ made: meshPool.made, reused: meshPool.reused }), hit: () => MAP2D.hit, heldRect: () => worldRect(termHeldPos()), platRect: () => worldRect(termPlatformPos()), readyRect: () => worldRect(termReadyPos()), routes: () => tstate.routes.map(r => r.kind + ':' + r.state), fx: () => ({ q: FX.quality, composer: !!FX.composer, lamp: FX.lamp }) };
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
 })();

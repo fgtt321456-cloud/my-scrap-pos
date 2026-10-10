@@ -14,6 +14,16 @@ const { open } = require('../tests/harness');
     fs.writeFileSync(path.join(out, name), JSON.stringify(data, null, 1) + '\n');
     console.log('wrote', name, fs.statSync(path.join(out, name)).size, 'bytes');
   }
+  // detailed train models: geometry + painted livery atlases (Resources so Unity imports and compresses the PNGs)
+  const trains = await page.evaluate(() => window.__rt.exportTrains());
+  const tdir = path.join(__dirname, '../../unity/Assets/Resources/RailTrack/Trains');
+  fs.mkdirSync(tdir, { recursive: true });
+  for (const f of trains.families) {
+    for (const [kind, url] of [['', f.tex], ['_em', f.em]]) fs.writeFileSync(path.join(tdir, `atlas_${f.family}${kind}.png`), Buffer.from(url.split(',')[1], 'base64'));
+    delete f.tex; delete f.em;
+  }
+  fs.writeFileSync(path.join(tdir, 'trains.json'), JSON.stringify(trains) + '\n');
+  console.log('wrote', trains.models.length, 'train models,', trains.families.length, 'liveries');
   // behaviour reference for the C# port: each station from a fresh 06:00 start, 24 h with both ARS controllers on
   const ref = await page.evaluate(() => {
     const R = window.__rt, out = [];

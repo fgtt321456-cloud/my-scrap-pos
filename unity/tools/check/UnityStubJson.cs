@@ -13,7 +13,7 @@ namespace UnityEngine {
       if (c == '[') { var l = new List<object>(); i++; Ws(s, ref i); if (s[i] == ']') { i++; return l; }
         for (;;) { l.Add(Parse(s, ref i)); Ws(s, ref i); if (s[i++] == ']') return l; } }
       if (c == '"') { var sb = new StringBuilder(); i++; while (s[i] != '"') { if (s[i] == '\\') { i++; char e = s[i]; if (e == 'u') { sb.Append((char)Convert.ToInt32(s.Substring(i + 1, 4), 16)); i += 4; } else sb.Append(e == 'n' ? '\n' : e == 't' ? '\t' : e); } else sb.Append(s[i]); i++; } i++; return sb.ToString(); }
-      if (s.Substring(i).StartsWith("true")) { i += 4; return true; } if (s.Substring(i).StartsWith("false")) { i += 5; return false; } if (s.Substring(i).StartsWith("null")) { i += 4; return null; }
+      if (string.CompareOrdinal(s, i, "true", 0, 4) == 0) { i += 4; return true; } if (string.CompareOrdinal(s, i, "false", 0, 5) == 0) { i += 5; return false; } if (string.CompareOrdinal(s, i, "null", 0, 4) == 0) { i += 4; return null; }
       int st = i; while (i < s.Length && "+-0123456789.eE".IndexOf(s[i]) >= 0) i++; return double.Parse(s.Substring(st, i - st), CultureInfo.InvariantCulture);
     }
     static object Map(object v, Type t) {

@@ -35,7 +35,8 @@
 | ตัวจัดการโลก + บันทึกเกม, วางตู้รถในฉาก | `boot.js`, `stations.js` (`stnFrame`, `stnSync`) | `Scripts/Game/RailTrackWorld.cs`, `Scripts/Stations/TimetableStationRunner.cs`, `Scripts/Trains/RollingStockCatalog.cs` |
 | ฉากสถานีจากผังจริง (ราง ชานชาลา อาคารตามรูปแบบ สถานที่สำคัญ) | `stations.js` (`stnBuild`, `build*`, `stnExtras`) | `Scripts/Scenery/StationSceneModel.cs`, `StationSceneBuilder.cs` |
 | กล้อง, HUD, กลางวัน/กลางคืน, ฉากเริ่มต้น | `stations.js` (`camStn`), `station_view.js`, `fx.js` | `StationCameraRig`, `StationHud`, `StationSceneBootstrap` |
-| โมเดลรถไฟแบบละเอียด, interlocking หัวลำโพง | `rolling_stock.js`, `hlp_*.js` | ยังไม่ย้าย: Unity ใช้รถจำลองจากสีลายรถจริงไปก่อน (ดูหัวข้อ 6) |
+| โมเดลรถไฟแบบละเอียด (เรขาคณิต + atlas ลายรถ + ไฟกลางคืน) | `rolling_stock.js` (`buildModel`, `paintAtlas`) | ส่งออกเป็น `Resources/RailTrack/Trains` + `Scripts/Trains/TrainLibrary.cs` |
+| interlocking หัวลำโพง | `hlp_*.js` | ยังไม่ย้าย (ดูหัวข้อ 6) |
 
 ## 2. โมเดลโดเมน
 
@@ -129,5 +130,5 @@ sched ──(ถึงเวลา eta−5 นาที)──► approach ─�
 | `node railway/tests/smoke.test.js` | เส้นทางหลักของเกมทั้งหมด (12 ข้อ) |
 | `node railway/tests/world.test.js` | นาฬิกาโลก ความล่าช้าข้ามสถานี การไล่เวลา ขบวนจริงบนแผนที่ ความยาก (7 ข้อ) |
 | `node railway/tests/perf.test.js` | draw call ต่อฉาก (ดู `docs/TESTING.md`) |
-| `sh unity/tools/check/check.sh` | สคริปต์ Unity คอมไพล์ผ่าน + ข้อมูล JSON โหลดได้ + ระบบจำลองสถานีให้ผลตรงกับเว็บ + ฉากสถานี/รถจำลองสร้างได้และหันหน้าถูกด้าน (30 ข้อ) |
+| `sh unity/tools/check/check.sh` | สคริปต์ Unity คอมไพล์ผ่าน + ข้อมูล JSON โหลดได้ + ระบบจำลองสถานีให้ผลตรงกับเว็บ + ฉากสถานี/รถไฟหันหน้าถูกด้านหลังแปลงแกน (34 ข้อ) |
 | `node railway/tools/export_unity.js` | ส่งออก JSON และสร้างค่าอ้างอิงจากเว็บ (`unity/tools/check/golden_*.json`) ให้ check.sh ใช้เทียบ |

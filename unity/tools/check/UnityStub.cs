@@ -22,10 +22,11 @@ namespace UnityEngine {
   public class Renderer : Component { public Material sharedMaterial; public bool receiveShadows; public Rendering.ShadowCastingMode shadowCastingMode; public void SetPropertyBlock(MaterialPropertyBlock b) {} }
   public class MeshRenderer : Renderer {}
   public class MeshFilter : Component { public Mesh sharedMesh, mesh; }
-  public class Mesh : Object { public Vector3[] vertices, normals; public Color32[] colors32; public int[] triangles; public Rendering.IndexFormat indexFormat;
+  public class Mesh : Object { public Vector3[] vertices, normals; public Vector2[] uv; public Color32[] colors32; public int[] triangles; public Rendering.IndexFormat indexFormat;
     public void RecalculateBounds() {} public void RecalculateNormals() {} public void UploadMeshData(bool markNoLongerReadable) {} }
-  public class Material : Object { public Material(Shader s) {} public Material(Material m) {} public bool enableInstancing; public Color color; }
-  public class Shader : Object { public static int PropertyToID(string n) { return 0; } public static Shader Find(string n) { return null; } }
+  public class Material : Object { public Material(Shader s) {} public Material(Material m) {} public bool enableInstancing; public Color color; public void SetTexture(string n, Texture t) {} public void SetFloat(string n, float v) {} }
+  public class Texture : Object {} public class Texture2D : Texture {} public class TextAsset : Object { public string text; }
+  public class Shader : Object { public static int PropertyToID(string n) { return 0; } public static Shader Find(string n) { return null; } public static void SetGlobalFloat(string n, float v) {} }
   public class Font : Object { public Material material; }
   public class TextMesh : Component { public string text; public bool richText; public TextAnchor anchor; public TextAlignment alignment; public int fontSize; public float characterSize; public Color color; public Font font; }
   public enum TextAnchor { UpperLeft, UpperCenter, UpperRight, MiddleLeft, MiddleCenter, MiddleRight, LowerLeft, LowerCenter, LowerRight }
@@ -61,7 +62,7 @@ namespace UnityEngine {
   public static class Mathf { public const float Deg2Rad = 0.0174f, Rad2Deg = 57.29f, PI = 3.14159f; public static float Tan(float a) { return a; } public static float Sin(float a) { return a; } public static float Abs(float a) { return a; }
     public static float Lerp(float a, float b, float t) { return a; } public static float LerpAngle(float a, float b, float t) { return a; } public static float DeltaAngle(float a, float b) { return a; }
     public static float Clamp(float v, float a, float b) { return v; } public static float Clamp01(float v) { return v; } public static float Atan2(float y, float x) { return y; } public static float Pow(float a, float b) { return a; }
-    public static int RoundToInt(float v) { return 0; } public static int Max(int a, int b) { return a; } public static float Max(float a, float b) { return a; } public static int Min(int a, int b) { return a; } public static float Min(float a, float b) { return a; } }
+    public static int RoundToInt(float v) { return 0; } public static float Round(float v) { return v; } public static int Max(int a, int b) { return a; } public static float Max(float a, float b) { return a; } public static int Min(int a, int b) { return a; } public static float Min(float a, float b) { return a; } }
   public static class Debug { public static void Log(object m, Object c = null) {} public static void LogWarning(object m, Object c = null) {} public static void LogError(object m, Object c = null) {} }
   public static class Time { public static float time, deltaTime, unscaledTime, unscaledDeltaTime; }
   public enum TouchPhase { Began, Moved, Stationary, Ended, Canceled }

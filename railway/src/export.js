@@ -56,3 +56,20 @@ function rtExport() {
   }
   return { '#golden': golden, 'stations.json': { stations, hualamphong: hlp }, 'timetable.json': timetable, 'rolling_stock.json': rolling, 'progression.json': progression, 'difficulty.json': difficulty, 'network.json': network };
 }
+/**
+ * Detailed train models for Unity: the exact merged geometry (positions, normals, atlas UVs) of every model,
+ * plus each livery family's painted atlas and night-emission atlas as PNG data URLs.
+ * Unity side: unity/Assets/Scripts/Trains/TrainLibrary.cs. Writer: railway/tools/export_unity.js.
+ */
+function rtExportTrains() {
+  const r = (a, k) => Array.from(a, x => Math.round(x * k) / k);
+  const keys = Object.keys(RS).filter(id => !id.endsWith('_car')).flatMap(id => RS[id].kind === 'dmu' || RS[id].kind === 'emu' ? [id, id + '_car'] : [id]);
+  const models = [], families = {};
+  for (const key of keys) {
+    trainModel(key);   // builds geometry and the family's atlas on first use
+    const g = TR3.geos[key], fam = rsResolve(key).k;
+    models.push({ key, family: fam, len: RS[key].len, p: r(g.attributes.position.array, 1000), n: r(g.attributes.normal.array, 1000), uv: r(g.attributes.uv.array, 10000) });
+    if (!families[fam]) { const m = TR3.mats[fam]; families[fam] = { tex: m.map.image.toDataURL('image/png'), em: m.emissiveMap.image.toDataURL('image/png'), rough: m.roughness, metal: m.metalness }; }
+  }
+  return { models, families: Object.keys(families).map(k => Object.assign({ family: k }, families[k])) };
+}

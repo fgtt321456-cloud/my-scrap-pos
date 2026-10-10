@@ -33,8 +33,9 @@ namespace ThaiRail.Trains
     }
 
     /// <summary>
-    /// Placeholder cars generated from rolling_stock.json (TrainMeshModel): one shared mesh per model, GameObjects
-    /// recycled through a small free list. Lets a station run with no art assigned at all.
+    /// Built-in cars with no prefabs needed: the detailed SRT models from <see cref="TrainLibrary"/> (same geometry and
+    /// liveries as the web build) when Resources/RailTrack/Trains is present, otherwise simple placeholders generated
+    /// from rolling_stock.json (TrainMeshModel). One shared mesh per model; GameObjects recycled through a free list.
     /// </summary>
     public sealed class ProceduralCarSource : ICarSource
     {
@@ -72,8 +73,10 @@ namespace ThaiRail.Trains
             {
                 var go = new GameObject("Car " + key); go.transform.SetParent(parent, false); tr = go.transform;
                 var body = new GameObject("Body"); body.transform.SetParent(tr, false); body.transform.localRotation = Quaternion.Euler(0, 180, 0);
-                body.AddComponent<MeshFilter>().sharedMesh = MeshFor(key, modelId, variant);
-                body.AddComponent<MeshRenderer>().sharedMaterial = _mat;
+                string lib = TrainLibrary.Resolve(modelId, _db);
+                Mesh mesh = lib != null ? TrainLibrary.MeshFor(lib) : null;
+                body.AddComponent<MeshFilter>().sharedMesh = mesh != null ? mesh : MeshFor(key, modelId, variant);
+                body.AddComponent<MeshRenderer>().sharedMaterial = mesh != null ? TrainLibrary.MaterialFor(lib) : _mat;
             }
             _key[tr] = key; return tr;
         }

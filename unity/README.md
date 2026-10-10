@@ -27,10 +27,13 @@ Assets/Scripts/
                StationSceneBuilder (สร้าง Mesh 2 ชิ้น = 2 draw call + ป้ายชื่อ)
   UI/          StationHud (HUD สร้างด้วยโค้ด อ่านจาก adapter อย่างเดียว)
   Game/        StationSceneBootstrap (ฉากเปล่า → สถานีที่เล่นได้)
-  Trains/      RollingStockCatalog (รหัสรุ่นรถ → prefab ใน pool), CarSources (prefab จริง หรือรถจำลอง)
-Assets/Resources/RailTrack/  shader สีตามจุดยอด (ทึบ/โปร่งใส)
+  Trains/      TrainLibrary (โมเดลรถไฟละเอียดจาก Resources), RollingStockCatalog (รหัสรุ่นรถ → prefab ใน pool),
+               CarSources (prefab จริง → โมเดลละเอียด → รถจำลองแบบง่าย ตามที่มี)
+Assets/Resources/RailTrack/  shader สีตามจุดยอด (ทึบ/โปร่งใส), shader รถไฟ (ลายรถ + ไฟหน้าต่างกลางคืน)
+Assets/Resources/RailTrack/Trains/  โมเดลรถไฟละเอียด 17 แบบ (trains.json) + atlas ลายรถ 12 แบบ (ส่งออกจากเว็บ ภาพเหมือนกัน)
 tools/check/   คอมไพล์สคริปต์ทั้งหมดและตรวจข้อมูลโดยไม่ต้องเปิด Unity: sh unity/tools/check/check.sh
                ดูภาพฉากที่สร้าง: DUMP=<dir> sh unity/tools/check/check.sh && node unity/tools/check/render_scenery.js <dir>
+               ดูภาพรถไฟ (ตรวจด้านและตัวอักษรข้างรถ): node unity/tools/check/render_trains.js <dir>
 ```
 
 - อัปเดต JSON: `node railway/tools/export_unity.js` (อย่าแก้ไฟล์ JSON ด้วยมือ ให้แก้ที่ `railway/src` แล้วส่งออกใหม่)
@@ -39,7 +42,7 @@ tools/check/   คอมไพล์สคริปต์ทั้งหมด�
 ### เริ่มเร็วที่สุด: ฉากเปล่า + คอมโพเนนต์เดียว
 1. สร้าง scene ใหม่ → GameObject เปล่า → เพิ่ม `StationSceneBootstrap` → กด Play
 2. ได้สถานีเชียงใหม่ที่สร้างจากผังจริงทันที: ราง ชานชาลา หลังคา อาคารทรงล้านนา โรงรถจักร วงเวียนกลับรถจักร ดอยสุเทพ
-   พร้อมขบวนรถตามตารางจริง (ใช้รถจำลองจากสีลายรถจริงใน rolling_stock.json จนกว่าจะใส่ prefab), กล้องไอโซเมตริก, HUD และกลางวัน/กลางคืน
+   พร้อมขบวนรถตามตารางจริงด้วยโมเดลรถไฟละเอียดชุดเดียวกับเว็บ (ไฟหน้าต่างและไฟหน้าติดตอนกลางคืน), กล้องไอโซเมตริก, HUD และกลางวัน/กลางคืน
 3. ปุ่มมุมขวาบน: หยุด/1×/2×/4× และสลับสถานี CMI NKI UBN HDY KRT · ตั้ง `font` เป็นฟอนต์ไทย (เช่น IBM Plex Sans Thai) เพื่อให้ตัวอักษรไทยสวย
 4. ควบคุม: ลากเพื่อเลื่อน, ล้อเมาส์/บีบนิ้วเพื่อซูม, คลิกขวาลาก/หมุนสองนิ้วเพื่อหมุน, แตะขบวนเพื่อเลือก
 
