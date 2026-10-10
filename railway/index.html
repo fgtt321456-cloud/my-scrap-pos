@@ -3257,7 +3257,6 @@ function tutTick() {
 }
 $('#coachSkip').addEventListener('click', tutEnd);
 $('#coachNext').addEventListener('click', tutEnd);
-
 // =================== Real SRT timetable (from the supplied "คู่มือสรุปข้อมูลโครงข่ายและการเดินรถไฟไทย") ===================
 // Long-distance express trains start at Krung Thep Aphiwat (KRT); ordinary and commuter trains still use Hua Lamphong.
 const TT_PLACES = { KRT: 'กรุงเทพอภิวัฒน์', CMI: 'เชียงใหม่', NKI: 'หนองคาย', UBN: 'อุบลราชธานี', HDY: 'ชุมทางหาดใหญ่', SGK: 'สุไหงโก-ลก', PBR: 'ปาดังเบซาร์', TRG: 'ตรัง', UDN: 'อุดรธานี', VTE: 'เวียงจันทน์ (คำสะหวาด)' };
@@ -3296,7 +3295,6 @@ function ttBoard(code) {
   return out.sort((a, b) => a.t.localeCompare(b.t));
 }
 const ttName = c => TT_PLACES[c] || (SMAP[c] && SMAP[c].name) || c;
-
 // =================== Rolling stock models based on real SRT fleet (one textured mesh per vehicle) ===================
 // Each vehicle is merged into a single geometry that samples one canvas atlas (side livery, cab face, end, roof and
 // colour swatches), so a whole train costs one draw call per vehicle. Windows also get an emissive atlas for night.
@@ -3550,7 +3548,6 @@ function trainThumb(consist, w = 520, h = 130) {
 }
 const thumbImg = (consist, cls = '') => { const u = trainThumb(consist); return u ? `<img class="rsimg ${cls}" src="${u}" alt="">` : ''; };
 const TIER_CONSIST = { THN: ['THN', 'THN_car', 'THN'], AD24C: ['ALS', 'coach', 'coach'], ASR: ['ASR', 'ASR_car', 'ASR'], QSY: ['CSR', 'cnr', 'cnr'] };
-
 // =================== Meta layer: main menu, hub picker, level & rewards, capacity, controllers, planner, fleet ===================
 // Player profile (level, coins, capacities, liveries, controllers) lives outside the network save so it survives a network reset.
 const META_KEY = 'railtrack-meta-v1';
@@ -4360,7 +4357,6 @@ $('#zoneBar').addEventListener('click', e => {
 TOOLS.term.splice(TOOLS.term.findIndex(t => t[0] === 'tcrew'), 0, ['gs', 'รถบริการ'], ['contracts', 'สัญญา']);
 TOOLS.term.unshift(['sinfo', 'ข้อมูลจริง']);
 ICONS.gs = '<path d="M3 20V9l9-5 9 5v11"/><path d="M7 20v-7h10v7M7 16h10"/>';
-
 // =================== Hua Lamphong live list, train card and platform selection (WoA-style) ===================
 const CLS = 'ABCD';
 // consist length class: A ≤4 vehicles, B ≤6, C ≤8, D 9–10; platforms 1–6 take D, 7–10 take C, 11–14 take B
@@ -4568,7 +4564,6 @@ $('#psList').addEventListener('click', e => {
   liveRender(true);
 });
 setInterval(() => { if (!state || !tstate) return; liveRender(); if (LIVE.sheet) renderPlatSheet(); }, 300);
-
 // =================== Real-world station layouts (scaled game models; 1 unit ≈ 1 m) ===================
 // Each layout follows the station's real arrangement as far as public descriptions allow: platform count and
 // type, terminus vs through, which side the building stands, building style, and notable surroundings.
@@ -5160,7 +5155,6 @@ function stnEnter(id) {
 }
 const stnStars = id => { const S = STN.st[id]; if (!S) return 1; const s = S.stats; return 1 + (s.dep >= 5) + (s.dep >= 5 && s.onTime / s.dep >= 0.8) + (s.dep >= 30) + (s.dep >= 10 && s.holdMin / s.dep < 2); };
 stnLoad();
-
 // =====================================================================
 // สถานีหัวลำโพง: คอขวด ประแจ อาณัติสัญญาณ NX/รีเลย์ ETCS และการกลับขบวน
 // =====================================================================
@@ -6445,7 +6439,6 @@ function tBeautyTick(time, dt) {
   }
   if (TB.clock && tstate) { const m = tstate.now / 60 % 60, h = tstate.now / 3600 % 12; TB.clock.m.rotation.x = m / 60 * Math.PI * 2; TB.clock.h.rotation.x = h / 12 * Math.PI * 2; }
 }
-
 
 // =================== Co-op: room (presence, ping) + db (leasing, rescue, relay) ===================
 const CO = { db: null, room: null, user: null, me: null, connected: false, peers: [], names: {}, fleets: {}, leases: [], rescues: [], relays: [], pend: {}, fleetSig: '', presSig: '', acc: 0, flushAcc: 0, writable: true };

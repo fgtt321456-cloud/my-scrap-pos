@@ -1,0 +1,88 @@
+
+/* ---- Terminal mode (หัวลำโพง) ---- */
+.pwrap{display:flex;flex-direction:column;min-height:0;flex:1}
+.modeseg{pointer-events:auto;flex:none;align-self:center}
+.modeseg button{font-family:var(--f-display);font-size:13px;padding:6px 11px}
+.nx{position:absolute;left:16px;right:16px;bottom:86px;z-index:3;max-width:1120px;margin-inline:auto;background:var(--hud);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);display:flex;flex-direction:column;max-height:calc(100% - 150px)}
+.nx-head{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.nx-head b{font-family:var(--f-display);font-size:14px;white-space:nowrap}
+.nx-hint{font-size:12px;color:var(--muted);flex:1;min-width:160px}
+.nx-body{overflow:auto;padding:4px 8px 6px;min-height:0}
+.nx-body svg{display:block;width:100%;min-width:720px;height:auto;user-select:none;-webkit-user-select:none}
+.nx.collapsed .nx-body{display:none}
+.nx.collapsed .nx-head{border-bottom:0}
+#nxToggle svg{width:14px;height:14px;display:block;transition:transform .2s}
+.nx.collapsed #nxToggle svg{transform:rotate(180deg)}
+.tog{border:1px solid var(--line);background:var(--panel-2);border-radius:7px;padding:4px 9px;font-size:12px;font-weight:600;white-space:nowrap}
+.tog[aria-pressed="true"]{background:var(--good-soft);color:var(--good);border-color:var(--good)}
+.nxplat{fill:var(--panel-2);stroke:var(--line)}
+.nxlbl{font-size:9px;fill:var(--muted);text-anchor:middle;letter-spacing:.04em}
+.nxe{stroke:var(--muted);stroke-width:2.4;stroke-linecap:round;opacity:.45}
+.nxe.rt{stroke:var(--good);opacity:1;stroke-width:3}
+.nxe.sh{stroke:var(--amber);opacity:1;stroke-width:3}
+.nxe.setting{stroke-dasharray:5 4;animation:dash .6s linear infinite}
+.nxe.occ{stroke:var(--bad);opacity:1;stroke-width:3.4}
+@keyframes dash{to{stroke-dashoffset:-18}}
+.nxn{fill:var(--panel);stroke:var(--fg);stroke-width:1.1;cursor:pointer}
+.nxn.slip{stroke-width:1.6}
+.nxn.rev{fill:var(--amber)}
+.nxn.lk{stroke:var(--good);stroke-width:2}
+.nxn.mv{animation:blink .5s steps(2) infinite}
+@keyframes blink{50%{opacity:.2}}
+.nxb{cursor:pointer}
+.nxb rect{fill:var(--panel);stroke:var(--fg);stroke-width:1}
+.nxb text{font-size:9px;text-anchor:middle;fill:var(--fg);font-family:var(--f-mono);font-weight:600}
+.nxb.sig text{text-anchor:start}
+.nxb.on rect,.nxb.on polygon{stroke:var(--accent);stroke-width:3}
+.nxb polygon{stroke:var(--fg);stroke-width:.8}
+.sig-red{fill:var(--bad)}
+.sig-yellow{fill:var(--amber)}
+.sig-green{fill:var(--good)}
+.nxtag{font-size:7.5px;fill:var(--fg);font-family:var(--f-body)}
+/* ETCS DMI: a fixed dark instrument face, same in both themes */
+.dmi{position:absolute;left:16px;top:14px;z-index:3;width:190px;background:#0f1b29;color:#dfe7f1;border:1px solid #23344a;border-radius:12px;padding:8px 10px 10px;box-shadow:var(--shadow);font-size:11px}
+.dmi-head{display:flex;justify-content:space-between;gap:6px;align-items:center}
+.dmi-head b{font-family:var(--f-display);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dmi-head span{font-family:var(--f-mono);font-weight:600;background:#23344a;border-radius:4px;padding:1px 6px;color:#e8c547}
+.dmi svg{display:block;width:100%;height:auto}
+.dmi-tgt{display:grid;gap:4px;color:#b9c4d2}
+.dmi-bar{height:6px;background:#23344a;border-radius:3px;overflow:hidden}
+.dmi-bar i{display:block;height:100%;background:#e8c547;width:0}
+.dmi-msg{margin-top:4px;color:#8b98a8;min-height:15px}
+.tasks{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.task{display:grid;gap:2px;font-size:10.5px;color:var(--muted);min-width:0}
+.task span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg)}
+.task small{font-size:10px}
+.task .bar{height:5px}
+.task.queue small{color:var(--amber);font-weight:600}
+.task.run i{background:var(--accent)}
+.task.done i{background:var(--good)}
+.task.done small{color:var(--good)}
+.ra{display:flex;flex-wrap:wrap;gap:4px;list-style:none;margin:0;padding:0;font-size:11px}
+.ra li{padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.ra li.done{background:var(--good-soft);color:var(--good);border-color:transparent}
+.ra li.now{background:var(--accent-soft);color:var(--fg);border-color:var(--accent);font-weight:600}
+.arrivals{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.arrivals li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;font-size:12px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.arrivals time{font-family:var(--f-mono);font-weight:600}
+.routes{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.routes li{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12px;padding:6px 8px;border:1px solid var(--line);border-radius:8px}
+.routes li .pill{margin-left:auto}
+.routes button{border:1px solid var(--line);background:var(--panel-2);border-radius:6px;padding:3px 8px;font-size:11px}
+.rack{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:5px}
+.lamp{display:flex;align-items:center;gap:5px;font-family:var(--f-mono);font-size:10.5px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel-2);white-space:nowrap;overflow:hidden}
+.lamp i{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+.lamp.up i{background:var(--good)}
+.lamp.dn i{background:var(--bad)}
+.lamp.lk i{background:var(--accent)}
+.lamp.rv i{background:var(--amber)}
+.lamp.mv i{background:var(--amber);animation:blink .5s steps(2) infinite}
+.lamp.locked{border-color:var(--accent)}
+.legend.rk span::before{border-radius:50%}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stats div{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.stats span{display:block;font-size:11px;color:var(--muted)}
+.stats b{font-size:15px}
+.res{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.res b{font-family:var(--f-display)}
+.res .info{min-height:0}
