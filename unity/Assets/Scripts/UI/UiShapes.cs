@@ -50,6 +50,12 @@ namespace ThaiRail.UI
             for (int k = 0; k <= seg; k++) { float a = Mathf.PI * 2 * k / seg; Add(P(cx + r * Mathf.Cos(a), cy + r * Mathf.Sin(a)), c); }
             for (int k = 0; k < seg; k++) { _i.Add(ci); _i.Add(first + k); _i.Add(first + k + 1); }
         }
+        /// <summary>Flat triangle list (x0,z0,x1,z1,x2,z2,…) mapped as ((x − ox)·k, (z − oz)·k) design units.</summary>
+        public void Tris(float[] xz, float ox, float oz, float k, Color32 c)
+        {
+            for (int i = 0; i + 5 < xz.Length; i += 6)
+                Triangle((xz[i] - ox) * k, (xz[i + 1] - oz) * k, (xz[i + 2] - ox) * k, (xz[i + 3] - oz) * k, (xz[i + 4] - ox) * k, (xz[i + 5] - oz) * k, c);
+        }
         /// <summary>Ring arc between angles a0..a1 (degrees, 0 = up, clockwise), radius r, thickness w.</summary>
         public void Arc(float cx, float cy, float r, float w, float a0, float a1, Color32 c, int segPer90 = 10)
         {

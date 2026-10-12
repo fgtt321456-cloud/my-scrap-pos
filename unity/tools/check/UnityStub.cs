@@ -54,7 +54,7 @@ namespace UnityEngine {
     public static Vector3 Lerp(Vector3 a, Vector3 b, float t) { return a; }
     public static Vector3 operator -(Vector3 a, Vector3 b) { return a; } public static Vector3 operator +(Vector3 a, Vector3 b) { return a; } public static Vector3 operator -(Vector3 a) { return a; }
     public static Vector3 operator *(Vector3 a, float d) { return a; } public static Vector3 operator *(float d, Vector3 a) { return a; } public float x0 { get { return x; } } public static Vector3 operator /(Vector3 a, float d) { return a; } }
-  public struct Rect { public Rect(float x, float y, float w, float h) { xMin = x; yMin = y; xMax = x + w; yMax = y + h; } public float xMin, yMin, xMax, yMax;
+  public struct Rect { public Rect(float x, float y, float w, float h) { xMin = x; yMin = y; xMax = x + w; yMax = y + h; } public float xMin, yMin, xMax, yMax; public float width { get { return xMax - xMin; } } public float height { get { return yMax - yMin; } }
     public static Rect MinMaxRect(float a, float b, float c, float d) { return default(Rect); } }
   public struct Quaternion { public static Quaternion identity; public static bool operator ==(Quaternion a, Quaternion b) { return true; } public static bool operator !=(Quaternion a, Quaternion b) { return false; } public override bool Equals(object o) { return true; } public override int GetHashCode() { return 0; } public static Quaternion Euler(float x, float y, float z) { return default(Quaternion); }
     public static Quaternion LookRotation(Vector3 f, Vector3 u) { return default(Quaternion); }
@@ -85,6 +85,7 @@ namespace UnityEngine {
     public Vector3 WorldToViewportPoint(Vector3 p) { return p; } public Vector3 WorldToScreenPoint(Vector3 p) { return p; } }
   public class RectTransform : Transform { public Rect rect; public Vector2 anchorMin, anchorMax, pivot, anchoredPosition, sizeDelta, offsetMin, offsetMax; }
   public class Sprite : Object {}
+  public static class RectTransformUtility { public static bool ScreenPointToLocalPointInRectangle(RectTransform r, Vector2 p, Camera c, out Vector2 local) { local = p; return true; } }
   public class CanvasRenderer : Component { public bool cull; }
   public class RangeAttribute : Attribute { public RangeAttribute(float a, float b) {} }
 }
@@ -119,7 +120,7 @@ namespace UnityEngine.UI {
   public class GridLayoutGroup : Behaviour { public Vector2 cellSize, spacing; }
 }
 namespace UnityEngine.EventSystems {
-  public class BaseEventData {} public class PointerEventData : BaseEventData {} public interface IPointerClickHandler { void OnPointerClick(PointerEventData e); }
+  public class BaseEventData {} public class PointerEventData : BaseEventData { public Vector2 position; public Camera pressEventCamera; } public interface IPointerClickHandler { void OnPointerClick(PointerEventData e); }
   public class EventSystem : Behaviour { public static EventSystem current; public bool IsPointerOverGameObject() { return false; } public bool IsPointerOverGameObject(int id) { return false; } }
   public class StandaloneInputModule : Behaviour {}
   public enum EventTriggerType { PointerEnter, PointerExit, PointerDown, PointerUp, PointerClick }

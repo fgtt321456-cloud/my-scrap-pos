@@ -230,7 +230,7 @@ namespace ThaiRail.UI
             win.gameObject.AddComponent<Button>().targetGraphic = win.GetComponent<Image>();   // swallow clicks so the shade does not close it
             var head = Box(win, "Head", new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), Vector2.zero, new Vector2(0, 72), Navy);
             _modalTitle = Label(head, "", 28, Color.white, TextAnchor.MiddleLeft, new Vector2(24, 0), new Vector2(800, 72)); _modalTitle.fontStyle = FontStyle.Bold;
-            var close = Button(head, "✕", new Vector2(1000 - 64, -12), new Vector2(48, 48), Navy2, Color.white, 24, CloseModal);
+            Button(head, "✕", new Vector2(1000 - 64, -12), new Vector2(48, 48), Navy2, Color.white, 24, CloseModal);
             var view = Box(win, "View", new Vector2(0, 0), new Vector2(1, 1), new Vector2(0.5f, 1), new Vector2(0, -72), new Vector2(0, -72), new Color(0, 0, 0, 0));
             view.gameObject.AddComponent<RectMask2D>();
             _modalContent = Box(view, "Content", new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), Vector2.zero, new Vector2(0, 0), new Color(0, 0, 0, 0));
@@ -252,7 +252,7 @@ namespace ThaiRail.UI
                 var row = Box(_modalContent, "Row", new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), new Vector2(0, y), new Vector2(-32, h), r.highlight ? Hex(0xFFF8E0) : Hex(0xF4F6F9));
                 var t = Label(row, r.title, 22, Fg, TextAnchor.UpperLeft, new Vector2(18, -10), new Vector2(560, 30)); t.fontStyle = FontStyle.Bold;
                 if (!string.IsNullOrEmpty(r.sub)) Label(row, r.sub, 17, Muted, TextAnchor.UpperLeft, new Vector2(18, -42), new Vector2(600, 46));
-                if (!string.IsNullOrEmpty(r.badge)) { var bd = Label(row, r.badge, 17, Good, TextAnchor.UpperRight, new Vector2(18, -12), new Vector2(920, 26)); }
+                if (!string.IsNullOrEmpty(r.badge)) Label(row, r.badge, 17, Good, TextAnchor.UpperRight, new Vector2(18, -12), new Vector2(920, 26));
                 float bx = 968 - 32;
                 for (int k = r.buttons.Count - 1; k >= 0; k--)
                 {

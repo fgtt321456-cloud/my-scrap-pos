@@ -90,7 +90,8 @@ namespace ThaiRail.Data
     /// <summary>kind: money | coins | cap | crew | liv (value = livery id).</summary>
     [Serializable] public sealed class Reward { public int lv; public string kind, value; }
     [Serializable] public sealed class ControllerDef { public string k, name, en, where, desc; }
-    [Serializable] public sealed class HubDef { public string id, mode, code, name, sub; }
+    /// <summary>lock = player level needed to open the hub (0 = open from the start).</summary>
+    [Serializable] public sealed class HubDef { public string id, mode, code, name, sub; public int @lock; }
     [Serializable] public sealed class FleetTierDef { public string id, name, full, desc; public int tier, unlock, price; }
 
     // ---------- difficulty.json ----------
@@ -122,6 +123,8 @@ namespace ThaiRail.Data
         public MapPoint[] railNodes;
         public RailEdge[] railEdges;
         public RailSnap[] snaps;
+        /// <summary>Exact map position of each station (paths start and end here, as railPath() does).</summary>
+        public StationPoint[] stationPoints;
         public Ring[] thailand;
         public Neighbour[] neighbours;
     }
@@ -129,6 +132,7 @@ namespace ThaiRail.Data
     [Serializable] public struct MapPoint { public float x, z; }
     [Serializable] public struct RailEdge { public int a, b; }
     [Serializable] public sealed class RailSnap { public string code; public int node; }
+    [Serializable] public sealed class StationPoint { public string code; public float x, z; }
     [Serializable] public sealed class Ring { public MapPoint[] pts; }
     [Serializable] public sealed class Neighbour { public string name; public Ring[] rings; }
 

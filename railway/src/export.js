@@ -31,7 +31,7 @@ function rtExport() {
     xpNeed: Array.from({ length: 40 }, (_, i) => xpNeed(i + 1)),
     rewards: REWARDS.map(r => ({ lv: r.lv, kind: r.k, value: String(r.v) })),
     controllers: CTRLS.map(c => pick(c, ['k', 'name', 'en', 'where', 'desc'])),
-    hubs: HUBS.map(h => pick(h, ['id', 'mode', 'code', 'name', 'sub'])),
+    hubs: HUBS.map(h => Object.assign({ lock: 0 }, pick(h, ['id', 'mode', 'code', 'name', 'sub', 'lock']))),
     tiers: TIER_LIST.map(k => pick(TIERS[k], ['id', 'tier', 'name', 'full', 'desc', 'unlock', 'price'])),
     liveries: Object.keys(LIVERIES).map(k => ({ k, name: LIVERIES[k].name, coins: LIVERIES[k].coins || 0 })),
     constants: { ctrlMin: CTRL_MIN, ctrlCoins: CTRL_COINS, ctrlBaht: CTRL_BAHT, capMax: CAP_MAX, crewMax: CREW_MAX, giftCoins: 5, levelCoins: 3, startCoins: 25, startCap: 3, startCrew: 3 },
@@ -47,6 +47,7 @@ function rtExport() {
     stations: STATIONS.map(d => Object.assign(pick(d, ['id', 'name', 'type', 'pax', 'cargo', 'cost', 'plat']), { x: d.x, z: d.z, railNode: GEO.snap[d.id] != null ? GEO.snap[d.id] : -1 })),
     railNodes: GEO.rn.map(([x, z]) => ({ x, z })), railEdges: GEO.re.map(([a, b]) => ({ a, b })),
     snaps: Object.keys(GEO.snap).map(code => ({ code, node: GEO.snap[code] })),
+    stationPoints: Object.keys(GEO.st).map(code => ({ code, x: GEO.st[code][0], z: GEO.st[code][1] })),
     thailand: GEO.th.map(ring => ({ pts: ring.map(([x, z]) => ({ x, z })) })),
     neighbours: Object.keys(GEO.nb).map(name => ({ name, rings: GEO.nb[name].map(ring => ({ pts: ring.map(([x, z]) => ({ x, z })) })) })),
   };
@@ -56,6 +57,10 @@ function rtExport() {
     const P = stnTrackPath(d, t), R = revPath(P);
     golden.paths.push({ station: d.id, track: t.n, len: P.len, stopE: stnStopS(d, { track: t.n, side: 'E' }, P), stopW: d.kind === 'T' ? -1 : stnStopS(d, { track: t.n, side: 'W' }, R), mid: pAtS(P, P.len * 0.37) });
   }
+  // real timetable trains on the map at fixed world times (empty delay ledger), for the C# map port
+  const saved = WORLD.ledger; WORLD.ledger = {};
+  golden.running = [6.5, 12, 19.25, 23.75, 30.5].map(h => ({ now: h * 3600, trains: ttRunning(h * 3600).map(r => ({ no: r.t.no, dday: r.dday, f: r.f, x: r.x, z: r.z })) }));
+  WORLD.ledger = saved;
   return { '#golden': golden, 'hualamphong.json': rtExportHlp(), 'stations.json': { stations, hualamphong: hlp }, 'timetable.json': timetable, 'rolling_stock.json': rolling, 'progression.json': progression, 'difficulty.json': difficulty, 'network.json': network };
 }
 /**

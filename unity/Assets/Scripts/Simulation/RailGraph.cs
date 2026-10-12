@@ -34,7 +34,7 @@ namespace ThaiRail.Simulation
             string k = from + "|" + to; MapPoint[] p;
             if (_cache.TryGetValue(k, out p)) return p;
             int s = _db.RailNode(from), t = _db.RailNode(to);
-            p = s < 0 || t < 0 ? null : Dijkstra(s, t);
+            p = s < 0 || t < 0 ? null : WithEnds(Dijkstra(s, t), from, to);
             _cache[k] = p; return p;
         }
         public float Km(string from, string to)
@@ -42,6 +42,26 @@ namespace ThaiRail.Simulation
             var p = Path(from, to); if (p == null) return -1;
             double L = 0; for (int i = 1; i < p.Length; i++) L += Math.Sqrt(Sq(p[i].x - p[i - 1].x) + Sq(p[i].z - p[i - 1].z));
             return (float)(L * _db.network.unitKm);
+        }
+
+        /// <summary>Like railPath(): start and end at the stations themselves and drop points closer than 0.05 units.</summary>
+        MapPoint[] WithEnds(MapPoint[] mid, string from, string to)
+        {
+            if (mid == null) return null;
+            var raw = new List<MapPoint>(); MapPoint a, b;
+            if (StationPoint(from, out a)) raw.Add(a);
+            raw.AddRange(mid);
+            if (StationPoint(to, out b)) raw.Add(b);
+            var pts = new List<MapPoint> { raw[0] };
+            for (int i = 1; i < raw.Count; i++) { var q = pts[pts.Count - 1]; if (Math.Sqrt(Sq(raw[i].x - q.x) + Sq(raw[i].z - q.z)) > 0.05) pts.Add(raw[i]); }
+            return pts.ToArray();
+        }
+        bool StationPoint(string code, out MapPoint p)
+        {
+            p = default(MapPoint);
+            if (_db.network.stationPoints == null) return false;
+            foreach (var s in _db.network.stationPoints) if (s.code == code) { p = new MapPoint { x = s.x, z = s.z }; return true; }
+            return false;
         }
 
         MapPoint[] Dijkstra(int s, int t)

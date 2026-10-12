@@ -8,7 +8,8 @@ const { open } = require('../tests/harness');
   const files = await page.evaluate(() => window.__rt.exportData());
   const out = path.join(__dirname, '../../unity/Assets/StreamingAssets/RailTrack');
   fs.mkdirSync(out, { recursive: true });
-  fs.writeFileSync(path.join(__dirname, '../../unity/tools/check/golden_paths.json'), JSON.stringify(files['#golden']) + '\n');
+  fs.writeFileSync(path.join(__dirname, '../../unity/tools/check/golden_paths.json'), JSON.stringify({ paths: files['#golden'].paths }) + '\n');
+  fs.writeFileSync(path.join(__dirname, '../../unity/tools/check/golden_map.json'), JSON.stringify({ running: files['#golden'].running }) + '\n');
   delete files['#golden'];
   for (const [name, data] of Object.entries(files)) {
     fs.writeFileSync(path.join(out, name), JSON.stringify(data, null, 1) + '\n');

@@ -41,7 +41,8 @@
 | แผง NX แบบรีเลย์, จอ DMI ของ ETCS | `hlp_engine.js` (`nx*`, `dmi*`) | `Stations/NxPanelModel.cs` (`NxPanelModel`, `DmiState`), `UI/NxPanelView.cs`, `UI/DmiView.cs` |
 | เลเวล รางวัล ของขวัญ ห้องควบคุม ทีมภาคพื้น | `meta.js` | `Meta/MetaService.cs`, `UI/MetaPanels.cs`, `HlpEngine.BuyTeams` |
 | shader สำหรับ URP | — | `Resources/RailTrack/URP~` (เปลี่ยนชื่อเป็น URP เมื่อใช้) + `Scenery/RailTrackShaders.cs` |
-| รถ/เรือ/ผู้คนเคลื่อนไหว, เมนูหลัก, แผนที่ประเทศไทย, ร้านลายรถ, สัญญา/เครือข่าย | `hlp_scenery.js`, `hlp_fx.js`, `meta.js`, `core_net.js`, `world.js` | ยังไม่ย้าย |
+| เมนูหลัก หน้าเลือกสถานี แผนที่ประเทศไทยกับขบวนจริง | `meta.js` (HUBS, stars), `world.js` (`ttRunning`), `core_net.js` (`drawMap2d`) | `Meta/MenuModel.cs`, `Simulation/TimetableTrains.cs`, `UI/MainMenuView.cs`, `UI/MapView.cs` |
+| รถ/เรือ/ผู้คนเคลื่อนไหว, ร้านลายรถ, เกมเครือข่าย (ซื้อเส้นทาง สัญญาขนส่ง) | `hlp_scenery.js`, `hlp_fx.js`, `meta.js`, `core_net.js` | ยังไม่ย้าย |
 
 ## 2. โมเดลโดเมน
 
@@ -135,5 +136,5 @@ sched ──(ถึงเวลา eta−5 นาที)──► approach ─�
 | `node railway/tests/smoke.test.js` | เส้นทางหลักของเกมทั้งหมด (12 ข้อ) |
 | `node railway/tests/world.test.js` | นาฬิกาโลก ความล่าช้าข้ามสถานี การไล่เวลา ขบวนจริงบนแผนที่ ความยาก (7 ข้อ) |
 | `node railway/tests/perf.test.js` | draw call ต่อฉาก (ดู `docs/TESTING.md`) |
-| `sh unity/tools/check/check.sh` | สคริปต์ Unity คอมไพล์ผ่าน + ข้อมูล JSON โหลดได้ + ระบบจำลองสถานีให้ผลตรงกับเว็บ + ฉากสถานี/รถไฟหันหน้าถูกด้านหลังแปลงแกน (50 ข้อ) |
+| `sh unity/tools/check/check.sh` | สคริปต์ Unity คอมไพล์ผ่าน + ข้อมูล JSON โหลดได้ + ระบบจำลองสถานีให้ผลตรงกับเว็บ + ฉากสถานี/รถไฟหันหน้าถูกด้านหลังแปลงแกน (53 ข้อ) |
 | `node railway/tools/export_unity.js` | ส่งออก JSON และสร้างค่าอ้างอิงจากเว็บ (`unity/tools/check/golden_*.json`) ให้ check.sh ใช้เทียบ |

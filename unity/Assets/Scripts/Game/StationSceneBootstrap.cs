@@ -22,7 +22,8 @@ namespace ThaiRail.Game
         [Tooltip("HLP (Hua Lamphong), CMI, NKI, UBN, HDY or KRT")] public string stationId = "CMI";
         [Tooltip("Optional real train prefabs (needs a PoolManager). Empty = generated placeholder trains")] public RollingStockCatalog catalog;
         [Tooltip("Thai-capable font for the HUD and signs (e.g. IBM Plex Sans Thai)")] public Font font;
-        [Tooltip("Start with the approach and departure controllers (ARS) switched on")] public bool startWithArs;
+        [Tooltip("Debug: force the approach and departure controllers (ARS) on")] public bool startWithArs;
+        [Tooltip("Open the main menu (station picker + Thailand map) first instead of going straight to stationId")] public bool startInMenu = true;
 
         StationSceneBuilder _builder;
         IStationView _view;
@@ -37,7 +38,7 @@ namespace ThaiRail.Game
             if (RailTrackWorld.Instance == null) { var w = gameObject.AddComponent<RailTrackWorld>(); w.ctrlApp = w.ctrlDep = startWithArs; }
             while (RailTrackWorld.Instance == null || !RailTrackWorld.Instance.Ready) yield return null;
             SetupCameraAndLight();
-            Open(stationId);
+            if (startInMenu) ShowMenu(); else Open(stationId);
         }
 
         void SetupCameraAndLight()
@@ -53,8 +54,32 @@ namespace ThaiRail.Game
         }
 
         /// <summary>Tear down the current station (its state is kept by RailTrackWorld) and open another.</summary>
+        MainMenuView _menu;
+        /// <summary>Close the station (its state is kept) and show the main menu with the live Thailand map.</summary>
+        public void ShowMenu()
+        {
+            if (_stationRoot != null) { Destroy(_stationRoot); _stationRoot = null; }
+            _view = null;
+            var W = RailTrackWorld.Instance; W.mapOpen = true; W.Save();
+            if (_menu == null)
+            {
+                _menu = MainMenuView.Create(transform, new ThaiRail.Meta.MenuModel(W.Db), W.Graph, font != null ? font : BuiltinFont());
+                _menu.Open += Open;
+            }
+            _menu.gameObject.SetActive(true);
+        }
+        static Font BuiltinFont()
+        {
+            Font f = null;
+            try { f = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); } catch (System.Exception) { }
+            if (f == null) try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch (System.Exception) { }
+            return f;
+        }
+
         public void Open(string id)
         {
+            if (_menu != null) _menu.gameObject.SetActive(false);
+            RailTrackWorld.Instance.mapOpen = false;
             if (_stationRoot != null) Destroy(_stationRoot);
             stationId = id;
             _stationRoot = new GameObject("Station " + id);
@@ -92,6 +117,7 @@ namespace ThaiRail.Game
             _hud = _stationRoot.AddComponent<StationHud>(); _hud.font = font;
             _hud.Bind(_view.Adapter, _view, _rig);
             var W0 = RailTrackWorld.Instance;
+            _hud.AddToolButton("เมนู", 4, ShowMenu);
             _hud.AddToolButton("ห้องควบคุม", 1, () => _hud.ShowModal("ห้องควบคุม", () => MetaPanels.ControlRoom(W0)));
             _hud.AddToolButton("รางวัล", 2, () => _hud.ShowModal("รางวัลและเลเวล", () => MetaPanels.Rewards(W0, n => W0.Earn(n, "reward"))));
             var hlpRunner = _view as HlpStationRunner;

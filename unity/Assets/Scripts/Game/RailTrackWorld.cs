@@ -111,6 +111,14 @@ namespace ThaiRail.Game
         MetaProfile _savedMeta;
         HlpEngine _hlp;
 
+        /// <summary>A station's saved record without starting it (menu stars); null when never played.</summary>
+        public StationState StationStateIfAny(string id)
+        {
+            TimetableStationSim sim; if (_sims.TryGetValue(id, out sim)) return sim.State;
+            StationState s; return _pending.TryGetValue(id, out s) ? s : null;
+        }
+        public HlpState HuaLamphongStateIfAny() { return _hlp != null ? _hlp.S : _pendingHlp; }
+
         /// <summary>Hua Lamphong's interlocking engine (its own clock: ordinary and commuter trains), restored from the save.</summary>
         public HlpEngine HuaLamphong()
         {
