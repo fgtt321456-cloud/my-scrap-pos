@@ -1,0 +1,50 @@
+name: Unity tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/railway-management-game-627d3h]
+    paths: ['unity/**', '.github/workflows/unity-tests.yml']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Unity secrets
+        id: secrets
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+        run: |
+          if [ -z "$UNITY_LICENSE" ] || [ -z "$UNITY_EMAIL" ]; then
+            echo "::warning::UNITY_LICENSE / UNITY_EMAIL / UNITY_PASSWORD secrets are not set; skipping Unity tests (see unity/README.md)"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.secrets.outputs.ok == 'true'
+        with: { lfs: true }
+      - uses: actions/cache@v4
+        if: steps.secrets.outputs.ok == 'true'
+        with:
+          path: unity/Library
+          key: Library-${{ hashFiles('unity/Packages/manifest.json', 'unity/ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: Library-
+      - uses: game-ci/unity-test-runner@v4
+        if: steps.secrets.outputs.ok == 'true'
+        id: tests
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity
+          testMode: all
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: Unity test results
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.secrets.outputs.ok == 'true'
+        with:
+          name: unity-test-results
+          path: ${{ steps.tests.outputs.artifactsPath }}

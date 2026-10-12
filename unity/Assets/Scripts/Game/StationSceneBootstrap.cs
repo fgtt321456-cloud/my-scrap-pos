@@ -27,6 +27,9 @@ namespace ThaiRail.Game
 
         StationSceneBuilder _builder;
         IStationView _view;
+        /// <summary>The station on screen (null in the menu).</summary>
+        public IStationView View { get { return _view; } }
+        public bool MenuOpen { get { return _menu != null && _menu.gameObject.activeSelf; } }
         StationCameraRig _rig;
         StationHud _hud;
         Light _sun;

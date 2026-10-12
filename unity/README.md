@@ -127,3 +127,27 @@ PoolManager.Instance.ReleaseAfter(effect, 2f); // ปลอดภัยแม้
 ## การตรวจสอบ
 
 โค้ดผ่านการคอมไพล์ด้วย Mono C# (`-langversion:7.2`) กับ stub ของ UnityEngine API เท่านั้น ยังไม่ได้รันใน Unity Editor จริง
+
+## Testing in real Unity
+
+The project is set up for Unity **2022.3 LTS** (`ProjectSettings/ProjectVersion.txt`) with the Test Framework.
+
+**On your machine (Unity Hub installed):**
+1. `git clone` this repo → `git checkout claude/railway-management-game-627d3h`
+2. Unity Hub → Add → choose the `unity/` folder → open with 2022.3.x
+3. Window → General → Test Runner → EditMode → Run All, then PlayMode → Run All
+4. Play: an empty scene + GameObject + `StationSceneBootstrap` → Play (menu → pick a station)
+
+**Command line (no editor window):**
+```
+<Unity> -batchmode -projectPath unity -runTests -testPlatform EditMode -testResults results-edit.xml -logFile -
+<Unity> -batchmode -projectPath unity -runTests -testPlatform PlayMode -testResults results-play.xml -logFile -
+```
+`<Unity>` = `"C:\Program Files\Unity\Hub\Editor\2022.3.40f1\Editor\Unity.exe"` (Windows) or
+`/Applications/Unity/Hub/Editor/2022.3.40f1/Unity.app/Contents/MacOS/Unity` (mac).
+
+**GitHub Actions (`.github/workflows/unity-tests.yml`, GameCI):** add repo secrets `UNITY_LICENSE`
+(contents of `Unity_lic.ulf`), `UNITY_EMAIL`, `UNITY_PASSWORD` under Settings → Secrets and variables → Actions.
+Without them the workflow skips with a warning. Never paste these values into a chat.
+
+**URP:** rename `Assets/Resources/RailTrack/URP~` to `URP` when the project uses URP.
